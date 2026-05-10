@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    heart.svg — Heart
+    Precise two-arc construction: each half is a smooth bezier arc meeting
+    at the top dimple and joining to a clean point at the base.
+    Use on: Nail care section, wishlist, testimonials, "loved by customers" blocks.
+    Filled variant: set fill="currentColor" and remove stroke.
+  -->
+  <path d="M12 21
+           L4.2 13.2
+           C2 11 2 7.5 4.2 5.3
+           C6.4 3.1 10 3.1 12 5.3
+           C14 3.1 17.6 3.1 19.8 5.3
+           C22 7.5 22 11 19.8 13.2
+           Z"/>
+</svg>

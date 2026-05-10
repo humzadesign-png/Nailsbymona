@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Track Your Order — Nails by Mona</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..600,30..100&family=DM+Sans:opsz,wght@9..40,300..600&display=swap" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bone: '#F4EFE8', paper: '#FBF8F2', shell: '#EAE3D9',
+            ink: '#1A1614', graphite: '#3A332E', stone: '#7A6F65',
+            ash: '#B5A99C', hairline: '#E0D9CE',
+            lavender: '#BFA4CE', lavenderDark: '#9B7FB4',
+            lavenderInk: '#5B4570', lavenderWash: '#F2ECF8',
+            bridalBg: '#EDE2C8', footerBg: '#2C1F2E',
+            gold: '#B8924A', goldDeep: '#8F6F37',
+            success: '#3F6E4A', warning: '#A6671A', danger: '#A33A2E',
+          },
+          fontFamily: { serif: ['"Fraunces"','Georgia','serif'], sans: ['"DM Sans"','ui-sans-serif','system-ui'] },
+          fontSize: {
+            'display-xl': ['clamp(3.5rem,7vw,5.5rem)', { lineHeight: '0.95', letterSpacing: '-0.02em', fontWeight: '300' }],
+            'display-lg': ['clamp(2.5rem,4.5vw,3.75rem)', { lineHeight: '1.0', letterSpacing: '-0.015em', fontWeight: '300' }],
+            'display': ['clamp(2rem,3.5vw,3rem)', { lineHeight: '1.05', letterSpacing: '-0.01em', fontWeight: '300' }],
+            'h3': ['1.25rem', { lineHeight: '1.4', fontWeight: '500' }],
+            'body-lg': ['1.125rem', { lineHeight: '1.75', fontWeight: '400' }],
+            'body': ['1rem', { lineHeight: '1.65', fontWeight: '400' }],
+            'caption': ['0.875rem', { lineHeight: '1.5', fontWeight: '400' }],
+            'eyebrow': ['0.6875rem', { lineHeight: '1.0', letterSpacing: '0.2em', fontWeight: '600' }],
+          },
+          maxWidth: { '7xl': '80rem' },
+          boxShadow: { 'card': '0 2px 12px rgba(26,22,20,0.06)', 'card-hover': '0 8px 32px rgba(26,22,20,0.12)', 'drawer': '-12px 0 40px rgba(26,22,20,0.08)' }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'DM Sans', ui-sans-serif, system-ui; -webkit-font-smoothing: antialiased; }
+    .font-serif { font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'opsz' 144, 'SOFT' 30; }
+    .img-wrap-fallback { background: linear-gradient(135deg, #EAE3D9 0%, #FBF8F2 60%, #E0D9CE 100%); }
+    html { scroll-behavior: smooth; }
+
+    /* Timeline */
+    .tl-connector {
+      width: 2px;
+      background: #E0D9CE;
+      flex-shrink: 0;
+      margin: 0 auto;
+    }
+    .tl-connector.done { background: #BFA4CE; }
+
+    /* Pulsing ring for current step */
+    @keyframes tlPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(191,164,206,0.5); }
+      50%      { box-shadow: 0 0 0 10px rgba(191,164,206,0); }
+    }
+    .tl-current { animation: tlPulse 1.6s ease-in-out infinite; }
+
+    /* Bag drawer */
+    #bag-drawer {
+      transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
+    }
+    #bag-overlay {
+      transition: opacity 0.3s ease;
+    }
+
+    /* Spinner (for lookup button) */
+    .spinner-sm {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+
+<body class="bg-bone text-graphite antialiased">
+
+<!-- ─── HEADER (full standard nav) ─── -->
+<header class="sticky top-0 z-50 bg-bone/90 backdrop-blur-md border-b border-hairline/60">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10 h-[72px] flex items-center justify-between">
+    <a href="home.html" aria-label="Nails by Mona — Home" class="shrink-0 flex items-center">
+      <img src="../public/logo-text.svg" alt="Nails by Mona" class="h-[46px] w-auto" width="220" height="77"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+      <span class="font-serif tracking-tight text-lavender" style="display:none; font-size:1.5rem; line-height:1; font-variation-settings:'opsz' 144,'SOFT' 30">Nails by Mona</span>
+    </a>
+    <nav class="hidden lg:flex items-center gap-9">
+      <a href="shop.html"    class="font-sans text-caption font-medium text-stone hover:text-ink transition-colors duration-200">Shop</a>
+      <a href="bridal.html"  class="font-sans text-caption font-medium text-stone hover:text-ink transition-colors duration-200">Bridal</a>
+      <a href="about.html"   class="font-sans text-caption font-medium text-stone hover:text-ink transition-colors duration-200">About</a>
+      <a href="blog.html"    class="font-sans text-caption font-medium text-stone hover:text-ink transition-colors duration-200">Journal</a>
+      <a href="contact.html" class="font-sans text-caption font-medium text-stone hover:text-ink transition-colors duration-200">Help</a>
+    </nav>
+    <div class="flex items-center gap-5">
+      <button id="bag-toggle" aria-label="Open bag" class="relative p-0.5 text-stone hover:text-ink transition-colors duration-200">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M40,72H216a8,8,0,0,1,8,8.83l-12.43,112a8,8,0,0,1-8,7.17H52.4a8,8,0,0,1-8-7.17L32,80.83A8,8,0,0,1,40,72Z"/><path d="M88,104V72a40,40,0,0,1,80,0v32"/></svg>
+        <span id="bag-count" class="absolute -top-2 -right-2 hidden min-w-[17px] h-[17px] px-[3px] rounded-full bg-lavender text-white font-sans text-[9px] font-semibold items-center justify-center leading-none">0</span>
+      </button>
+      <button id="mobile-menu-toggle" aria-label="Open menu" class="lg:hidden p-0.5 text-stone hover:text-ink">
+        <svg class="w-5 h-5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round"><line x1="40" y1="80" x2="216" y2="80"/><line x1="40" y1="128" x2="216" y2="128"/><line x1="40" y1="176" x2="216" y2="176"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ─── MOBILE MENU ─── -->
+<div id="mobile-menu" aria-hidden="true" class="fixed inset-0 z-[60] hidden bg-bone overflow-y-auto">
+  <div class="h-[72px] flex items-center justify-between px-6 border-b border-hairline">
+    <a href="home.html" class="flex items-center shrink-0">
+      <img src="../public/logo-text.svg" alt="Nails by Mona" class="h-10 w-auto" width="180" height="63" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+      <span class="font-serif text-xl text-lavender tracking-tight" style="display:none; font-variation-settings:'opsz' 144,'SOFT' 30">Nails by Mona</span>
+    </a>
+    <button id="mobile-menu-close" aria-label="Close menu" class="p-1 text-stone hover:text-ink">
+      <svg class="w-5 h-5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round"><line x1="200" y1="56" x2="56" y2="200"/><line x1="200" y1="200" x2="56" y2="56"/></svg>
+    </button>
+  </div>
+  <nav class="px-8 pt-12 pb-8 flex flex-col gap-6">
+    <a href="shop.html"   class="font-serif text-display text-ink" style="font-variation-settings:'opsz' 144,'SOFT' 30">Shop</a>
+    <a href="bridal.html" class="font-serif text-display text-ink" style="font-variation-settings:'opsz' 144,'SOFT' 30">Bridal</a>
+    <a href="about.html"  class="font-serif text-display text-ink" style="font-variation-settings:'opsz' 144,'SOFT' 30">About</a>
+    <a href="blog.html"   class="font-serif text-display text-ink" style="font-variation-settings:'opsz' 144,'SOFT' 30">Journal</a>
+  </nav>
+  <div class="px-8 pt-8 pb-4 border-t border-hairline flex flex-col gap-4">
+    <a href="contact.html"   class="font-sans text-eyebrow uppercase tracking-widest text-stone">Help</a>
+    <a href="size-guide.html" class="font-sans text-eyebrow uppercase tracking-widest text-stone">Size Guide</a>
+    <a href="order-tracking.html" class="font-sans text-eyebrow uppercase tracking-widest text-lavender">Track Order</a>
+  </div>
+  <div class="px-8 pb-10 flex items-center gap-6">
+    <a href="#" aria-label="Instagram" class="text-stone hover:text-ink transition-colors">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/></svg>
+    </a>
+    <a href="#" aria-label="WhatsApp" class="text-stone hover:text-success transition-colors">
+      <svg class="w-5 h-5" viewBox="0 0 256 256" fill="currentColor"><path d="M187.58,144.84l-32-16a8,8,0,0,0-8,.5l-14.69,9.8a40.55,40.55,0,0,1-16-16l9.8-14.69a8,8,0,0,0,.5-8l-16-32a8,8,0,0,0-8.18-4.68A48.11,48.11,0,0,0,56,112c0,79.4,64.6,144,144,144a48.11,48.11,0,0,0,43.87-47.01A8,8,0,0,0,239.58,200.84Z"/></svg>
+    </a>
+  </div>
+</div>
+
+<!-- ─── BAG DRAWER ─── -->
+<div id="bag-overlay" class="fixed inset-0 z-[55] bg-ink/30 opacity-0 pointer-events-none" aria-hidden="true"></div>
+<aside id="bag-drawer" role="dialog" aria-modal="true" aria-label="Your bag"
+       class="fixed top-0 right-0 z-[56] h-full w-full max-w-[400px] bg-paper shadow-drawer translate-x-full flex flex-col">
+  <div class="h-[72px] flex items-center justify-between px-6 border-b border-hairline shrink-0">
+    <h2 class="font-sans text-caption font-semibold text-ink">Your bag</h2>
+    <button id="bag-close" aria-label="Close bag" class="p-1 text-stone hover:text-ink transition-colors">
+      <svg class="w-5 h-5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round"><line x1="200" y1="56" x2="56" y2="200"/><line x1="200" y1="200" x2="56" y2="56"/></svg>
+    </button>
+  </div>
+  <!-- Bag body -->
+  <div id="bag-body" class="flex-1 overflow-y-auto px-6 py-6">
+    <div id="bag-empty" class="flex flex-col items-center justify-center h-full text-center py-12">
+      <div class="w-16 h-16 bg-shell rounded-full flex items-center justify-center mb-5">
+        <svg class="w-7 h-7 text-ash" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M40,72H216a8,8,0,0,1,8,8.83l-12.43,112a8,8,0,0,1-8,7.17H52.4a8,8,0,0,1-8-7.17L32,80.83A8,8,0,0,1,40,72Z"/><path d="M88,104V72a40,40,0,0,1,80,0v32"/></svg>
+      </div>
+      <p class="font-sans text-body font-medium text-graphite mb-1">Your bag is empty</p>
+      <p class="font-sans text-caption text-stone mb-6">Add a design you love to get started.</p>
+      <a href="shop.html" class="font-sans text-caption font-semibold text-lavenderInk hover:text-lavenderDark underline underline-offset-2 transition-colors">Browse the collection →</a>
+    </div>
+    <div id="bag-items" class="hidden space-y-4"></div>
+  </div>
+  <!-- Bag footer -->
+  <div id="bag-footer" class="hidden shrink-0 border-t border-hairline px-6 py-5">
+    <div class="flex justify-between mb-4">
+      <span class="font-sans text-caption text-stone">Subtotal</span>
+      <span id="bag-subtotal" class="font-sans text-caption font-semibold text-ink">PKR 0</span>
+    </div>
+    <a href="order-form.html"
+       class="block w-full bg-lavender hover:bg-lavenderDark text-white text-center font-sans text-caption font-semibold py-4 rounded-full transition-colors duration-200">
+      Checkout
+    </a>
+    <p class="mt-3 font-sans text-[11px] text-stone text-center">Shipping calculated at checkout.</p>
+  </div>
+</aside>
+
+<main>
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- SECTION 1 — Lookup Form                         -->
+<!-- ─────────────────────────────────────────────── -->
+<section id="lookup-section" class="bg-bone min-h-[70vh] flex items-center py-16">
+  <div class="max-w-[480px] mx-auto px-6 w-full">
+
+    <div class="text-center mb-10">
+      <h1 class="font-serif text-display text-ink mb-4" style="font-variation-settings:'opsz' 144,'SOFT' 30">Track your order.</h1>
+      <p class="font-sans text-body text-stone">Enter your order number and the email or WhatsApp number you used when ordering.</p>
+    </div>
+
+    <!-- Error card (hidden by default) -->
+    <div id="lookup-error" class="hidden mb-5 bg-danger/8 border border-danger/25 rounded-xl px-5 py-4">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-danger shrink-0 mt-0.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round"><circle cx="128" cy="128" r="96"/><line x1="128" y1="88" x2="128" y2="136"/><circle cx="128" cy="168" r="4" fill="currentColor"/></svg>
+        <div>
+          <p class="font-sans text-caption font-semibold text-danger">Order not found.</p>
+          <p class="font-sans text-caption text-stone mt-0.5">Please check your order number and contact detail, and try again.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form card -->
+    <div class="bg-paper rounded-2xl shadow-card p-6 md:p-8">
+      <div class="space-y-5">
+
+        <div>
+          <label for="order-number" class="block font-sans text-caption font-semibold text-graphite mb-2">Order number</label>
+          <input type="text" id="order-number" name="order_number" placeholder="e.g. NBM-2026-0042" autocomplete="off"
+                 class="w-full font-sans text-body border border-hairline bg-bone rounded-xl px-4 py-3 text-ink placeholder-ash focus:outline-none focus:border-lavender focus:ring-1 focus:ring-lavender transition-colors">
+        </div>
+
+        <div>
+          <label for="contact-detail" class="block font-sans text-caption font-semibold text-graphite mb-2">Email or WhatsApp number</label>
+          <input type="text" id="contact-detail" name="contact" placeholder="e.g. 0312 3456789 or email"
+                 class="w-full font-sans text-body border border-hairline bg-bone rounded-xl px-4 py-3 text-ink placeholder-ash focus:outline-none focus:border-lavender focus:ring-1 focus:ring-lavender transition-colors">
+        </div>
+
+        <button id="find-order-btn"
+                class="w-full bg-lavender hover:bg-lavenderDark text-white font-sans text-caption font-semibold py-4 rounded-full transition-colors duration-200 mt-2">
+          Find my order
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Help link -->
+    <p class="text-center mt-6 font-sans text-caption text-stone">
+      Can't find your order?
+      <a href="https://wa.me/923001234567?text=Hello%20Nails%20by%20Mona%2C%20I%20have%20a%20question%20about%20my%20order."
+         target="_blank" rel="noopener"
+         class="text-lavenderInk hover:text-lavenderDark underline underline-offset-2 transition-colors">Get help on WhatsApp →</a>
+    </p>
+
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- SECTION 2 — Tracking View (hidden until lookup) -->
+<!-- ─────────────────────────────────────────────── -->
+<section id="tracking-section" class="hidden bg-bone py-12">
+  <div class="max-w-[560px] mx-auto px-6">
+
+    <!-- Back link -->
+    <button id="back-to-lookup" class="mb-8 font-sans text-caption text-stone hover:text-ink flex items-center gap-2 transition-colors">
+      <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round"><polyline points="160,64 80,128 160,192"/></svg>
+      Track another order
+    </button>
+
+    <!-- Order header card -->
+    <div class="bg-shell rounded-2xl p-6 mb-8">
+      <div class="flex items-start gap-4">
+        <div class="w-16 h-16 rounded-xl overflow-hidden shrink-0 img-wrap-fallback flex items-center justify-center">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-FEqr3y4HHy4ARO2lGmknJFimxX2jW1IivBi7-2mJvJvGRq2VNM1c2CPNDA4GHOyUhT_dVe_lJ53AGrCW-1nQmLnK2LG4pMNrmFmj2m5b5DJaDlWR8X-CMKJ0u1AXER3Tg4JZqpCFkx6IrZqfpJUjXMRvNDCYumqlXLWMGwg4pBxvJiZ1e16qZ00C58Uea5amkLJDAg5pkTl1kE3kTPgVl6Ep1cOuDiEf16a_cxDVbEW-C1mENEIDECnvWLJjjvGjbFxeSa3c"
+               alt="Dusty Rose Ombre press-on nail set" class="w-full h-full object-cover" onerror="this.remove()" width="64" height="64">
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-sans text-eyebrow uppercase text-lavender mb-1">Order NBM-2026-0001</p>
+          <p class="font-sans text-body font-semibold text-ink">Dusty Rose Ombré</p>
+          <span class="inline-block mt-1 font-sans text-[10px] font-semibold uppercase tracking-widest text-lavenderInk bg-lavenderWash px-2 py-0.5 rounded-full">Signature</span>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="font-sans text-caption font-semibold text-ink">PKR 3,050</p>
+          <p class="font-sans text-[11px] text-stone mt-0.5">incl. shipping</p>
+        </div>
+      </div>
+
+      <div class="mt-5 pt-5 border-t border-hairline grid grid-cols-2 gap-4">
+        <div>
+          <p class="font-sans text-eyebrow uppercase text-stone mb-1">Ordered</p>
+          <p class="font-sans text-caption text-graphite">7 May 2026</p>
+        </div>
+        <div>
+          <p class="font-sans text-eyebrow uppercase text-stone mb-1">Est. dispatch</p>
+          <p class="font-sans text-caption text-graphite">12–14 May 2026</p>
+        </div>
+        <div>
+          <p class="font-sans text-eyebrow uppercase text-stone mb-1">Deliver to</p>
+          <p class="font-sans text-caption text-graphite">Sara, Lahore</p>
+        </div>
+        <div>
+          <p class="font-sans text-eyebrow uppercase text-stone mb-1">Payment</p>
+          <p class="font-sans text-caption text-graphite">JazzCash · Verified</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status: In Production (current demo) -->
+    <div class="bg-paper rounded-2xl p-6 mb-6">
+      <h2 class="font-sans text-caption font-semibold text-graphite mb-6">Order status</h2>
+
+      <!-- TIMELINE — vertical, 5 nodes -->
+      <div class="flex flex-col">
+
+        <!-- Node 1: Order Placed ✓ -->
+        <div class="flex items-start gap-4">
+          <!-- Icon column -->
+          <div class="flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full bg-lavender flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-white" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"><polyline points="40,128 96,184 216,72"/></svg>
+            </div>
+          </div>
+          <!-- Content -->
+          <div class="pb-6 flex-1">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="font-sans text-caption font-semibold text-ink">Order Placed</p>
+                <p class="font-sans text-[12px] text-stone mt-0.5">We received your order and reserved your spot.</p>
+              </div>
+              <span class="font-sans text-[11px] text-stone shrink-0 ml-4 mt-0.5">7 May</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connector 1→2 (done) -->
+        <div class="flex items-start gap-4">
+          <div class="flex flex-col items-center w-10">
+            <div class="tl-connector done h-8"></div>
+          </div>
+          <div class="flex-1"></div>
+        </div>
+
+        <!-- Node 2: Payment Received ✓ -->
+        <div class="flex items-start gap-4">
+          <div class="flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full bg-lavender flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-white" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"><polyline points="40,128 96,184 216,72"/></svg>
+            </div>
+          </div>
+          <div class="pb-6 flex-1">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="font-sans text-caption font-semibold text-ink">Payment Received</p>
+                <p class="font-sans text-[12px] text-stone mt-0.5">Your payment has been verified. Thank you!</p>
+              </div>
+              <span class="font-sans text-[11px] text-stone shrink-0 ml-4 mt-0.5">7 May</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connector 2→3 (done) -->
+        <div class="flex items-start gap-4">
+          <div class="flex flex-col items-center w-10">
+            <div class="tl-connector done h-8"></div>
+          </div>
+          <div class="flex-1"></div>
+        </div>
+
+        <!-- Node 3: In Production ← CURRENT (pulsing) -->
+        <div class="flex items-start gap-4">
+          <div class="flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full bg-lavender tl-current flex items-center justify-center shrink-0">
+              <!-- Nail icon for "making" -->
+              <svg class="w-4 h-4 text-white" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><path d="M128,28c-52,0-92,44-92,100v8a20,20,0,0,0,40,0v-8a52,52,0,0,1,104,0v8a20,20,0,0,0,40,0v-8C220,72,180,28,128,28Z"/></svg>
+            </div>
+          </div>
+          <div class="pb-6 flex-1">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="font-sans text-caption font-semibold text-lavenderInk">In Production</p>
+                <p class="font-sans text-[12px] text-stone mt-0.5">Mona is making your set right now.</p>
+                <span class="inline-flex items-center gap-1.5 mt-2 font-sans text-[11px] font-semibold text-lavenderInk bg-lavenderWash px-2.5 py-1 rounded-full">
+                  <span class="w-1.5 h-1.5 rounded-full bg-lavender inline-block" style="animation: tlPulse 1.6s ease-in-out infinite"></span>
+                  In progress
+                </span>
+              </div>
+              <span class="font-sans text-[11px] text-stone shrink-0 ml-4 mt-0.5">Now</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connector 3→4 (future / grey) -->
+        <div class="flex items-start gap-4">
+          <div class="flex flex-col items-center w-10">
+            <div class="tl-connector h-8"></div>
+          </div>
+          <div class="flex-1"></div>
+        </div>
+
+        <!-- Node 4: Shipped (future) -->
+        <div class="flex items-start gap-4">
+          <div class="flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full border-2 border-hairline bg-bone flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-ash" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="112" width="152" height="112" rx="8"/><path d="M168,112l32-56h24l32,56"/><line x1="16" y1="160" x2="168" y2="160"/><circle cx="60" cy="224" r="16"/><circle cx="136" cy="224" r="16"/></svg>
+            </div>
+          </div>
+          <div class="pb-6 flex-1 opacity-50">
+            <p class="font-sans text-caption font-semibold text-stone">Shipped</p>
+            <p class="font-sans text-[12px] text-stone mt-0.5">Your parcel is with the courier. Tracking number coming soon.</p>
+          </div>
+        </div>
+
+        <!-- Connector 4→5 (future / grey) -->
+        <div class="flex items-start gap-4">
+          <div class="flex flex-col items-center w-10">
+            <div class="tl-connector h-8"></div>
+          </div>
+          <div class="flex-1"></div>
+        </div>
+
+        <!-- Node 5: Delivered (future) -->
+        <div class="flex items-start gap-4">
+          <div class="flex flex-col items-center">
+            <div class="w-10 h-10 rounded-full border-2 border-hairline bg-bone flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-ash" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M40,208H216a8,8,0,0,0,8-8V56a8,8,0,0,0-8-8H40a8,8,0,0,0-8,8V200A8,8,0,0,0,40,208Z"/><polyline points="80,128 112,160 176,96"/></svg>
+            </div>
+          </div>
+          <div class="flex-1 opacity-50">
+            <p class="font-sans text-caption font-semibold text-stone">Delivered</p>
+            <p class="font-sans text-[12px] text-stone mt-0.5">Enjoy your nails, dear!</p>
+          </div>
+        </div>
+
+      </div><!-- /timeline -->
+    </div>
+
+    <!-- Estimated dispatch note -->
+    <div class="bg-lavenderWash rounded-xl px-5 py-4 mb-6 flex items-start gap-3">
+      <svg class="w-4 h-4 text-lavender shrink-0 mt-0.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round"><circle cx="128" cy="128" r="96"/><line x1="128" y1="88" x2="128" y2="136"/><circle cx="128" cy="168" r="4" fill="currentColor"/></svg>
+      <p class="font-sans text-caption text-graphite">
+        Estimated dispatch: <strong>12–14 May 2026</strong>. You'll receive your tracking number by WhatsApp the same day your parcel is handed to the courier.
+      </p>
+    </div>
+
+  </div><!-- /max-w-[560px] -->
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- SECTION 3 — WhatsApp Help (always visible)      -->
+<!-- ─────────────────────────────────────────────── -->
+<section class="bg-paper py-12">
+  <div class="max-w-[560px] mx-auto px-6 text-center">
+
+    <div class="w-12 h-12 mx-auto mb-5 rounded-full bg-success/10 flex items-center justify-center">
+      <svg class="w-6 h-6 text-success" viewBox="0 0 256 256" fill="currentColor"><path d="M187.58,144.84l-32-16a8,8,0,0,0-8,.5l-14.69,9.8a40.55,40.55,0,0,1-16-16l9.8-14.69a8,8,0,0,0,.5-8l-16-32a8,8,0,0,0-8.18-4.68A48.11,48.11,0,0,0,56,112c0,79.4,64.6,144,144,144a48.11,48.11,0,0,0,43.87-47.01A8,8,0,0,0,239.58,200.84Z"/></svg>
+    </div>
+
+    <h3 class="font-serif text-h3 text-ink mb-2" style="font-variation-settings:'opsz' 48,'SOFT' 20">Have a question about your order?</h3>
+    <p class="font-sans text-body text-stone mb-6">
+      Send us a WhatsApp message with your order number and we'll get back to you within a few hours during business hours (10am–9pm, Mon–Sat).
+    </p>
+
+    <a href="https://wa.me/923001234567?text=Hello%20Nails%20by%20Mona%2C%20I%20have%20a%20question%20about%20my%20order."
+       target="_blank" rel="noopener"
+       class="inline-flex items-center gap-2.5 bg-lavender hover:bg-lavenderDark text-white font-sans text-caption font-semibold py-4 px-8 rounded-full transition-colors duration-200">
+      <svg class="w-4 h-4" viewBox="0 0 256 256" fill="currentColor"><path d="M187.58,144.84l-32-16a8,8,0,0,0-8,.5l-14.69,9.8a40.55,40.55,0,0,1-16-16l9.8-14.69a8,8,0,0,0,.5-8l-16-32a8,8,0,0,0-8.18-4.68A48.11,48.11,0,0,0,56,112c0,79.4,64.6,144,144,144a48.11,48.11,0,0,0,43.87-47.01A8,8,0,0,0,239.58,200.84Z"/></svg>
+      Get help on WhatsApp
+    </a>
+
+  </div>
+</section>
+
+</main>
+
+<!-- ─── FOOTER (full dark footer) ─── -->
+<footer class="py-16" style="background:#2C1F2E">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10">
+
+    <!-- 4-column grid -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-16 mb-14">
+      <!-- Col 1: Brand -->
+      <div class="col-span-2 lg:col-span-1">
+        <a href="home.html" aria-label="Nails by Mona — Home" class="block mb-5">
+          <img src="../public/logo-text.svg" alt="Nails by Mona" class="h-10 w-auto" width="180" height="63"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+          <span class="font-serif text-xl text-lavender tracking-tight" style="display:none; font-variation-settings:'opsz' 144,'SOFT' 30">Nails by Mona</span>
+        </a>
+        <p class="font-sans text-caption mb-6" style="color:rgba(244,239,232,0.55)">Handmade in Mirpur.<br>Shipped across Pakistan.</p>
+        <div class="flex items-center gap-4">
+          <a href="#" aria-label="Instagram" class="transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.45)">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/></svg>
+          </a>
+          <a href="#" aria-label="WhatsApp" class="transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.45)">
+            <svg class="w-5 h-5" viewBox="0 0 256 256" fill="currentColor"><path d="M187.58,144.84l-32-16a8,8,0,0,0-8,.5l-14.69,9.8a40.55,40.55,0,0,1-16-16l9.8-14.69a8,8,0,0,0,.5-8l-16-32a8,8,0,0,0-8.18-4.68A48.11,48.11,0,0,0,56,112c0,79.4,64.6,144,144,144a48.11,48.11,0,0,0,43.87-47.01A8,8,0,0,0,239.58,200.84Z"/></svg>
+          </a>
+          <a href="#" aria-label="TikTok" class="transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.45)">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 00-.79-.05A6.34 6.34 0 003.15 15.3a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.17 8.17 0 004.77 1.52V6.77a4.85 4.85 0 01-1-.08z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Col 2: Shop -->
+      <div>
+        <p class="font-sans text-eyebrow uppercase mb-5" style="color:rgba(244,239,232,0.35)">Shop</p>
+        <ul class="space-y-3">
+          <li><a href="shop.html"   class="font-sans text-caption transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.6)">All designs</a></li>
+          <li><a href="bridal.html" class="font-sans text-caption transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.6)">Bridal Trio</a></li>
+          <li><a href="shop.html"   class="font-sans text-caption transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.6)">Everyday</a></li>
+          <li><a href="shop.html"   class="font-sans text-caption transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.6)">Signature</a></li>
+          <li><a href="shop.html"   class="font-sans text-caption transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.6)">Glam</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Help -->
+      <div>
+        <p class="font-sans text-eyebrow uppercase mb-5" style="color:rgba(244,239,232,0.35)">Help</p>
+        <ul class="space-y-3">
+          <li><a href="size-guide.html"     class="font-sans text-caption transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.6)">Size guide</a></li>
+          <li><a href="contact.html"        class="font-sans text-caption transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.6)">Customer care</a></li>
+          <li><a href="order-tracking.html" class="font-sans text-caption transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.6)">Track order</a></li>
+          <li><a href="#"                   class="font-sans text-caption transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.6)">Returns & refits</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 4: Studio -->
+      <div>
+        <p class="font-sans text-eyebrow uppercase mb-5" style="color:rgba(244,239,232,0.35)">Studio</p>
+        <ul class="space-y-3">
+          <li><a href="about.html"  class="font-sans text-caption transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.6)">About</a></li>
+          <li><a href="blog.html"   class="font-sans text-caption transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.6)">Journal</a></li>
+          <li><a href="#"           class="font-sans text-caption transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.6)">Care &amp; reuse</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="border-t pt-8 flex flex-col sm:flex-row items-center justify-between gap-4" style="border-color:rgba(244,239,232,0.1)">
+      <p class="font-sans text-[11px]" style="color:rgba(244,239,232,0.3)">© 2026 Nails by Mona. All rights reserved.</p>
+      <div class="flex items-center gap-6">
+        <a href="#" class="font-sans text-[11px] transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.35)">Privacy</a>
+        <a href="#" class="font-sans text-[11px] transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.35)">Terms</a>
+        <a href="#" class="font-sans text-[11px] transition-opacity hover:opacity-100" style="color:rgba(244,239,232,0.35)">Shipping</a>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+<script>
+$(function() {
+
+  /* ── Mobile menu ── */
+  $('#mobile-menu-toggle').on('click', function() {
+    $('#mobile-menu').removeClass('hidden').attr('aria-hidden', 'false');
+    $('body').css('overflow', 'hidden');
+  });
+  $('#mobile-menu-close').on('click', function() {
+    $('#mobile-menu').addClass('hidden').attr('aria-hidden', 'true');
+    $('body').css('overflow', '');
+  });
+
+  /* ── Bag drawer ── */
+  var BAG_KEY = 'nbm.bag';
+
+  function readBag() {
+    try { return JSON.parse(localStorage.getItem(BAG_KEY)) || []; }
+    catch(e) { return []; }
+  }
+
+  function formatPKR(n) {
+    return 'PKR ' + Number(n).toLocaleString('en-PK');
+  }
+
+  function renderBag() {
+    var items = readBag();
+    var $count = $('#bag-count');
+    if (items.length === 0) {
+      $count.addClass('hidden').text('0');
+      $('#bag-items').addClass('hidden');
+      $('#bag-footer').addClass('hidden');
+      $('#bag-empty').show();
+    } else {
+      var total = items.reduce(function(s,i) { return s + i.price * (i.qty || 1); }, 0);
+      $count.removeClass('hidden').addClass('flex').text(items.length);
+      $('#bag-empty').hide();
+      $('#bag-items').removeClass('hidden').empty();
+      items.forEach(function(item, idx) {
+        $('#bag-items').append(
+          '<div class="flex items-start gap-3 py-3 border-b border-hairline last:border-0">' +
+          '<div class="w-14 h-14 rounded-lg bg-shell shrink-0 img-wrap-fallback flex items-center justify-center"><img src="' + (item.image||'') + '" alt="' + item.name + '" class="w-full h-full object-cover rounded-lg" onerror="this.remove()" width="56" height="56"></div>' +
+          '<div class="flex-1 min-w-0"><p class="font-sans text-caption font-medium text-ink leading-snug">' + item.name + '</p>' +
+          '<p class="font-sans text-caption text-lavender mt-0.5">' + formatPKR(item.price) + '</p></div>' +
+          '<button class="remove-item font-sans text-caption text-ash hover:text-danger transition-colors ml-2 mt-0.5" data-idx="' + idx + '" aria-label="Remove">×</button>' +
+          '</div>'
+        );
+      });
+      $('#bag-subtotal').text(formatPKR(total));
+      $('#bag-footer').removeClass('hidden');
+    }
+  }
+
+  function openBag() {
+    renderBag();
+    $('#bag-drawer').removeClass('translate-x-full');
+    $('#bag-overlay').removeClass('opacity-0 pointer-events-none').addClass('opacity-100 pointer-events-auto');
+    $('body').css('overflow', 'hidden');
+  }
+  function closeBag() {
+    $('#bag-drawer').addClass('translate-x-full');
+    $('#bag-overlay').addClass('opacity-0 pointer-events-none').removeClass('opacity-100 pointer-events-auto');
+    $('body').css('overflow', '');
+  }
+
+  $('#bag-toggle').on('click', openBag);
+  $('#bag-close, #bag-overlay').on('click', closeBag);
+
+  $(document).on('click', '.remove-item', function() {
+    var idx = parseInt($(this).data('idx'));
+    var items = readBag();
+    items.splice(idx, 1);
+    localStorage.setItem(BAG_KEY, JSON.stringify(items));
+    renderBag();
+  });
+
+  renderBag();
+
+
+  /* ── Order lookup ── */
+  function validateLookup() {
+    var orderNum = $('#order-number').val().trim();
+    var contact  = $('#contact-detail').val().trim();
+    return orderNum.length >= 5 && contact.length >= 5;
+  }
+
+  $('#order-number, #contact-detail').on('input', function() {
+    if (validateLookup()) {
+      $('#find-order-btn').removeClass('bg-ash').addClass('bg-lavender');
+    }
+  });
+
+  $('#find-order-btn').on('click', function() {
+    if (!validateLookup()) {
+      $('#lookup-error').removeClass('hidden');
+      $('#lookup-error').find('p.text-danger').text('Please fill in both fields.');
+      $('#lookup-error').find('p.text-stone').text('Enter your order number and the contact detail used at checkout.');
+      return;
+    }
+
+    var $btn = $(this);
+    $btn.html('<span class="spinner-sm mr-2"></span> Searching…').prop('disabled', true);
+
+    // Simulate lookup — show tracking view after 1.2s (demo: any input succeeds)
+    setTimeout(function() {
+      var orderNum = $('#order-number').val().trim().toUpperCase();
+      // Demo: show error if order doesn't look like NBM format; else show tracking view
+      if (!orderNum.match(/NBM/i) && orderNum !== 'TEST') {
+        $('#lookup-error').removeClass('hidden');
+        $('#lookup-error').find('p.text-danger').text('Order not found.');
+        $('#lookup-error').find('p.text-stone').text('Please check your order number and contact detail, and try again.');
+        $btn.html('Find my order').prop('disabled', false);
+      } else {
+        $('#lookup-section').addClass('hidden');
+        $('#tracking-section').removeClass('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        $btn.html('Find my order').prop('disabled', false);
+      }
+    }, 1200);
+  });
+
+  // Allow Enter key on form fields
+  $('#order-number, #contact-detail').on('keydown', function(e) {
+    if (e.key === 'Enter') $('#find-order-btn').trigger('click');
+  });
+
+  // Back to lookup
+  $('#back-to-lookup').on('click', function() {
+    $('#tracking-section').addClass('hidden');
+    $('#lookup-section').removeClass('hidden');
+    $('#lookup-error').addClass('hidden');
+    $('#order-number').val('');
+    $('#contact-detail').val('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+});
+</script>
+
+</body>
+</html>

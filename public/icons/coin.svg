@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    coin.svg — Rupee coin (PKR / Rs.)
+    Two-circle construction (outer edge + inner rim) with the ₨ (Pakistani Rupee)
+    symbol drawn from paths: two crossbars, left vertical stroke, and a
+    diagonal — the exact construction of the ₨ character.
+    Use on: Size guide ("place a Rs. 5 coin here"), sizing step tip.
+  -->
+
+  <!-- Coin outer rim -->
+  <circle cx="12" cy="12" r="9.5"/>
+
+  <!-- Coin inner face (raised relief ring) -->
+  <circle cx="12" cy="12" r="7"/>
+
+  <!-- ₨ symbol — two crossbars + vertical + diagonal -->
+  <!-- Top horizontal bar (longer) -->
+  <line x1="9.5" y1="9.5"  x2="14.5" y2="9.5"/>
+  <!-- Second horizontal bar (slightly shorter) -->
+  <line x1="9.5" y1="11.5" x2="13.5" y2="11.5"/>
+  <!-- Vertical stroke (left column of the ₨) -->
+  <line x1="9.5" y1="9.5"  x2="9.5"  y2="15.5"/>
+  <!-- Diagonal from second bar going down-right -->
+  <line x1="9.5" y1="11.5" x2="14.5" y2="15.5"/>
+</svg>

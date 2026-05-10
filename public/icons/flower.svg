@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+  <!--
+    flower.svg — 5-petal flower (decorative accent)
+    Each petal is a bezier leaf shape drawn FROM the center outward,
+    then rotated 72° × 4 around the icon center. Using fill (not stroke)
+    means overlapping petals merge cleanly with no intersecting lines.
+    Center circle covers the join point.
+    Use on: Section dividers, bridal page, about page, decorative accents.
+    This is decorative — use sparingly, not as a nav icon.
+  -->
+
+  <!-- Petal 1 — pointing up -->
+  <path d="M12 12 C10.4 9.5 10.4 6.8 12 4.8 C13.6 6.8 13.6 9.5 12 12Z"/>
+
+  <!-- Petal 2 — 72° clockwise -->
+  <path d="M12 12 C10.4 9.5 10.4 6.8 12 4.8 C13.6 6.8 13.6 9.5 12 12Z"
+        transform="rotate(72 12 12)"/>
+
+  <!-- Petal 3 — 144° -->
+  <path d="M12 12 C10.4 9.5 10.4 6.8 12 4.8 C13.6 6.8 13.6 9.5 12 12Z"
+        transform="rotate(144 12 12)"/>
+
+  <!-- Petal 4 — 216° -->
+  <path d="M12 12 C10.4 9.5 10.4 6.8 12 4.8 C13.6 6.8 13.6 9.5 12 12Z"
+        transform="rotate(216 12 12)"/>
+
+  <!-- Petal 5 — 288° -->
+  <path d="M12 12 C10.4 9.5 10.4 6.8 12 4.8 C13.6 6.8 13.6 9.5 12 12Z"
+        transform="rotate(288 12 12)"/>
+
+  <!-- Center circle — covers the petal join, acts as the flower's heart -->
+  <circle cx="12" cy="12" r="2.6"/>
+</svg>

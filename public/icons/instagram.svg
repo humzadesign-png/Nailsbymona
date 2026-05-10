@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    instagram.svg — Instagram brand icon
+    Rounded-square body matches Instagram's official icon proportions (rx=5.5).
+    Lens circle at center. Filled dot top-right for the camera flash indicator.
+    Use on: Footer social links, "follow us" section, about page.
+  -->
+
+  <!-- Outer rounded square -->
+  <rect x="2" y="2" width="20" height="20" rx="5.5"/>
+
+  <!-- Camera lens -->
+  <circle cx="12" cy="12" r="4.5"/>
+
+  <!-- Flash / indicator dot -->
+  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+</svg>

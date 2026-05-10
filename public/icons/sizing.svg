@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    sizing.svg — Measurement ruler
+    Three major ticks and four minor ticks. Major ticks reach halfway down,
+    minor ticks reach one-third. Proportions match a real ruler.
+    Use on: Size guide page, sizing order step, size guide CTA.
+  -->
+
+  <!-- Ruler body with rounded corners -->
+  <rect x="2.5" y="9" width="19" height="6" rx="1.5"/>
+
+  <!-- Major ticks — reach halfway into the ruler -->
+  <line x1="7"  y1="9" x2="7"  y2="12"/>
+  <line x1="12" y1="9" x2="12" y2="12.5"/>
+  <line x1="17" y1="9" x2="17" y2="12"/>
+
+  <!-- Minor ticks — shorter, between the major ticks -->
+  <line x1="4.75" y1="9" x2="4.75" y2="11"/>
+  <line x1="9.5"  y1="9" x2="9.5"  y2="11"/>
+  <line x1="14.5" y1="9" x2="14.5" y2="11"/>
+  <line x1="19.25" y1="9" x2="19.25" y2="11"/>
+</svg>

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Order Confirmed — Nails by Mona</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..600,30..100&family=DM+Sans:opsz,wght@9..40,300..600&display=swap" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bone: '#F4EFE8', paper: '#FBF8F2', shell: '#EAE3D9',
+            ink: '#1A1614', graphite: '#3A332E', stone: '#7A6F65',
+            ash: '#B5A99C', hairline: '#E0D9CE',
+            lavender: '#BFA4CE', lavenderDark: '#9B7FB4',
+            lavenderInk: '#5B4570', lavenderWash: '#F2ECF8',
+            bridalBg: '#EDE2C8', footerBg: '#2C1F2E',
+            gold: '#B8924A', goldDeep: '#8F6F37',
+            success: '#3F6E4A', warning: '#A6671A', danger: '#A33A2E',
+          },
+          fontFamily: { serif: ['"Fraunces"','Georgia','serif'], sans: ['"DM Sans"','ui-sans-serif','system-ui'] },
+          fontSize: {
+            'display-xl': ['clamp(3.5rem,7vw,5.5rem)', { lineHeight: '0.95', letterSpacing: '-0.02em', fontWeight: '300' }],
+            'display-lg': ['clamp(2.5rem,4.5vw,3.75rem)', { lineHeight: '1.0', letterSpacing: '-0.015em', fontWeight: '300' }],
+            'display': ['clamp(2rem,3.5vw,3rem)', { lineHeight: '1.05', letterSpacing: '-0.01em', fontWeight: '300' }],
+            'h3': ['1.25rem', { lineHeight: '1.4', fontWeight: '500' }],
+            'body-lg': ['1.125rem', { lineHeight: '1.75', fontWeight: '400' }],
+            'body': ['1rem', { lineHeight: '1.65', fontWeight: '400' }],
+            'caption': ['0.875rem', { lineHeight: '1.5', fontWeight: '400' }],
+            'eyebrow': ['0.6875rem', { lineHeight: '1.0', letterSpacing: '0.2em', fontWeight: '600' }],
+          },
+          maxWidth: { '7xl': '80rem' },
+          boxShadow: { 'card': '0 2px 12px rgba(26,22,20,0.06)', 'card-hover': '0 8px 32px rgba(26,22,20,0.12)' }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'DM Sans', ui-sans-serif, system-ui; -webkit-font-smoothing: antialiased; }
+    .font-serif { font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'opsz' 144, 'SOFT' 30; }
+    .img-wrap-fallback { background: linear-gradient(135deg, #EAE3D9 0%, #FBF8F2 60%, #E0D9CE 100%); }
+    html { scroll-behavior: smooth; }
+
+    /* Checkmark animation */
+    @keyframes checkScale {
+      0%   { transform: scale(0.5); opacity: 0; }
+      60%  { transform: scale(1.08); opacity: 1; }
+      100% { transform: scale(1.0); opacity: 1; }
+    }
+    .check-animate { animation: checkScale 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both; }
+
+    /* Drag-drop zone */
+    .drop-zone {
+      border: 2px dashed #E0D9CE;
+      border-radius: 16px;
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: #FBF8F2;
+    }
+    .drop-zone.drag-over {
+      border-color: #BFA4CE;
+      background: #F2ECF8;
+    }
+    .drop-zone input[type="file"] { display: none; }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Timeline steps */
+    .timeline-connector {
+      width: 2px;
+      background: #E0D9CE;
+      height: 40px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+
+<body class="bg-paper text-graphite antialiased">
+
+<!-- HEADER — logo + WhatsApp proof link -->
+<header class="sticky top-0 z-50 bg-paper/90 backdrop-blur-md border-b border-hairline/60">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10 h-[72px] flex items-center justify-between">
+    <a href="home.html" aria-label="Nails by Mona — Home" class="shrink-0 flex items-center">
+      <img src="../public/logo-text.svg" alt="Nails by Mona" class="h-[46px] w-auto" width="220" height="77"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+      <span class="font-serif tracking-tight text-lavender" style="display:none; font-size:1.5rem; line-height:1; font-variation-settings:'opsz' 144,'SOFT' 30">Nails by Mona</span>
+    </a>
+    <a href="https://wa.me/923001234567?text=Hello%20Nails%20by%20Mona%2C%20Here%27s%20my%20payment%20proof%20for%20order%20NBM-2026-0001."
+       target="_blank" rel="noopener"
+       class="font-sans text-caption text-stone hover:text-ink flex items-center gap-2 transition-colors duration-200">
+      <svg class="w-4 h-4 text-success shrink-0" viewBox="0 0 256 256" fill="currentColor"><path d="M187.58,144.84l-32-16a8,8,0,0,0-8,.5l-14.69,9.8a40.55,40.55,0,0,1-16-16l9.8-14.69a8,8,0,0,0,.5-8l-16-32a8,8,0,0,0-8.18-4.68A48.11,48.11,0,0,0,56,112c0,79.4,64.6,144,144,144a48.11,48.11,0,0,0,43.87-47.01A8,8,0,0,0,239.58,200.84Z"/></svg>
+      Send payment proof
+    </a>
+  </div>
+</header>
+
+<main>
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- SECTION 1 — Success Confirmation                -->
+<!-- ─────────────────────────────────────────────── -->
+<section class="bg-paper pt-16 pb-12">
+  <div class="max-w-[600px] mx-auto px-6 text-center">
+
+    <!-- Animated checkmark -->
+    <div class="check-animate w-24 h-24 mx-auto mb-8 rounded-full bg-lavenderWash flex items-center justify-center">
+      <svg class="w-12 h-12 text-lavender" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="40,128 96,184 216,72"/>
+      </svg>
+    </div>
+
+    <!-- Heading -->
+    <h1 class="font-serif text-display text-ink mb-4" style="font-variation-settings:'opsz' 144,'SOFT' 30">Your order is placed, dear. Thank you.</h1>
+
+    <!-- Order number -->
+    <p class="font-sans text-body-lg text-stone mb-2">
+      Order number: <strong class="text-ink font-semibold">NBM-2026-0001</strong> — save this for tracking.
+    </p>
+
+    <!-- Email confirmation -->
+    <p class="font-sans text-caption text-stone">
+      A confirmation has been sent to <span class="text-graphite font-medium">sara@example.com</span>
+    </p>
+
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- SECTION 2 — Order Summary Card                  -->
+<!-- ─────────────────────────────────────────────── -->
+<section class="bg-paper pb-12">
+  <div class="max-w-[600px] mx-auto px-6">
+
+    <div class="bg-shell rounded-2xl p-6">
+
+      <!-- Product row -->
+      <div class="flex items-start gap-4 pb-5 border-b border-hairline">
+        <div class="w-20 h-20 rounded-xl overflow-hidden shrink-0 img-wrap-fallback flex items-center justify-center">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-FEqr3y4HHy4ARO2lGmknJFimxX2jW1IivBi7-2mJvJvGRq2VNM1c2CPNDA4GHOyUhT_dVe_lJ53AGrCW-1nQmLnK2LG4pMNrmFmj2m5b5DJaDlWR8X-CMKJ0u1AXER3Tg4JZqpCFkx6IrZqfpJUjXMRvNDCYumqlXLWMGwg4pBxvJiZ1e16qZ00C58Uea5amkLJDAg5pkTl1kE3kTPgVl6Ep1cOuDiEf16a_cxDVbEW-C1mENEIDECnvWLJjjvGjbFxeSa3c"
+               alt="Dusty Rose Ombre press-on nail set" class="w-full h-full object-cover" onerror="this.remove()" width="80" height="80">
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <p class="font-sans text-body font-medium text-ink">Dusty Rose Ombré</p>
+              <span class="inline-block mt-1 font-sans text-[10px] font-semibold uppercase tracking-widest text-lavenderInk bg-lavenderWash px-2 py-0.5 rounded-full">Signature</span>
+              <p class="mt-2 font-sans text-caption text-stone">✓ Sizing photos received</p>
+            </div>
+            <span class="font-sans text-body font-semibold text-ink shrink-0">PKR 2,800</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Price breakdown -->
+      <div class="py-4 border-b border-hairline space-y-2">
+        <div class="flex justify-between">
+          <span class="font-sans text-caption text-stone">Product</span>
+          <span class="font-sans text-caption text-graphite">PKR 2,800</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="font-sans text-caption text-stone">Shipping</span>
+          <span class="font-sans text-caption text-graphite">PKR 250</span>
+        </div>
+      </div>
+      <div class="pt-4 flex justify-between">
+        <span class="font-sans text-caption font-semibold text-ink">Total</span>
+        <span class="font-sans text-caption font-semibold text-lavender">PKR 3,050</span>
+      </div>
+
+      <!-- Delivery info -->
+      <div class="mt-5 pt-5 border-t border-hairline">
+        <p class="font-sans text-eyebrow uppercase text-stone mb-3">Delivery to</p>
+        <div class="font-sans text-caption text-graphite space-y-0.5">
+          <p class="font-medium text-ink">Sara Ahmed</p>
+          <p>House 14, Street 7, Gulberg III</p>
+          <p>Lahore, 54000</p>
+          <p>WhatsApp: 0312 3456789</p>
+        </div>
+        <p class="mt-3 font-sans text-caption text-stone">
+          Estimated dispatch: <span class="text-graphite">12–14 May 2026</span>
+        </p>
+      </div>
+
+    </div><!-- /bg-shell card -->
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- SECTION 3 — Payment Instructions                -->
+<!-- ─────────────────────────────────────────────── -->
+<section class="bg-paper pb-12">
+  <div class="max-w-[600px] mx-auto px-6">
+
+    <h2 class="font-serif text-display-lg text-ink mb-2" style="font-variation-settings:'opsz' 144,'SOFT' 30">Send your payment here.</h2>
+    <div class="h-0.5 w-10 bg-lavender mb-6"></div>
+
+    <p class="font-sans text-body text-stone mb-8">
+      Your order is reserved for <strong class="text-ink">72 hours</strong>. Please send payment within that time to confirm your slot. After verification I'll WhatsApp you and start production.
+    </p>
+
+    <!-- JazzCash payment card (demo) -->
+    <div class="bg-shell rounded-2xl p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <!-- JazzCash color block placeholder -->
+        <div class="w-10 h-10 rounded-xl bg-[#EF3E23] flex items-center justify-center shrink-0">
+          <span class="text-white font-sans font-bold text-[11px] leading-none">JC</span>
+        </div>
+        <div>
+          <p class="font-sans text-body font-semibold text-ink">JazzCash</p>
+          <p class="font-sans text-caption text-stone">Mobile wallet transfer</p>
+        </div>
+      </div>
+
+      <div class="bg-paper rounded-xl p-5 space-y-3">
+        <div>
+          <p class="font-sans text-eyebrow uppercase text-stone mb-1">Amount to send</p>
+          <p class="font-sans text-h3 font-semibold text-lavender">PKR 3,050</p>
+        </div>
+        <div class="border-t border-hairline pt-3">
+          <p class="font-sans text-eyebrow uppercase text-stone mb-1">Mobile number</p>
+          <p class="font-sans text-body font-medium text-ink">0300 1234567</p>
+        </div>
+        <div class="border-t border-hairline pt-3">
+          <p class="font-sans text-eyebrow uppercase text-stone mb-1">Account name</p>
+          <p class="font-sans text-body font-medium text-ink">Mona [Surname]</p>
+        </div>
+      </div>
+
+      <p class="mt-4 font-sans text-caption text-stone">
+        After sending, upload your payment screenshot below — or WhatsApp it directly.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- SECTION 4 — Payment Proof Upload                -->
+<!-- ─────────────────────────────────────────────── -->
+<section class="bg-shell py-12">
+  <div class="max-w-[600px] mx-auto px-6">
+
+    <h3 class="font-serif text-h3 text-ink mb-1" style="font-variation-settings:'opsz' 48,'SOFT' 20">Share your payment screenshot.</h3>
+    <p class="font-sans text-caption text-stone mb-6">
+      Upload your JazzCash / EasyPaisa / bank-transfer receipt here and I'll verify it within 24 hours during business hours.
+    </p>
+
+    <!-- Success strip (hidden until upload) -->
+    <div id="upload-success" class="hidden bg-success/10 border border-success/30 rounded-xl p-4 mb-5 flex items-start gap-3">
+      <svg class="w-5 h-5 text-success shrink-0 mt-0.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><polyline points="40,128 96,184 216,72"/></svg>
+      <div>
+        <p class="font-sans text-caption font-semibold text-success">Got your receipt — I'll verify it within a few hours and WhatsApp you when it's confirmed.</p>
+      </div>
+    </div>
+
+    <!-- Drop zone -->
+    <div id="drop-zone" class="drop-zone mb-4">
+      <input type="file" id="proof-upload-input" accept="image/*, application/pdf" aria-label="Upload payment receipt">
+
+      <!-- Default state -->
+      <div id="drop-zone-default">
+        <svg class="w-10 h-10 text-ash mx-auto mb-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M128,232V40M64,104l64-64,64,64"/>
+          <path d="M40,168v24a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V168"/>
+        </svg>
+        <p class="font-sans text-body font-medium text-graphite mb-1 hidden md:block">Drag and drop your screenshot here</p>
+        <p class="font-sans text-caption text-stone hidden md:block mb-4">— or —</p>
+        <button type="button" id="browse-btn"
+                class="bg-lavender hover:bg-lavenderDark text-white font-sans text-caption font-semibold py-3 px-8 rounded-full transition-colors duration-200">
+          Browse files
+        </button>
+        <p class="mt-4 font-sans text-[11px] text-ash">JPG, PNG, PDF · Max 8MB</p>
+      </div>
+
+      <!-- Preview state (hidden until file selected) -->
+      <div id="drop-zone-preview" class="hidden text-center">
+        <img id="proof-preview-img" src="" alt="Payment receipt preview" class="max-h-40 mx-auto rounded-xl object-contain mb-3">
+        <p id="proof-filename" class="font-sans text-caption text-graphite font-medium mb-3"></p>
+        <button type="button" id="remove-proof" class="font-sans text-caption text-stone hover:text-danger underline underline-offset-2 transition-colors">Remove</button>
+      </div>
+    </div>
+
+    <!-- Upload button -->
+    <button id="upload-btn" disabled
+            class="w-full bg-ash text-white font-sans text-caption font-semibold py-4 rounded-full transition-colors duration-200 mb-6"
+            style="opacity:0.5; cursor:not-allowed;">
+      Upload receipt
+    </button>
+
+    <!-- WhatsApp fallback -->
+    <div class="border-t border-hairline pt-5">
+      <p class="font-sans text-caption text-stone mb-3">Not ready to upload? You can also send your screenshot directly on WhatsApp.</p>
+      <a href="https://wa.me/923001234567?text=Hello%20Nails%20by%20Mona%2C%20Here%27s%20my%20payment%20proof%20for%20order%20NBM-2026-0001."
+         target="_blank" rel="noopener"
+         class="inline-flex items-center gap-2 font-sans text-caption font-medium text-lavenderInk hover:text-lavenderDark transition-colors">
+        <svg class="w-4 h-4 text-success shrink-0" viewBox="0 0 256 256" fill="currentColor"><path d="M187.58,144.84l-32-16a8,8,0,0,0-8,.5l-14.69,9.8a40.55,40.55,0,0,1-16-16l9.8-14.69a8,8,0,0,0,.5-8l-16-32a8,8,0,0,0-8.18-4.68A48.11,48.11,0,0,0,56,112c0,79.4,64.6,144,144,144a48.11,48.11,0,0,0,43.87-47.01A8,8,0,0,0,239.58,200.84Z"/></svg>
+        Send via WhatsApp →
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- SECTION 5 — What happens next                   -->
+<!-- ─────────────────────────────────────────────── -->
+<section class="bg-paper py-14">
+  <div class="max-w-[560px] mx-auto px-6">
+
+    <h3 class="font-serif text-h3 text-ink mb-1 text-center" style="font-variation-settings:'opsz' 48,'SOFT' 20">What happens next.</h3>
+    <div class="h-0.5 w-10 bg-lavender mx-auto mb-10"></div>
+
+    <!-- Step 1 -->
+    <div class="flex items-start gap-5 mb-2">
+      <div class="w-11 h-11 rounded-full bg-lavenderWash flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5 text-lavender" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><polyline points="40,128 96,184 216,72"/></svg>
+      </div>
+      <div class="pt-1">
+        <p class="font-sans text-body font-semibold text-ink mb-1">I verify your payment</p>
+        <p class="font-sans text-caption text-stone leading-relaxed">
+          Once you've sent the payment and uploaded your receipt, I'll verify within 24 hours during business hours (10am–9pm, Mon–Sat). Most verifications are done within 1–3 hours.
+        </p>
+      </div>
+    </div>
+    <div class="timeline-connector ml-[22px] mb-2"></div>
+
+    <!-- Step 2 -->
+    <div class="flex items-start gap-5 mb-2">
+      <div class="w-11 h-11 rounded-full bg-lavenderWash flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5 text-success" viewBox="0 0 256 256" fill="currentColor"><path d="M187.58,144.84l-32-16a8,8,0,0,0-8,.5l-14.69,9.8a40.55,40.55,0,0,1-16-16l9.8-14.69a8,8,0,0,0,.5-8l-16-32a8,8,0,0,0-8.18-4.68A48.11,48.11,0,0,0,56,112c0,79.4,64.6,144,144,144a48.11,48.11,0,0,0,43.87-47.01A8,8,0,0,0,239.58,200.84Z"/></svg>
+      </div>
+      <div class="pt-1">
+        <p class="font-sans text-body font-semibold text-ink mb-1">I WhatsApp you to confirm</p>
+        <p class="font-sans text-caption text-stone leading-relaxed">
+          I'll send a message to confirm your payment and discuss any final details — especially for custom designs or bridal sets.
+        </p>
+      </div>
+    </div>
+    <div class="timeline-connector ml-[22px] mb-2"></div>
+
+    <!-- Step 3 -->
+    <div class="flex items-start gap-5">
+      <div class="w-11 h-11 rounded-full bg-lavenderWash flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5 text-lavender" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><rect x="32" y="72" width="192" height="160" rx="8"/><path d="M168,72V56a40,40,0,0,0-80,0V72"/><line x1="128" y1="136" x2="128" y2="168"/><circle cx="128" cy="188" r="4" fill="currentColor"/></svg>
+      </div>
+      <div class="pt-1">
+        <p class="font-sans text-body font-semibold text-ink mb-1">I make and ship your order</p>
+        <p class="font-sans text-caption text-stone leading-relaxed">
+          Custom sets ship in 5–7 working days. I'll send your tracking number the same day I hand the parcel to the courier.
+        </p>
+      </div>
+    </div>
+
+    <!-- Note -->
+    <p class="mt-10 font-sans text-caption text-stone text-center">
+      If you haven't heard from me within 24 hours, please send a follow-up WhatsApp with your order number. Sometimes messages slip through.
+    </p>
+
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- SECTION 6 — Order Actions                       -->
+<!-- ─────────────────────────────────────────────── -->
+<section class="bg-paper pb-16">
+  <div class="max-w-[560px] mx-auto px-6">
+    <div class="border-t border-hairline pt-10 flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="order-tracking.html"
+         class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-lavender hover:bg-lavenderDark text-white font-sans text-caption font-semibold py-4 px-8 rounded-full transition-colors duration-200">
+        <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle cx="128" cy="128" r="96"/><polyline points="128,72 128,128 184,128"/></svg>
+        Track this order
+      </a>
+      <a href="shop.html"
+         class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 border border-hairline hover:border-lavender text-graphite hover:text-lavenderInk font-sans text-caption font-semibold py-4 px-8 rounded-full transition-colors duration-200">
+        Continue shopping
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- MINIMAL FOOTER -->
+<footer class="border-t border-hairline bg-paper py-6">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10 flex flex-col sm:flex-row items-center justify-between gap-3">
+    <p class="font-sans text-caption text-stone">© 2026 Nails by Mona. All rights reserved.</p>
+    <div class="flex items-center gap-5">
+      <a href="#" class="font-sans text-caption text-stone hover:text-ink transition-colors">Privacy</a>
+      <a href="#" class="font-sans text-caption text-stone hover:text-ink transition-colors">Terms</a>
+      <a href="#" class="font-sans text-caption text-stone hover:text-ink transition-colors">Shipping</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+$(function() {
+
+  /* ── Drop zone behaviour ── */
+  var $dropZone = $('#drop-zone');
+  var $input    = $('#proof-upload-input');
+  var $uploadBtn = $('#upload-btn');
+
+  // Click on drop zone (not the remove button) → trigger file input
+  $dropZone.on('click', function(e) {
+    if ($(e.target).is('#remove-proof') || $(e.target).closest('#remove-proof').length) return;
+    $input.trigger('click');
+  });
+
+  // Browse button
+  $('#browse-btn').on('click', function(e) {
+    e.stopPropagation();
+    $input.trigger('click');
+  });
+
+  // Drag events
+  $dropZone.on('dragover dragenter', function(e) {
+    e.preventDefault();
+    $(this).addClass('drag-over');
+  }).on('dragleave drop', function(e) {
+    e.preventDefault();
+    $(this).removeClass('drag-over');
+    if (e.type === 'drop') {
+      var file = e.originalEvent.dataTransfer.files[0];
+      if (file) handleFile(file);
+    }
+  });
+
+  // File input change
+  $input.on('change', function() {
+    if (this.files && this.files[0]) {
+      handleFile(this.files[0]);
+    }
+  });
+
+  function handleFile(file) {
+    // Validate size (8MB)
+    if (file.size > 8 * 1024 * 1024) {
+      alert('File is too large. Please upload a file under 8MB.');
+      return;
+    }
+
+    $('#drop-zone-default').hide();
+    $('#drop-zone-preview').show();
+
+    // Show preview
+    if (file.type.startsWith('image/')) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        $('#proof-preview-img').attr('src', e.target.result).show();
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // PDF — show filename only
+      $('#proof-preview-img').hide();
+    }
+    $('#proof-filename').text(file.name);
+
+    // Enable upload button
+    $uploadBtn
+      .prop('disabled', false)
+      .removeClass('bg-ash cursor-not-allowed')
+      .addClass('bg-lavender hover:bg-lavenderDark cursor-pointer')
+      .css('opacity', '1');
+  }
+
+  // Remove proof
+  $('#remove-proof').on('click', function(e) {
+    e.stopPropagation();
+    $input.val('');
+    $('#proof-preview-img').attr('src', '').hide();
+    $('#proof-filename').text('');
+    $('#drop-zone-default').show();
+    $('#drop-zone-preview').hide();
+    $uploadBtn
+      .prop('disabled', true)
+      .removeClass('bg-lavender hover:bg-lavenderDark cursor-pointer')
+      .addClass('bg-ash cursor-not-allowed')
+      .css('opacity', '0.5');
+  });
+
+  // Upload button
+  $uploadBtn.on('click', function() {
+    if ($(this).prop('disabled')) return;
+    var $btn = $(this);
+    $btn.html('<span class="spinner mr-2"></span> Uploading…').prop('disabled', true).css('opacity', '0.75');
+
+    // Simulate AJAX upload
+    setTimeout(function() {
+      // Show success strip (above drop zone)
+      $('#upload-success').removeClass('hidden').addClass('flex');
+      // Reset button
+      $btn.html('Uploaded ✓').css('opacity', '1')
+        .removeClass('bg-lavender hover:bg-lavenderDark')
+        .addClass('bg-success cursor-default');
+    }, 1600);
+  });
+
+});
+</script>
+
+</body>
+</html>

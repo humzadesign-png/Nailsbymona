@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+  <!--
+    sparkle.svg — 4-point starburst sparkle
+    Classic beauty/luxury sparkle: elongated horizontal and vertical arms,
+    pinched at the diagonals for a sharp, elegant shape.
+    Use on: Glam tier, hero accents, pricing callouts, decorative accents.
+  -->
+
+  <!-- Primary sparkle — mathematically balanced 4-point star -->
+  <path d="M12 2
+           L13.4 10.6
+           L22 12
+           L13.4 13.4
+           L12 22
+           L10.6 13.4
+           L2 12
+           L10.6 10.6
+           Z"/>
+
+  <!-- Small secondary sparkle — upper right -->
+  <path d="M19.5 3.5
+           L20 5
+           L21.5 5.5
+           L20 6
+           L19.5 7.5
+           L19 6
+           L17.5 5.5
+           L19 5
+           Z"
+        opacity="0.55"/>
+</svg>

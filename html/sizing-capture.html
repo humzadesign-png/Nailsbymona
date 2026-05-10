@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Sizing Photos — Nails by Mona</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..600,30..100&family=DM+Sans:opsz,wght@9..40,300..600&display=swap" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bone: '#F4EFE8', paper: '#FBF8F2', shell: '#EAE3D9',
+            ink: '#1A1614', graphite: '#3A332E', stone: '#7A6F65',
+            ash: '#B5A99C', hairline: '#E0D9CE',
+            lavender: '#BFA4CE', lavenderDark: '#9B7FB4',
+            lavenderInk: '#5B4570', lavenderWash: '#F2ECF8',
+            bridalBg: '#EDE2C8', footerBg: '#2C1F2E',
+            gold: '#B8924A', goldDeep: '#8F6F37',
+            success: '#3F6E4A', warning: '#A6671A', danger: '#A33A2E',
+          },
+          fontFamily: { serif: ['"Fraunces"','Georgia','serif'], sans: ['"DM Sans"','ui-sans-serif','system-ui'] },
+          fontSize: {
+            'display-xl': ['clamp(3.5rem,7vw,5.5rem)', { lineHeight: '0.95', letterSpacing: '-0.02em', fontWeight: '300' }],
+            'display-lg': ['clamp(2.5rem,4.5vw,3.75rem)', { lineHeight: '1.0', letterSpacing: '-0.015em', fontWeight: '300' }],
+            'display': ['clamp(2rem,3.5vw,3rem)', { lineHeight: '1.05', letterSpacing: '-0.01em', fontWeight: '300' }],
+            'h3': ['1.25rem', { lineHeight: '1.4', fontWeight: '500' }],
+            'body-lg': ['1.125rem', { lineHeight: '1.75', fontWeight: '400' }],
+            'body': ['1rem', { lineHeight: '1.65', fontWeight: '400' }],
+            'caption': ['0.875rem', { lineHeight: '1.5', fontWeight: '400' }],
+            'eyebrow': ['0.6875rem', { lineHeight: '1.0', letterSpacing: '0.2em', fontWeight: '600' }],
+          },
+          maxWidth: { '7xl': '80rem' },
+          boxShadow: { 'card': '0 2px 12px rgba(26,22,20,0.06)', 'card-hover': '0 8px 32px rgba(26,22,20,0.12)' }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'DM Sans', ui-sans-serif, system-ui; -webkit-font-smoothing: antialiased; }
+    .font-serif { font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'opsz' 144, 'SOFT' 30; }
+    html { scroll-behavior: smooth; }
+
+    /* Camera state sections — shown/hidden by JS */
+    .state-section { display: none; }
+    .state-section.active { display: block; }
+
+    /* Camera view */
+    #camera-view {
+      background: #000;
+      display: none;
+      position: relative;
+    }
+    #camera-view.active { display: block; }
+
+    #video-el {
+      display: block;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      background: #000;
+      object-fit: cover;
+    }
+
+    /* SVG overlay on top of video */
+    #overlay-container {
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: 100%;
+      pointer-events: none;
+    }
+    #overlay-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Alignment border around entire overlay */
+    #alignment-border {
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: 100%;
+      border: 3px solid rgba(63,110,74,0.9);
+      pointer-events: none;
+      transition: border-color 0.3s ease;
+      border-radius: 0;
+    }
+    #alignment-border.amber { border-color: rgba(166,103,26,0.85); }
+    #alignment-border.red   { border-color: rgba(163,58,46,0.85); }
+    #alignment-border.green { border-color: rgba(63,110,74,0.9); }
+
+    /* Camera top strip */
+    #camera-strip {
+      position: absolute;
+      top: 0;
+      left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px;
+      z-index: 20;
+      background: rgba(26,22,20,0.70);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Brightness pill */
+    #brightness-pill {
+      position: absolute;
+      top: 52px;
+      left: 50%; transform: translateX(-50%);
+      z-index: 21;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.3s;
+      white-space: nowrap;
+      background: rgba(63,110,74,0.90);
+      color: #fff;
+    }
+    #brightness-pill.dark   { background: rgba(166,103,26,0.90); }
+    #brightness-pill.bright { background: rgba(166,103,26,0.90); }
+
+    /* Shutter button */
+    #shutter-btn {
+      position: absolute;
+      bottom: 24px;
+      left: 50%; transform: translateX(-50%);
+      z-index: 22;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid #BFA4CE;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s ease, opacity 0.2s;
+    }
+    #shutter-btn:active { transform: translateX(-50%) scale(0.92); }
+    #shutter-btn.pulse-ring { animation: shutterPulse 1.4s ease-in-out infinite; }
+    #shutter-btn:disabled, #shutter-btn.disabled {
+      opacity: 0.4; cursor: not-allowed;
+      animation: none !important;
+    }
+    @keyframes shutterPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(191,164,206,0.5); }
+      50% { box-shadow: 0 0 0 14px rgba(191,164,206,0); }
+    }
+
+    /* Camera container height */
+    #camera-view-wrap {
+      position: relative;
+      min-height: 340px;
+      max-height: 70vh;
+      overflow: hidden;
+      background: #000;
+    }
+
+    /* Preview thumbnails */
+    .preview-thumb {
+      width: 100%;
+      aspect-ratio: 4/5;
+      object-fit: cover;
+      border-radius: 12px;
+      background: #EAE3D9;
+    }
+    .thumb-placeholder {
+      width: 100%;
+      aspect-ratio: 4/5;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #EAE3D9 0%, #FBF8F2 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 20px; height: 20px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Fallback file upload */
+    .upload-zone-fallback {
+      border: 2px dashed #E0D9CE;
+      border-radius: 12px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      background: #FBF8F2;
+    }
+    .upload-zone-fallback:hover { border-color: #BFA4CE; }
+    .upload-zone-fallback input[type="file"] { display: none; }
+  </style>
+</head>
+
+<body class="bg-paper text-graphite antialiased">
+
+<!-- HEADER — logo only -->
+<header class="sticky top-0 z-50 bg-paper/90 backdrop-blur-md border-b border-hairline/60">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10 h-[72px] flex items-center justify-between">
+    <a href="home.html" aria-label="Nails by Mona — Home" class="shrink-0 flex items-center">
+      <img src="../public/logo-text.svg" alt="Nails by Mona" class="h-[46px] w-auto" width="220" height="77"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+      <span class="font-serif tracking-tight text-lavender" style="display:none; font-size:1.5rem; line-height:1; font-variation-settings:'opsz' 144,'SOFT' 30">Nails by Mona</span>
+    </a>
+    <a href="https://wa.me/923001234567?text=Hello%20Nails%20by%20Mona%2C%20I%27m%20having%20trouble%20with%20the%20sizing%20photo%20step."
+       target="_blank" rel="noopener"
+       class="font-sans text-caption text-stone hover:text-ink flex items-center gap-2 transition-colors duration-200">
+      <svg class="w-4 h-4 text-success shrink-0" viewBox="0 0 256 256" fill="currentColor"><path d="M187.58,144.84l-32-16a8,8,0,0,0-8,.5l-14.69,9.8a40.55,40.55,0,0,1-16-16l9.8-14.69a8,8,0,0,0,.5-8l-16-32a8,8,0,0,0-8.18-4.68A48.11,48.11,0,0,0,56,112c0,79.4,64.6,144,144,144a48.11,48.11,0,0,0,43.87-47.01A8,8,0,0,0,239.58,200.84Z"/></svg>
+      Need help?
+    </a>
+  </div>
+</header>
+
+<main>
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- STATE A — Pre-camera explainer                  -->
+<!-- ─────────────────────────────────────────────── -->
+<div id="state-explainer" class="state-section active bg-paper min-h-[calc(100vh-72px)] flex items-center">
+  <div class="max-w-lg mx-auto px-6 py-16 text-center w-full">
+
+    <!-- Icon -->
+    <div class="w-20 h-20 mx-auto mb-8 rounded-full bg-lavenderWash flex items-center justify-center">
+      <svg class="w-9 h-9 text-lavender" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M208,208H48a16,16,0,0,1-16-16V80A16,16,0,0,1,48,64H80L96,40h64l16,24h32a16,16,0,0,1,16,16V192A16,16,0,0,1,208,208Z"/><circle cx="128" cy="132" r="36"/></svg>
+    </div>
+
+    <h1 class="font-serif text-display text-ink mb-4" style="font-variation-settings:'opsz' 144,'SOFT' 30">Take 2 close-up photos.</h1>
+
+    <p class="font-sans text-body text-stone mb-10 max-w-sm mx-auto">
+      One for your fingers, one for your thumb. Place a coin above the nail row in each photo so we can measure scale. About 90 seconds.
+    </p>
+
+    <!-- 3-step guide -->
+    <div class="flex flex-col gap-5 text-left mb-10">
+      <div class="flex items-start gap-4">
+        <div class="w-8 h-8 rounded-full bg-lavender text-white font-sans text-caption font-semibold flex items-center justify-center shrink-0">1</div>
+        <div>
+          <p class="font-sans text-body font-medium text-ink">Lay your hand flat on a dark surface</p>
+          <p class="font-sans text-caption text-stone mt-0.5">Any dark cloth or surface works — it helps us read the outline of your nails clearly.</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-4">
+        <div class="w-8 h-8 rounded-full bg-lavender text-white font-sans text-caption font-semibold flex items-center justify-center shrink-0">2</div>
+        <div>
+          <p class="font-sans text-body font-medium text-ink">Place a coin above your nails</p>
+          <p class="font-sans text-caption text-stone mt-0.5">Any coin works — Rs. 5, Rs. 10, or any coin you have. Keep it flat and clearly visible.</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-4">
+        <div class="w-8 h-8 rounded-full bg-lavender text-white font-sans text-caption font-semibold flex items-center justify-center shrink-0">3</div>
+        <div>
+          <p class="font-sans text-body font-medium text-ink">Hold your phone straight overhead</p>
+          <p class="font-sans text-caption text-stone mt-0.5">Shoot straight down so your nails fill the guide frame. Tap the shutter when the border turns green.</p>
+        </div>
+      </div>
+    </div>
+
+    <button id="start-camera-btn"
+            class="w-full bg-lavender hover:bg-lavenderDark text-white font-sans text-caption font-semibold py-4 px-8 rounded-full transition-colors duration-200">
+      Start camera
+    </button>
+
+    <p class="font-sans text-caption text-stone mt-6">
+      Already have photos? <a href="size-guide.html" class="text-lavenderInk underline underline-offset-2">See the sizing guide first →</a>
+    </p>
+  </div>
+</div>
+
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- CAMERA VIEW — shared between states B and C     -->
+<!-- ─────────────────────────────────────────────── -->
+<div id="camera-view" class="bg-ink">
+  <div id="camera-view-wrap">
+
+    <!-- Video -->
+    <video id="video-el" autoplay playsinline muted></video>
+
+    <!-- Top strip -->
+    <div id="camera-strip">
+      <div>
+        <p id="camera-strip-label" class="font-sans text-caption font-semibold text-white leading-none">Photo 1 of 2 — Your fingers</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- progress bar -->
+        <div class="w-24 h-1 bg-white/20 rounded-full overflow-hidden">
+          <div id="camera-progress-bar" class="h-full bg-lavender rounded-full transition-all duration-500" style="width:50%"></div>
+        </div>
+        <span id="camera-progress-label" class="font-sans text-[11px] text-white/60">1 / 2</span>
+      </div>
+    </div>
+
+    <!-- Brightness pill -->
+    <div id="brightness-pill">✓ Good lighting</div>
+
+    <!-- SVG Overlay container -->
+    <div id="overlay-container">
+      <!-- Fingers overlay (State B) -->
+      <svg id="fingers-overlay" id="overlay-svg" width="100%" height="100%" viewBox="0 0 480 360" preserveAspectRatio="xMidYMid meet" style="display:block">
+        <!-- 4 finger outlines horizontal -->
+        <rect x="60"  y="120" width="72" height="110" rx="8" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-dasharray="6,4"/>
+        <rect x="142" y="108" width="72" height="122" rx="8" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-dasharray="6,4"/>
+        <rect x="224" y="114" width="72" height="116" rx="8" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-dasharray="6,4"/>
+        <rect x="306" y="125" width="72" height="105" rx="8" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-dasharray="6,4"/>
+
+        <!-- Coin circle above middle finger -->
+        <circle cx="178" cy="90" r="22" fill="none" stroke="rgba(191,164,206,0.9)" stroke-width="2" stroke-dasharray="5,3"/>
+
+        <!-- Label: fit fingers -->
+        <text x="240" y="252" text-anchor="middle" fill="rgba(255,255,255,0.75)" font-size="13" font-family="DM Sans, sans-serif" font-weight="500">Fit fingers inside the lines</text>
+
+        <!-- Label: coin -->
+        <text x="178" y="124" text-anchor="middle" fill="rgba(191,164,206,0.9)" font-size="11" font-family="DM Sans, sans-serif">Place coin here</text>
+      </svg>
+
+      <!-- Thumb overlay (State C) -->
+      <svg id="thumb-overlay" width="100%" height="100%" viewBox="0 0 480 360" preserveAspectRatio="xMidYMid meet" style="display:none">
+        <!-- Single tall thumb outline -->
+        <rect x="192" y="80" width="96" height="180" rx="12" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-dasharray="6,4"/>
+
+        <!-- Coin circle above thumb -->
+        <circle cx="240" cy="58" r="22" fill="none" stroke="rgba(191,164,206,0.9)" stroke-width="2" stroke-dasharray="5,3"/>
+
+        <!-- Label: fit thumb -->
+        <text x="240" y="282" text-anchor="middle" fill="rgba(255,255,255,0.75)" font-size="13" font-family="DM Sans, sans-serif" font-weight="500">Fit your thumb inside the lines</text>
+
+        <!-- Label: coin -->
+        <text x="240" y="94" text-anchor="middle" fill="rgba(191,164,206,0.9)" font-size="11" font-family="DM Sans, sans-serif">Place coin here</text>
+      </svg>
+    </div>
+
+    <!-- Alignment border -->
+    <div id="alignment-border" class="amber"></div>
+
+    <!-- Shutter button -->
+    <button id="shutter-btn" aria-label="Take photo">
+      <div class="w-[60px] h-[60px] rounded-full bg-lavender/10 border-2 border-lavender"></div>
+    </button>
+
+  </div><!-- /camera-view-wrap -->
+
+  <!-- Canvas (hidden — used for capture) -->
+  <canvas id="capture-canvas" style="display:none"></canvas>
+</div><!-- /camera-view -->
+
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- STATE D — Preview (2 or 4 photos)              -->
+<!-- ─────────────────────────────────────────────── -->
+<div id="state-preview" class="state-section bg-paper">
+  <div class="max-w-xl mx-auto px-6 py-12">
+
+    <h2 class="font-serif text-display text-ink text-center mb-2" style="font-variation-settings:'opsz' 144,'SOFT' 30">Do these look right?</h2>
+    <p class="font-sans text-caption text-stone text-center mb-8">Check each photo carefully before submitting.</p>
+
+    <!-- Thumbnails — 2 up -->
+    <div id="preview-grid-2" class="grid grid-cols-2 gap-4 mb-6">
+      <div>
+        <p class="font-sans text-eyebrow uppercase text-stone mb-2">Fingers</p>
+        <div class="relative">
+          <img id="preview-fingers" class="preview-thumb w-full" alt="Fingers sizing photo" src="">
+          <div class="thumb-placeholder" id="placeholder-fingers" style="display:none">
+            <svg class="w-8 h-8 text-ash" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="10"><rect x="40" y="40" width="176" height="176" rx="16"/><circle cx="104" cy="104" r="24"/><path d="M40,200 l56-60 40,44 32-36 48,52"/></svg>
+          </div>
+        </div>
+        <button class="retake-btn mt-2 font-sans text-caption text-stone hover:text-lavenderInk underline underline-offset-2 transition-colors" data-target="fingers">Retake</button>
+      </div>
+      <div>
+        <p class="font-sans text-eyebrow uppercase text-stone mb-2">Thumb</p>
+        <div class="relative">
+          <img id="preview-thumb-img" class="preview-thumb w-full" alt="Thumb sizing photo" src="">
+          <div class="thumb-placeholder" id="placeholder-thumb" style="display:none">
+            <svg class="w-8 h-8 text-ash" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="10"><rect x="40" y="40" width="176" height="176" rx="16"/><circle cx="104" cy="104" r="24"/><path d="M40,200 l56-60 40,44 32-36 48,52"/></svg>
+          </div>
+        </div>
+        <button class="retake-btn mt-2 font-sans text-caption text-stone hover:text-lavenderInk underline underline-offset-2 transition-colors" data-target="thumb">Retake</button>
+      </div>
+    </div>
+
+    <!-- Thumbnails — 4 up (shown when other hand added) -->
+    <div id="preview-grid-4" class="grid grid-cols-2 gap-4 mb-6" style="display:none">
+      <div>
+        <p class="font-sans text-eyebrow uppercase text-stone mb-2">Fingers</p>
+        <img id="preview-fingers-4" class="preview-thumb w-full" alt="Fingers sizing photo" src="">
+        <button class="retake-btn mt-2 font-sans text-caption text-stone hover:text-lavenderInk underline underline-offset-2 transition-colors" data-target="fingers">Retake</button>
+      </div>
+      <div>
+        <p class="font-sans text-eyebrow uppercase text-stone mb-2">Thumb</p>
+        <img id="preview-thumb-4" class="preview-thumb w-full" alt="Thumb sizing photo" src="">
+        <button class="retake-btn mt-2 font-sans text-caption text-stone hover:text-lavenderInk underline underline-offset-2 transition-colors" data-target="thumb">Retake</button>
+      </div>
+      <div>
+        <p class="font-sans text-eyebrow uppercase text-stone mb-2">Other hand — Fingers</p>
+        <img id="preview-fingers-other" class="preview-thumb w-full" alt="Other hand fingers sizing photo" src="">
+        <button class="retake-btn mt-2 font-sans text-caption text-stone hover:text-lavenderInk underline underline-offset-2 transition-colors" data-target="fingers_other">Retake</button>
+      </div>
+      <div>
+        <p class="font-sans text-eyebrow uppercase text-stone mb-2">Other hand — Thumb</p>
+        <img id="preview-thumb-other" class="preview-thumb w-full" alt="Other hand thumb sizing photo" src="">
+        <button class="retake-btn mt-2 font-sans text-caption text-stone hover:text-lavenderInk underline underline-offset-2 transition-colors" data-target="thumb_other">Retake</button>
+      </div>
+    </div>
+
+    <!-- Mental checklist -->
+    <div class="bg-shell rounded-xl p-4 mb-6">
+      <p class="font-sans text-caption text-stone mb-3 font-medium">Before you submit, check each photo:</p>
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 border border-hairline rounded-sm bg-paper shrink-0"></div>
+          <span class="font-sans text-caption text-graphite">Coin is visible and unobscured</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 border border-hairline rounded-sm bg-paper shrink-0"></div>
+          <span class="font-sans text-caption text-graphite">All nails are inside the outline</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 border border-hairline rounded-sm bg-paper shrink-0"></div>
+          <span class="font-sans text-caption text-graphite">Photos are in focus (not blurry)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 border border-hairline rounded-sm bg-paper shrink-0"></div>
+          <span class="font-sans text-caption text-graphite">Even lighting, no harsh shadows</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Symmetry disclaimer (hidden when 4 photos) -->
+    <div id="symmetry-disclaimer" class="bg-shell rounded-xl p-5 mb-8">
+      <p class="font-sans text-body font-medium text-ink mb-2">Most hands match.</p>
+      <p class="font-sans text-caption text-stone leading-relaxed">
+        We size your other hand from these photos. Nail widths are usually symmetric within half a millimetre — well within the press-on fit tolerance.
+      </p>
+      <p class="font-sans text-caption text-stone leading-relaxed mt-2">
+        Want a perfect fit? You can optionally take 2 more photos for your other hand below. Otherwise we'll go ahead and craft your set, and if anything doesn't sit right, the <strong class="text-graphite">first refit is on us</strong>.
+      </p>
+    </div>
+
+    <!-- CTAs -->
+    <div class="flex flex-col gap-3">
+      <button id="submit-sizing-btn"
+              class="w-full bg-lavender hover:bg-lavenderDark text-white font-sans text-caption font-semibold py-4 px-8 rounded-full transition-colors duration-200">
+        Submit my sizing
+      </button>
+      <button id="add-other-hand-btn"
+              class="w-full font-sans text-caption text-graphite hover:text-lavenderInk underline underline-offset-4 py-2 transition-colors">
+        Add my other hand →
+      </button>
+    </div>
+
+  </div><!-- /max-w-xl -->
+</div><!-- /state-preview -->
+
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- FALLBACK STATE — Permission denied / unavailable-->
+<!-- ─────────────────────────────────────────────── -->
+<div id="state-fallback" class="state-section bg-paper">
+  <div class="max-w-xl mx-auto px-6 py-12">
+
+    <!-- Icon -->
+    <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-shell flex items-center justify-center">
+      <svg class="w-9 h-9 text-stone" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M208,208H48a16,16,0,0,1-16-16V80A16,16,0,0,1,48,64H80L96,40h64l16,24h32a16,16,0,0,1,16,16V192A16,16,0,0,1,208,208Z"/>
+        <circle cx="128" cy="132" r="36"/>
+        <line x1="48" y1="32" x2="208" y2="224" stroke-width="14"/>
+      </svg>
+    </div>
+
+    <h2 class="font-serif text-display text-ink text-center mb-3" style="font-variation-settings:'opsz' 144,'SOFT' 30" id="fallback-heading">Camera access was denied.</h2>
+    <p class="font-sans text-body text-stone text-center mb-8" id="fallback-copy">
+      No problem — you can upload 2 photos from your gallery instead. It works just as well. The instructions below show you exactly what each photo should look like.
+    </p>
+
+    <!-- Fingers upload -->
+    <div class="mb-6">
+      <label class="block font-sans text-caption font-semibold text-graphite mb-3">
+        Photo 1 — Your fingers (laid flat with coin above middle finger)
+      </label>
+      <div class="upload-zone-fallback" id="fallback-fingers-zone">
+        <input type="file" id="fallback-fingers-input" accept="image/*" capture="environment">
+        <svg class="w-8 h-8 text-ash mx-auto mb-3" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"><path d="M128,232V40M64,104l64-64,64,64"/></svg>
+        <p class="font-sans text-caption text-stone">Tap to upload your fingers photo</p>
+        <p class="font-sans text-[11px] text-ash mt-1">JPG, PNG or HEIC · Max 8MB</p>
+      </div>
+      <div id="fallback-fingers-preview" class="mt-3" style="display:none">
+        <img id="fallback-fingers-img" class="rounded-xl w-full max-h-48 object-cover" src="" alt="Fingers photo preview">
+        <button class="fallback-clear mt-2 font-sans text-caption text-stone hover:text-danger underline underline-offset-2 transition-colors" data-target="fingers">Remove</button>
+      </div>
+    </div>
+
+    <!-- Thumb upload -->
+    <div class="mb-6">
+      <label class="block font-sans text-caption font-semibold text-graphite mb-3">
+        Photo 2 — Your thumb (extended with coin above thumbnail)
+      </label>
+      <div class="upload-zone-fallback" id="fallback-thumb-zone">
+        <input type="file" id="fallback-thumb-input" accept="image/*" capture="environment">
+        <svg class="w-8 h-8 text-ash mx-auto mb-3" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"><path d="M128,232V40M64,104l64-64,64,64"/></svg>
+        <p class="font-sans text-caption text-stone">Tap to upload your thumb photo</p>
+        <p class="font-sans text-[11px] text-ash mt-1">JPG, PNG or HEIC · Max 8MB</p>
+      </div>
+      <div id="fallback-thumb-preview" class="mt-3" style="display:none">
+        <img id="fallback-thumb-img" class="rounded-xl w-full max-h-48 object-cover" src="" alt="Thumb photo preview">
+        <button class="fallback-clear mt-2 font-sans text-caption text-stone hover:text-danger underline underline-offset-2 transition-colors" data-target="thumb">Remove</button>
+      </div>
+    </div>
+
+    <!-- Symmetry / other hand opt-in for fallback -->
+    <div class="bg-shell rounded-xl p-5 mb-6">
+      <p class="font-sans text-caption text-stone leading-relaxed">
+        <strong class="text-graphite">We size both hands from these 2 photos.</strong> Most hands are symmetric within half a millimetre. If you'd like a perfect fit, you can optionally add 2 more photos for your other hand below.
+      </p>
+    </div>
+
+    <!-- Optional other hand for fallback -->
+    <div id="fallback-other-hand" style="display:none">
+      <div class="border-t border-hairline pt-6 mb-6">
+        <p class="font-sans text-caption font-semibold text-graphite mb-4">Other hand photos (optional)</p>
+        <div class="mb-4">
+          <label class="block font-sans text-caption font-medium text-stone mb-2">Photo 3 — Other hand fingers</label>
+          <div class="upload-zone-fallback">
+            <input type="file" id="fallback-fingers-other-input" accept="image/*" capture="environment">
+            <p class="font-sans text-caption text-stone">Tap to upload</p>
+          </div>
+        </div>
+        <div>
+          <label class="block font-sans text-caption font-medium text-stone mb-2">Photo 4 — Other hand thumb</label>
+          <div class="upload-zone-fallback">
+            <input type="file" id="fallback-thumb-other-input" accept="image/*" capture="environment">
+            <p class="font-sans text-caption text-stone">Tap to upload</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button id="fallback-other-hand-btn" class="font-sans text-caption text-stone hover:text-lavenderInk underline underline-offset-4 transition-colors mb-8 block">
+      Add other hand photos →
+    </button>
+
+    <!-- Example thumbnails strip -->
+    <div class="mb-8">
+      <p class="font-sans text-eyebrow uppercase text-lavender mb-3">Good examples</p>
+      <div class="grid grid-cols-4 gap-2">
+        <div class="aspect-square rounded-lg bg-shell flex items-center justify-center relative overflow-hidden">
+          <svg class="w-6 h-6 text-ash" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="8"><rect x="16" y="16" width="224" height="224" rx="16"/><circle cx="88" cy="88" r="30"/><path d="M16,192l72-72,48,48,40-40,64,64"/></svg>
+          <div class="absolute top-1 right-1 w-4 h-4 bg-success rounded-full flex items-center justify-center">
+            <svg class="w-2.5 h-2.5 text-white" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20"><polyline points="40,128 96,184 216,72"/></svg>
+          </div>
+        </div>
+        <div class="aspect-square rounded-lg bg-shell flex items-center justify-center relative overflow-hidden">
+          <svg class="w-6 h-6 text-ash" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="8"><rect x="16" y="16" width="224" height="224" rx="16"/><circle cx="88" cy="88" r="30"/><path d="M16,192l72-72,48,48,40-40,64,64"/></svg>
+          <div class="absolute top-1 right-1 w-4 h-4 bg-success rounded-full flex items-center justify-center">
+            <svg class="w-2.5 h-2.5 text-white" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20"><polyline points="40,128 96,184 216,72"/></svg>
+          </div>
+        </div>
+        <div class="aspect-square rounded-lg bg-shell flex items-center justify-center relative overflow-hidden">
+          <svg class="w-6 h-6 text-ash" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="8"><rect x="16" y="16" width="224" height="224" rx="16"/><circle cx="88" cy="88" r="30"/><path d="M16,192l72-72,48,48,40-40,64,64"/></svg>
+          <div class="absolute top-1 right-1 w-4 h-4 bg-success rounded-full flex items-center justify-center">
+            <svg class="w-2.5 h-2.5 text-white" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20"><polyline points="40,128 96,184 216,72"/></svg>
+          </div>
+        </div>
+        <div class="aspect-square rounded-lg bg-shell flex items-center justify-center relative overflow-hidden">
+          <svg class="w-6 h-6 text-ash" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="8"><rect x="16" y="16" width="224" height="224" rx="16"/><circle cx="88" cy="88" r="30"/><path d="M16,192l72-72,48,48,40-40,64,64"/></svg>
+          <div class="absolute top-1 right-1 w-4 h-4 bg-success rounded-full flex items-center justify-center">
+            <svg class="w-2.5 h-2.5 text-white" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20"><polyline points="40,128 96,184 216,72"/></svg>
+          </div>
+        </div>
+      </div>
+      <a href="size-guide.html" class="block mt-3 font-sans text-caption text-stone hover:text-lavenderInk transition-colors">See the full sizing guide →</a>
+    </div>
+
+    <!-- Submit fallback -->
+    <button id="fallback-submit-btn" disabled
+            class="w-full bg-ash text-white font-sans text-caption font-semibold py-4 px-8 rounded-full cursor-not-allowed transition-colors duration-200"
+            style="opacity:0.5">
+      Continue with these photos
+    </button>
+    <p class="font-sans text-caption text-stone text-center mt-3">Upload both required photos above to continue.</p>
+
+  </div>
+</div><!-- /state-fallback -->
+
+</main>
+
+<!-- MINIMAL FOOTER -->
+<footer class="border-t border-hairline bg-paper py-6">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10 flex flex-col sm:flex-row items-center justify-between gap-3">
+    <p class="font-sans text-caption text-stone">© 2026 Nails by Mona. All rights reserved.</p>
+    <div class="flex items-center gap-5">
+      <a href="#" class="font-sans text-caption text-stone hover:text-ink transition-colors">Privacy</a>
+      <a href="#" class="font-sans text-caption text-stone hover:text-ink transition-colors">Terms</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ─────────────────────────────────────────────────────────────────────
+   NAILS BY MONA — Sizing Capture
+   State machine: explainer → fingers → thumb → preview
+                  → optional other-hand fingers → other-hand thumb → submit
+   ───────────────────────────────────────────────────────────────────── */
+
+// ---- State ----
+var captureState = {
+  currentPhoto: null,     // 'fingers' | 'thumb' | 'fingers_other' | 'thumb_other'
+  captures: {},           // { fingers: Blob, thumb: Blob, fingers_other?, thumb_other? }
+  stream: null,
+  brightnessTimer: null,
+  isCapturing: false,
+  hasOtherHand: false,
+  permissionDenied: false,
+
+  // Fallback file blobs
+  fallbackFiles: { fingers: null, thumb: null, fingers_other: null, thumb_other: null }
+};
+
+var $explainer    = $('#state-explainer');
+var $cameraView   = $('#camera-view');
+var $statePreview = $('#state-preview');
+var $fallback     = $('#state-fallback');
+var video         = document.getElementById('video-el');
+var canvas        = document.getElementById('capture-canvas');
+
+// ---- Show/hide helpers ----
+function showState(name) {
+  $('.state-section').removeClass('active');
+  $cameraView.removeClass('active');
+
+  if (name === 'explainer') {
+    $explainer.addClass('active');
+  } else if (name === 'camera') {
+    $cameraView.addClass('active');
+  } else if (name === 'preview') {
+    $statePreview.addClass('active');
+  } else if (name === 'fallback') {
+    $fallback.addClass('active');
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ---- Brightness check ----
+function checkBrightness() {
+  try {
+    var s = document.createElement('canvas');
+    s.width = 80; s.height = 60;
+    s.getContext('2d').drawImage(video, 0, 0, 80, 60);
+    var data = s.getContext('2d').getImageData(0, 0, 80, 60).data;
+    var sum = 0;
+    for (var i = 0; i < data.length; i += 4) {
+      sum += (data[i] + data[i+1] + data[i+2]) / 3;
+    }
+    var avg = sum / (data.length / 4);
+    var $pill = $('#brightness-pill');
+    if (avg < 60) {
+      $pill.text('Too dark — move to a brighter spot').removeClass('bright').addClass('dark');
+    } else if (avg > 210) {
+      $pill.text('Too bright — step away from direct light').removeClass('dark').addClass('bright');
+    } else {
+      $pill.text('✓ Good lighting').removeClass('dark bright');
+    }
+  } catch(e) {}
+}
+
+// ---- Edge contrast heuristic ----
+function checkEdgeContrast(regionType) {
+  try {
+    var region = regionType === 'fingers'
+      ? { x: 0.10, y: 0.30, w: 0.80, h: 0.20 }
+      : { x: 0.35, y: 0.20, w: 0.30, h: 0.30 };
+
+    var c = document.createElement('canvas');
+    c.width = 200; c.height = 200;
+    c.getContext('2d').drawImage(
+      video,
+      region.x * video.videoWidth, region.y * video.videoHeight,
+      region.w * video.videoWidth,  region.h * video.videoHeight,
+      0, 0, 200, 200
+    );
+    var data = c.getContext('2d').getImageData(0, 0, 200, 200).data;
+    var edges = 0;
+    for (var i = 0; i < data.length - 4; i += 4) {
+      var a = (data[i] + data[i+1] + data[i+2]) / 3;
+      var b = (data[i+4] + data[i+5] + data[i+6]) / 3;
+      if (Math.abs(a - b) > 30) edges++;
+    }
+    var ratio = edges / (200 * 200);
+    if (ratio > 0.12) return 'green';
+    if (ratio < 0.06) return 'red';
+    return 'amber';
+  } catch(e) {
+    return 'amber';
+  }
+}
+
+// ---- Combined heuristic tick (runs every 500ms while camera is active) ----
+function runHeuristicTick() {
+  if (!video || !video.srcObject) return;
+  checkBrightness();
+
+  var regionType = (captureState.currentPhoto === 'fingers' || captureState.currentPhoto === 'fingers_other') ? 'fingers' : 'thumb';
+  var result = checkEdgeContrast(regionType);
+
+  var $border  = $('#alignment-border');
+  var $shutter = $('#shutter-btn');
+
+  $border.removeClass('green amber red').addClass(result);
+
+  if (result === 'green') {
+    $shutter.addClass('pulse-ring');
+  } else {
+    $shutter.removeClass('pulse-ring');
+  }
+}
+
+// ---- Start camera ----
+async function startCamera() {
+  try {
+    captureState.stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+    });
+    video.srcObject = captureState.stream;
+    await video.play();
+
+    // Start heuristic ticking
+    captureState.brightnessTimer = setInterval(runHeuristicTick, 500);
+
+    enterFingerState();
+  } catch(err) {
+    captureState.permissionDenied = true;
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      $('#fallback-heading').text('Camera access was denied.');
+      $('#fallback-copy').text('No problem — you can upload 2 photos from your gallery instead. It works just as well. The instructions below show you exactly what each photo should look like.');
+    } else {
+      $('#fallback-heading').text('Camera not available on this device.');
+      $('#fallback-copy').text("That's okay — uploading 2 photos from your gallery works exactly the same. Use the guide below to make sure each photo has the right framing and lighting before you upload.");
+    }
+    showState('fallback');
+  }
+}
+
+// ---- Enter fingers state (State B) ----
+function enterFingerState(photoType) {
+  photoType = photoType || 'fingers';
+  captureState.currentPhoto = photoType;
+
+  var isOtherHand = (photoType === 'fingers_other');
+  var photoNum    = isOtherHand ? 3 : 1;
+  var totalPhotos = captureState.hasOtherHand ? 4 : 2;
+
+  $('#camera-strip-label').text('Photo ' + photoNum + ' of ' + totalPhotos + ' — ' + (isOtherHand ? 'Other hand fingers' : 'Your fingers'));
+  $('#camera-progress-bar').css('width', ((photoNum / totalPhotos) * 100) + '%');
+  $('#camera-progress-label').text(photoNum + ' / ' + totalPhotos);
+
+  $('#fingers-overlay').show();
+  $('#thumb-overlay').hide();
+
+  showState('camera');
+}
+
+// ---- Enter thumb state (State C) ----
+function enterThumbState(photoType) {
+  photoType = photoType || 'thumb';
+  captureState.currentPhoto = photoType;
+
+  var isOtherHand = (photoType === 'thumb_other');
+  var photoNum    = isOtherHand ? 4 : 2;
+  var totalPhotos = captureState.hasOtherHand ? 4 : 2;
+
+  $('#camera-strip-label').text('Photo ' + photoNum + ' of ' + totalPhotos + ' — ' + (isOtherHand ? 'Other hand thumb' : 'Your thumb'));
+  $('#camera-progress-bar').css('width', ((photoNum / totalPhotos) * 100) + '%');
+  $('#camera-progress-label').text(photoNum + ' / ' + totalPhotos);
+
+  $('#fingers-overlay').hide();
+  $('#thumb-overlay').show();
+
+  showState('camera');
+}
+
+// ---- Capture frame ----
+function captureFrame() {
+  if (captureState.isCapturing) return;
+  captureState.isCapturing = true;
+
+  var $shutter = $('#shutter-btn');
+  $shutter.addClass('disabled').prop('disabled', true);
+
+  canvas.width  = video.videoWidth  || 480;
+  canvas.height = video.videoHeight || 360;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+
+  canvas.toBlob(function(blob) {
+    captureState.captures[captureState.currentPhoto] = blob;
+
+    var url = URL.createObjectURL(blob);
+
+    // Advance state
+    if (captureState.currentPhoto === 'fingers') {
+      enterThumbState('thumb');
+    } else if (captureState.currentPhoto === 'thumb') {
+      showPreview();
+    } else if (captureState.currentPhoto === 'fingers_other') {
+      enterThumbState('thumb_other');
+    } else if (captureState.currentPhoto === 'thumb_other') {
+      showPreview4();
+    }
+
+    captureState.isCapturing = false;
+    $shutter.removeClass('disabled').prop('disabled', false);
+  }, 'image/jpeg', 0.92);
+}
+
+// ---- Show preview (2 photos) ----
+function showPreview() {
+  var fingersUrl = URL.createObjectURL(captureState.captures.fingers);
+  var thumbUrl   = URL.createObjectURL(captureState.captures.thumb);
+
+  $('#preview-fingers').attr('src', fingersUrl).show();
+  $('#placeholder-fingers').hide();
+  $('#preview-thumb-img').attr('src', thumbUrl).show();
+  $('#placeholder-thumb').hide();
+
+  $('#preview-grid-2').show();
+  $('#preview-grid-4').hide();
+  $('#symmetry-disclaimer').show();
+  $('#add-other-hand-btn').show();
+
+  showState('preview');
+}
+
+// ---- Show 4-photo preview ----
+function showPreview4() {
+  $('#preview-fingers-4').attr('src', URL.createObjectURL(captureState.captures.fingers));
+  $('#preview-thumb-4').attr('src',   URL.createObjectURL(captureState.captures.thumb));
+  $('#preview-fingers-other').attr('src', URL.createObjectURL(captureState.captures.fingers_other));
+  $('#preview-thumb-other').attr('src',   URL.createObjectURL(captureState.captures.thumb_other));
+
+  $('#preview-grid-2').hide();
+  $('#preview-grid-4').show();
+  $('#symmetry-disclaimer').hide();
+  $('#add-other-hand-btn').hide();
+
+  showState('preview');
+}
+
+// ---- Submit sizing ----
+function submitSizing() {
+  var $btn = $('#submit-sizing-btn');
+  $btn.html('<span class="spinner mr-2"></span> Uploading…').prop('disabled', true).css('opacity','0.75');
+
+  // Build FormData (mock — no real endpoint in static mockup)
+  var form = new FormData();
+  Object.keys(captureState.captures).forEach(function(type) {
+    if (captureState.captures[type]) {
+      form.append('photos[]', captureState.captures[type], type + '.jpg');
+      form.append('photo_types[]', type);
+    }
+  });
+
+  // Simulate upload (1.5s) then redirect to order form step 2
+  setTimeout(function() {
+    window.location.href = 'order-form.html#step-2';
+  }, 1500);
+}
+
+// ---- Fallback file handling ----
+function setupFallbackFile(inputId, previewId, imgId, clearTarget) {
+  $('#' + inputId).on('change', function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    captureState.fallbackFiles[clearTarget] = file;
+    var url = URL.createObjectURL(file);
+    $('#' + imgId).attr('src', url);
+    $('#' + previewId).show();
+    checkFallbackSubmit();
+  });
+}
+
+function checkFallbackSubmit() {
+  var ready = captureState.fallbackFiles.fingers && captureState.fallbackFiles.thumb;
+  var $btn = $('#fallback-submit-btn');
+  if (ready) {
+    $btn.prop('disabled', false).removeClass('bg-ash cursor-not-allowed').addClass('bg-lavender hover:bg-lavenderDark cursor-pointer').css('opacity','1');
+    $btn.next('p').hide();
+  }
+}
+
+// ---- Click on upload zone → trigger file input ----
+$('.upload-zone-fallback').on('click', function() {
+  $(this).find('input[type="file"]').trigger('click');
+});
+
+
+/* ─────────────────────────────────────────────── */
+/* EVENT LISTENERS                                 */
+/* ─────────────────────────────────────────────── */
+
+// Start camera button
+$('#start-camera-btn').on('click', function() {
+  startCamera();
+});
+
+// Shutter button
+$('#shutter-btn').on('click', function() {
+  captureFrame();
+});
+
+// Retake buttons (preview)
+$(document).on('click', '.retake-btn', function() {
+  var target = $(this).data('target');
+  captureState.hasOtherHand = (target === 'fingers_other' || target === 'thumb_other');
+  if (target === 'fingers' || target === 'fingers_other') {
+    enterFingerState(target);
+  } else {
+    enterThumbState(target);
+  }
+});
+
+// Add other hand
+$('#add-other-hand-btn').on('click', function() {
+  captureState.hasOtherHand = true;
+  enterFingerState('fingers_other');
+});
+
+// Submit sizing
+$('#submit-sizing-btn').on('click', function() {
+  submitSizing();
+});
+
+// Fallback: show other hand upload
+$('#fallback-other-hand-btn').on('click', function() {
+  $(this).hide();
+  $('#fallback-other-hand').show();
+});
+
+// Fallback: clear files
+$(document).on('click', '.fallback-clear', function() {
+  var target = $(this).data('target');
+  captureState.fallbackFiles[target] = null;
+  if (target === 'fingers') {
+    $('#fallback-fingers-preview').hide();
+    $('#fallback-fingers-input').val('');
+  } else if (target === 'thumb') {
+    $('#fallback-thumb-preview').hide();
+    $('#fallback-thumb-input').val('');
+  }
+  checkFallbackSubmit();
+});
+
+// Fallback submit
+$('#fallback-submit-btn').on('click', function() {
+  var $btn = $(this);
+  $btn.html('<span class="spinner mr-2"></span> Uploading…').prop('disabled', true).css('opacity','0.75');
+  setTimeout(function() {
+    window.location.href = 'order-form.html#step-2';
+  }, 1500);
+});
+
+// Setup fallback file inputs
+setupFallbackFile('fallback-fingers-input', 'fallback-fingers-preview', 'fallback-fingers-img', 'fingers');
+setupFallbackFile('fallback-thumb-input', 'fallback-thumb-preview', 'fallback-thumb-img', 'thumb');
+
+// Keyboard: space/enter triggers shutter
+$(document).on('keydown', function(e) {
+  if ($cameraView.hasClass('active') && (e.key === ' ' || e.key === 'Enter')) {
+    e.preventDefault();
+    captureFrame();
+  }
+});
+
+// Check if getUserMedia is available at all
+$(function() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    $('#start-camera-btn').off('click').on('click', function() {
+      $('#fallback-heading').text('Camera not available on this device.');
+      $('#fallback-copy').text("That's okay — uploading 2 photos from your gallery works exactly the same. Use the guide below to make sure each photo has the right framing and lighting before you upload.");
+      showState('fallback');
+    });
+  }
+});
+</script>
+
+</body>
+</html>

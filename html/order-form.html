@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Place Your Order — Nails by Mona</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..600,30..100&family=DM+Sans:opsz,wght@9..40,300..600&display=swap" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bone: '#F4EFE8', paper: '#FBF8F2', shell: '#EAE3D9',
+            ink: '#1A1614', graphite: '#3A332E', stone: '#7A6F65',
+            ash: '#B5A99C', hairline: '#E0D9CE',
+            lavender: '#BFA4CE', lavenderDark: '#9B7FB4',
+            lavenderInk: '#5B4570', lavenderWash: '#F2ECF8',
+            bridalBg: '#EDE2C8', footerBg: '#2C1F2E',
+            gold: '#B8924A', goldDeep: '#8F6F37',
+            success: '#3F6E4A', warning: '#A6671A', danger: '#A33A2E',
+          },
+          fontFamily: { serif: ['"Fraunces"','Georgia','serif'], sans: ['"DM Sans"','ui-sans-serif','system-ui'] },
+          fontSize: {
+            'display': ['clamp(2rem,3.5vw,3rem)', { lineHeight: '1.05', letterSpacing: '-0.01em', fontWeight: '300' }],
+            'h3': ['1.25rem', { lineHeight: '1.4', fontWeight: '500' }],
+            'body-lg': ['1.125rem', { lineHeight: '1.75', fontWeight: '400' }],
+            'body': ['1rem', { lineHeight: '1.65', fontWeight: '400' }],
+            'caption': ['0.875rem', { lineHeight: '1.5', fontWeight: '400' }],
+            'eyebrow': ['0.6875rem', { lineHeight: '1.0', letterSpacing: '0.2em', fontWeight: '600' }],
+          },
+          maxWidth: { '7xl': '80rem' },
+          boxShadow: { 'card': '0 2px 12px rgba(26,22,20,0.06)', 'card-hover': '0 8px 32px rgba(26,22,20,0.12)' }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'DM Sans', ui-sans-serif, system-ui; -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; flex-direction: column; }
+    .font-serif { font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'opsz' 144, 'SOFT' 30; }
+    main { flex: 1; }
+
+    /* Sizing option cards */
+    .sizing-option { cursor: pointer; border: 2px solid #E0D9CE; background: #FBF8F2; transition: border-color 0.15s, background 0.15s; }
+    .sizing-option.selected { border-color: #BFA4CE; background: #F2ECF8; }
+    .sizing-option input[type=radio] { display: none; }
+
+    /* Payment option cards */
+    .payment-option { cursor: pointer; border: 2px solid #E0D9CE; background: #FBF8F2; transition: border-color 0.15s, background 0.15s; }
+    .payment-option.selected { border-color: #BFA4CE; }
+    .payment-option input[type=radio] { display: none; }
+    .payment-details { display: none; }
+
+    /* Field error state */
+    .field-error { border-color: #A33A2E !important; }
+    .error-msg { color: #A33A2E; font-size: 0.8125rem; margin-top: 0.25rem; display: none; }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 0.8s linear infinite; }
+
+    /* Progress bar node transitions */
+    .progress-node { transition: background 0.2s, border-color 0.2s; }
+  </style>
+</head>
+
+<body class="bg-bone text-graphite antialiased">
+
+<!-- HEADER — logo only, no main nav -->
+<header class="sticky top-0 z-50 bg-bone/90 backdrop-blur-md border-b border-hairline/60">
+  <div class="max-w-4xl mx-auto px-6 h-[72px] flex items-center justify-between">
+    <a href="home.html" aria-label="Nails by Mona — Home" class="shrink-0 flex items-center">
+      <img src="../public/logo-text.svg" alt="Nails by Mona" class="h-[40px] w-auto" width="180" height="63" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+      <span class="font-serif tracking-tight text-lavender" style="display:none; font-size:1.3rem; font-variation-settings:'opsz' 144,'SOFT' 30">Nails by Mona</span>
+    </a>
+    <a href="https://wa.me/92XXXXXXXXXX?text=Hello%20Nails%20by%20Mona%2C%20I%20have%20a%20question%20about%20placing%20an%20order."
+       class="font-sans text-caption text-stone hover:text-lavenderInk transition-colors duration-200 flex items-center gap-1.5">
+      Questions? Get help
+      <svg class="w-3.5 h-3.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"><line x1="40" y1="128" x2="216" y2="128"/><polyline points="144 56 216 128 144 200"/></svg>
+    </a>
+  </div>
+</header>
+
+<!-- PROGRESS BAR -->
+<div class="bg-paper border-b border-hairline">
+  <div class="max-w-lg mx-auto px-6 py-5">
+    <div class="flex items-start gap-0">
+
+      <!-- Node 1 -->
+      <div class="flex flex-col items-center shrink-0">
+        <div id="pnode-1" class="progress-node w-8 h-8 rounded-full bg-lavender border-2 border-lavender flex items-center justify-center">
+          <span id="pnum-1" class="font-sans font-semibold text-white" style="font-size:0.75rem">1</span>
+          <svg id="pcheck-1" class="hidden w-4 h-4 text-white" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 128 96 184 216 64"/></svg>
+        </div>
+        <span id="plabel-1" class="font-sans text-eyebrow uppercase mt-2 text-ink font-semibold whitespace-nowrap">Sizing</span>
+      </div>
+
+      <!-- Line 1 -->
+      <div class="flex-1 mt-4 mx-2">
+        <div class="relative h-0.5 bg-hairline rounded-full overflow-hidden">
+          <div id="pline-1" class="absolute inset-y-0 left-0 bg-lavender rounded-full transition-all duration-300" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Node 2 -->
+      <div class="flex flex-col items-center shrink-0">
+        <div id="pnode-2" class="progress-node w-8 h-8 rounded-full border-2 border-hairline bg-paper flex items-center justify-center">
+          <span id="pnum-2" class="font-sans font-semibold text-stone" style="font-size:0.75rem">2</span>
+          <svg id="pcheck-2" class="hidden w-4 h-4 text-white" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 128 96 184 216 64"/></svg>
+        </div>
+        <span id="plabel-2" class="font-sans text-eyebrow uppercase mt-2 text-stone whitespace-nowrap">Details</span>
+      </div>
+
+      <!-- Line 2 -->
+      <div class="flex-1 mt-4 mx-2">
+        <div class="relative h-0.5 bg-hairline rounded-full overflow-hidden">
+          <div id="pline-2" class="absolute inset-y-0 left-0 bg-lavender rounded-full transition-all duration-300" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Node 3 -->
+      <div class="flex flex-col items-center shrink-0">
+        <div id="pnode-3" class="progress-node w-8 h-8 rounded-full border-2 border-hairline bg-paper flex items-center justify-center">
+          <span id="pnum-3" class="font-sans font-semibold text-stone" style="font-size:0.75rem">3</span>
+          <svg id="pcheck-3" class="hidden w-4 h-4 text-white" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 128 96 184 216 64"/></svg>
+        </div>
+        <span id="plabel-3" class="font-sans text-eyebrow uppercase mt-2 text-stone whitespace-nowrap">Payment</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<main>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- STEP 1 — YOUR SIZING -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="step-1" class="step-section py-10 md:py-14">
+  <div class="max-w-2xl mx-auto px-6">
+
+    <!-- Pre-selected product -->
+    <div class="bg-shell rounded-2xl p-5 flex gap-4 items-center mb-8 border border-hairline/60">
+      <div class="w-16 h-16 rounded-xl shrink-0 overflow-hidden" style="background: linear-gradient(135deg, #D4C5E2 0%, #FBF8F2 60%, #C8B4D8 100%)"></div>
+      <div class="flex-1 min-w-0">
+        <p class="font-serif text-ink truncate" style="font-size:1rem; font-weight:300; font-variation-settings:'opsz' 144,'SOFT' 30">Dusty Rose Ombre</p>
+        <span class="inline-block font-sans text-eyebrow uppercase px-2.5 py-0.5 rounded-full bg-lavenderWash text-lavenderInk mr-2">Signature</span>
+        <span class="font-sans text-caption text-lavender font-medium">Rs. 2,800</span>
+      </div>
+      <a href="shop.html" class="font-sans text-caption text-stone hover:text-ink shrink-0 transition-colors duration-200">Change</a>
+    </div>
+
+    <!-- Returning customer lookup -->
+    <div class="mb-8">
+      <button id="returning-toggle" class="font-sans text-caption text-stone hover:text-lavenderInk transition-colors duration-200 flex items-center gap-1.5 bg-transparent">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><circle cx="128" cy="128" r="96"/><line x1="128" y1="88" x2="128" y2="168"/><line x1="88" y1="128" x2="168" y2="128"/></svg>
+        Ordered before? Use my saved sizing
+      </button>
+      <div id="returning-card" class="hidden mt-3 bg-lavenderWash border border-hairline rounded-xl p-5">
+        <p class="font-sans font-medium text-ink mb-3" style="font-size:0.9375rem">Ordered from me before?</p>
+        <div class="flex gap-2">
+          <input type="text" placeholder="Phone or email" class="flex-1 font-sans text-body bg-paper border border-hairline rounded-full px-4 py-2.5 text-ink placeholder:text-ash focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender text-sm">
+          <button class="shrink-0 bg-lavender hover:bg-lavenderDark text-white font-sans text-caption font-medium rounded-full px-5 py-2.5 transition-colors duration-200">Find</button>
+        </div>
+        <p class="font-sans text-caption text-stone mt-2">If I find your profile, you can skip the sizing photos.</p>
+      </div>
+    </div>
+
+    <!-- Sizing options heading -->
+    <h2 class="font-serif text-ink mb-2" style="font-size:clamp(1.4rem,3vw,1.75rem); font-weight:300; font-variation-settings:'opsz' 144,'SOFT' 30">How would you like to share your sizing?</h2>
+    <div class="h-0.5 w-10 bg-lavender mb-7"></div>
+
+    <!-- 3 radio sizing option cards -->
+    <div class="flex flex-col gap-3 mb-6">
+
+      <!-- Option A: Camera (default selected) -->
+      <label class="sizing-option selected rounded-2xl p-5 block" data-option="camera">
+        <input type="radio" name="sizing_method" value="camera" checked>
+        <div class="flex items-start gap-4">
+          <div class="w-11 h-11 rounded-xl bg-lavenderWash flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-lavenderInk" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M208,208H48a16,16,0,0,1-16-16V80A16,16,0,0,1,48,64H80L96,40h64l16,24h32a16,16,0,0,1,16,16V192A16,16,0,0,1,208,208Z"/><circle cx="128" cy="132" r="36"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <p class="font-sans font-medium text-ink" style="font-size:0.9375rem">Take a photo with my guide</p>
+              <span class="inline-block bg-lavender text-white font-sans text-eyebrow uppercase rounded-full px-2.5 py-0.5">Recommended</span>
+            </div>
+            <p class="font-sans text-caption text-stone">I'll show you exactly where to position your hand and coin — on screen, in real time. About 90 seconds.</p>
+          </div>
+        </div>
+      </label>
+
+      <!-- Option B: Upload -->
+      <label class="sizing-option rounded-2xl p-5 block" data-option="upload">
+        <input type="radio" name="sizing_method" value="upload">
+        <div class="flex items-start gap-4">
+          <div class="w-11 h-11 rounded-xl bg-shell flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-stone" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,88V44l44,44Zm-48,36 24-24 24 24M136,168V124"/></svg>
+          </div>
+          <div class="flex-1">
+            <p class="font-sans font-medium text-ink mb-1" style="font-size:0.9375rem">Upload photos from my gallery</p>
+            <p class="font-sans text-caption text-stone mb-3">Already have your 2 sizing photos (fingers + thumb, with a coin)? Upload them here.</p>
+            <!-- Inline file inputs (shown when this option is selected) -->
+            <div class="upload-inputs hidden space-y-2">
+              <div>
+                <label class="font-sans text-caption text-graphite font-medium block mb-1">Fingers photo</label>
+                <input type="file" accept="image/*" class="upload-fingers w-full font-sans text-caption text-stone file:mr-3 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:bg-shell file:text-graphite file:font-sans file:text-caption cursor-pointer">
+              </div>
+              <div>
+                <label class="font-sans text-caption text-graphite font-medium block mb-1">Thumb photo</label>
+                <input type="file" accept="image/*" class="upload-thumb w-full font-sans text-caption text-stone file:mr-3 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:bg-shell file:text-graphite file:font-sans file:text-caption cursor-pointer">
+              </div>
+              <p class="font-sans text-caption text-ash">Make sure: whole hand visible · coin present · shot straight down · good lighting</p>
+            </div>
+          </div>
+        </div>
+      </label>
+
+      <!-- Option C: WhatsApp -->
+      <label class="sizing-option rounded-2xl p-5 block" data-option="whatsapp">
+        <input type="radio" name="sizing_method" value="whatsapp">
+        <div class="flex items-start gap-4">
+          <div class="w-11 h-11 rounded-xl bg-shell flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-stone" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M152.61,165.49a48,48,0,0,1-62.1-62.1A8,8,0,0,1,93.8,99.46l13.6,21.84a8,8,0,0,1-1.21,9.62L98.91,138.6a40,40,0,0,0,18.49,18.49l7.68-7.28a8,8,0,0,1,9.62-1.21L156.54,162.2A8,8,0,0,1,152.61,165.49Z"/><path d="M128,32a96,96,0,0,0-83.32,143.51L32.27,224l49.71-12.49A96,96,0,1,0,128,32Z"/></svg>
+          </div>
+          <div class="flex-1">
+            <p class="font-sans font-medium text-ink mb-1" style="font-size:0.9375rem">I'll send it on WhatsApp</p>
+            <p class="font-sans text-caption text-stone">Not ready right now? Place your order and send your 2 sizing photos via WhatsApp — I'll measure before I start making.</p>
+          </div>
+        </div>
+      </label>
+
+    </div>
+
+    <!-- Size guide link -->
+    <p class="font-sans text-caption text-stone mb-8">
+      Not sure how to take the photo?
+      <a href="size-guide.html" class="text-lavenderInk hover:underline underline-offset-2 transition-colors duration-200">See the size guide →</a>
+    </p>
+
+    <!-- Continue button -->
+    <button id="step1-continue" class="w-full bg-lavender hover:bg-lavenderDark text-white font-sans font-medium tracking-wide rounded-full py-4 transition-colors duration-200" style="font-size:1rem">
+      Continue →
+    </button>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- STEP 2 — YOUR DETAILS -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="step-2" class="step-section hidden py-10 md:py-14">
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="flex flex-col lg:flex-row gap-10 lg:gap-14">
+
+      <!-- Form -->
+      <div class="flex-1">
+        <h2 class="font-serif text-ink mb-2" style="font-size:clamp(1.4rem,3vw,1.75rem); font-weight:300; font-variation-settings:'opsz' 144,'SOFT' 30">Your details</h2>
+        <div class="h-0.5 w-10 bg-lavender mb-7"></div>
+
+        <form id="details-form" novalidate class="space-y-5">
+
+          <div>
+            <label class="font-sans text-caption font-medium text-graphite block mb-1.5">Full name *</label>
+            <input id="f-name" type="text" placeholder="Your full name" required
+              class="w-full font-sans text-body bg-paper border border-hairline rounded-xl px-4 py-3 text-ink placeholder:text-ash focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender transition-colors duration-200">
+            <p class="error-msg" id="err-name">Please enter your name.</p>
+          </div>
+
+          <div>
+            <label class="font-sans text-caption font-medium text-graphite block mb-1.5">Email address *</label>
+            <input id="f-email" type="email" placeholder="your@email.com" required
+              class="w-full font-sans text-body bg-paper border border-hairline rounded-xl px-4 py-3 text-ink placeholder:text-ash focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender transition-colors duration-200">
+            <p class="error-msg" id="err-email">Please enter a valid email address.</p>
+          </div>
+
+          <div>
+            <label class="font-sans text-caption font-medium text-graphite block mb-1.5">WhatsApp number *</label>
+            <div class="flex">
+              <span class="flex items-center px-4 bg-shell border border-r-0 border-hairline rounded-l-xl font-sans text-caption text-stone">+92</span>
+              <input id="f-phone" type="tel" placeholder="3XX XXXXXXX" required
+                class="flex-1 font-sans text-body bg-paper border border-hairline rounded-r-xl px-4 py-3 text-ink placeholder:text-ash focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender transition-colors duration-200">
+            </div>
+            <p class="font-sans text-caption text-stone mt-1">This is how I'll contact you about your order.</p>
+            <p class="error-msg" id="err-phone">Please enter your WhatsApp number.</p>
+          </div>
+
+          <div>
+            <label class="font-sans text-caption font-medium text-graphite block mb-1.5">Shipping address *</label>
+            <input id="f-address" type="text" placeholder="House/flat number, street, area" required
+              class="w-full font-sans text-body bg-paper border border-hairline rounded-xl px-4 py-3 text-ink placeholder:text-ash focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender transition-colors duration-200">
+            <p class="error-msg" id="err-address">Please enter your shipping address.</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="font-sans text-caption font-medium text-graphite block mb-1.5">City *</label>
+              <select id="f-city" required
+                class="w-full font-sans text-body bg-paper border border-hairline rounded-xl px-4 py-3 text-ink focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender transition-colors duration-200 appearance-none">
+                <option value="" disabled selected>Select city</option>
+                <option>Lahore</option>
+                <option>Karachi</option>
+                <option>Islamabad</option>
+                <option>Rawalpindi</option>
+                <option>Faisalabad</option>
+                <option>Multan</option>
+                <option>Gujranwala</option>
+                <option>Sialkot</option>
+                <option>Peshawar</option>
+                <option>Quetta</option>
+                <option>Mirpur AJK</option>
+                <option value="other">Other</option>
+              </select>
+              <p class="error-msg" id="err-city">Please select your city.</p>
+            </div>
+            <div>
+              <label class="font-sans text-caption font-medium text-graphite block mb-1.5">Postal code <span class="text-ash">(optional)</span></label>
+              <input id="f-postal" type="text" placeholder="e.g. 54000"
+                class="w-full font-sans text-body bg-paper border border-hairline rounded-xl px-4 py-3 text-ink placeholder:text-ash focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender transition-colors duration-200">
+            </div>
+          </div>
+
+          <!-- City (other) — conditional -->
+          <div id="city-other-wrap" class="hidden">
+            <label class="font-sans text-caption font-medium text-graphite block mb-1.5">City name</label>
+            <input id="f-city-other" type="text" placeholder="Enter your city"
+              class="w-full font-sans text-body bg-paper border border-hairline rounded-xl px-4 py-3 text-ink placeholder:text-ash focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender transition-colors duration-200">
+          </div>
+
+          <div>
+            <label class="font-sans text-caption font-medium text-graphite block mb-1.5">Order notes <span class="text-ash">(optional)</span></label>
+            <textarea id="f-notes" rows="3" placeholder="Colour preferences, design adjustments, a wedding date, anything you'd like me to know."
+              class="w-full font-sans text-body bg-paper border border-hairline rounded-xl px-4 py-3 text-ink placeholder:text-ash focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender transition-colors duration-200 resize-none"></textarea>
+          </div>
+
+        </form>
+
+        <div class="flex gap-3 mt-8">
+          <button id="step2-back" class="flex items-center gap-2 border border-hairline text-stone hover:text-ink font-sans text-caption font-medium rounded-full px-6 py-3.5 transition-colors duration-200 bg-transparent">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"><line x1="216" y1="128" x2="40" y2="128"/><polyline points="112 56 40 128 112 200"/></svg>
+            Back
+          </button>
+          <button id="step2-continue" class="flex-1 bg-lavender hover:bg-lavenderDark text-white font-sans font-medium tracking-wide rounded-full py-3.5 transition-colors duration-200" style="font-size:1rem">
+            Continue →
+          </button>
+        </div>
+      </div>
+
+      <!-- Price summary sidebar (desktop) -->
+      <div class="lg:w-72 shrink-0">
+        <div class="bg-paper rounded-2xl border border-hairline p-6 sticky top-24">
+          <h3 class="font-serif text-ink mb-4" style="font-size:1rem; font-weight:300; font-variation-settings:'opsz' 144,'SOFT' 30">Order summary</h3>
+          <div class="space-y-3 text-caption font-sans">
+            <div class="flex justify-between">
+              <span class="text-stone">Dusty Rose Ombre</span>
+              <span class="text-ink font-medium tabular-nums">Rs. 2,800</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-stone">Shipping</span>
+              <span class="text-ink tabular-nums">Rs. 300</span>
+            </div>
+            <div class="pt-3 border-t border-hairline flex justify-between">
+              <span class="text-ink font-semibold">Total</span>
+              <span class="text-lavender font-semibold tabular-nums">Rs. 3,100</span>
+            </div>
+          </div>
+          <p class="font-sans text-caption text-stone mt-4">Estimated dispatch: 5–9 working days</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- STEP 3 — PAYMENT METHOD -->
+<!-- ═══════════════════════════════════════════════════ -->
+<section id="step-3" class="step-section hidden py-10 md:py-14">
+  <div class="max-w-2xl mx-auto px-6">
+
+    <h2 class="font-serif text-ink mb-2" style="font-size:clamp(1.4rem,3vw,1.75rem); font-weight:300; font-variation-settings:'opsz' 144,'SOFT' 30">How would you like to pay?</h2>
+    <div class="h-0.5 w-10 bg-lavender mb-2"></div>
+    <p class="font-sans text-caption text-stone mb-7">All payments are processed before your order goes into production. No Cash on Delivery.</p>
+
+    <!-- Payment option cards -->
+    <div class="space-y-3 mb-6">
+
+      <!-- JazzCash -->
+      <label class="payment-option selected rounded-2xl p-5 block" data-payment="jazzcash">
+        <input type="radio" name="payment_method" value="jazzcash" checked>
+        <div class="flex items-center justify-between mb-0">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[#E8F5E0] flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#4CAF50"/><text x="12" y="16" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="8" fill="white">JC</text></svg>
+            </div>
+            <span class="font-sans font-medium text-ink" style="font-size:0.9375rem">JazzCash</span>
+          </div>
+          <div class="w-5 h-5 rounded-full border-2 border-lavender flex items-center justify-center">
+            <div class="w-2.5 h-2.5 rounded-full bg-lavender"></div>
+          </div>
+        </div>
+        <div class="payment-details mt-4 bg-lavenderWash rounded-xl p-4">
+          <p class="font-sans text-caption text-stone mb-1">Send to:</p>
+          <p class="font-sans font-semibold text-ink tabular-nums" style="font-size:1rem">0300-1234567</p>
+          <p class="font-sans text-caption text-stone mt-1">Account name: Mona Nails Studio</p>
+          <p class="font-sans text-caption text-ash mt-2">After sending, upload your screenshot on the next page.</p>
+        </div>
+      </label>
+
+      <!-- EasyPaisa -->
+      <label class="payment-option rounded-2xl p-5 block" data-payment="easypaisa">
+        <input type="radio" name="payment_method" value="easypaisa">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[#E8F0F5] flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="6" fill="#1B5FA8"/><text x="12" y="16" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="8" fill="white">EP</text></svg>
+            </div>
+            <span class="font-sans font-medium text-ink" style="font-size:0.9375rem">EasyPaisa</span>
+          </div>
+          <div class="w-5 h-5 rounded-full border-2 border-hairline flex items-center justify-center ep-indicator">
+          </div>
+        </div>
+        <div class="payment-details mt-4 bg-lavenderWash rounded-xl p-4">
+          <p class="font-sans text-caption text-stone mb-1">Send to:</p>
+          <p class="font-sans font-semibold text-ink tabular-nums" style="font-size:1rem">0301-1234567</p>
+          <p class="font-sans text-caption text-stone mt-1">Account name: Mona Nails Studio</p>
+          <p class="font-sans text-caption text-ash mt-2">After sending, upload your screenshot on the next page.</p>
+        </div>
+      </label>
+
+      <!-- Bank Transfer -->
+      <label class="payment-option rounded-2xl p-5 block" data-payment="bank">
+        <input type="radio" name="payment_method" value="bank_transfer">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-shell flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-stone" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><line x1="16" y1="216" x2="240" y2="216"/><rect x="32" y="120" width="32" height="96"/><rect x="96" y="96" width="32" height="120"/><rect x="160" y="72" width="32" height="144"/><polygon points="232 56 128 24 24 56 232 56"/></svg>
+            </div>
+            <span class="font-sans font-medium text-ink" style="font-size:0.9375rem">Bank Transfer</span>
+          </div>
+          <div class="w-5 h-5 rounded-full border-2 border-hairline flex items-center justify-center bank-indicator"></div>
+        </div>
+        <div class="payment-details mt-4 bg-lavenderWash rounded-xl p-4">
+          <p class="font-sans text-caption text-stone mb-2">Transfer to:</p>
+          <p class="font-sans text-caption text-graphite">Account name: <strong>Mona Nails Studio</strong></p>
+          <p class="font-sans text-caption text-graphite mt-1">IBAN: <strong class="tabular-nums">PK00ALFA0000000000000000</strong></p>
+          <p class="font-sans text-caption text-graphite mt-1">Bank: <strong>Alfa Bank</strong></p>
+          <p class="font-sans text-caption text-ash mt-2">After transferring, upload your receipt on the next page.</p>
+        </div>
+      </label>
+
+    </div>
+
+    <!-- Order review accordion -->
+    <div class="bg-paper rounded-2xl border border-hairline mb-6">
+      <button id="review-toggle" class="w-full flex items-center justify-between px-5 py-4 bg-transparent">
+        <span class="font-sans font-medium text-ink" style="font-size:0.9375rem">Review your order</span>
+        <svg id="review-icon" class="w-4 h-4 text-stone transition-transform duration-200" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round"><polyline points="56 96 128 168 200 96"/></svg>
+      </button>
+      <div id="review-body" class="px-5 pb-5 space-y-3 text-caption font-sans">
+        <div class="pt-3 border-t border-hairline space-y-2">
+          <div class="flex justify-between"><span class="text-stone">Dusty Rose Ombre — Signature</span><span class="text-ink tabular-nums">Rs. 2,800</span></div>
+          <div class="flex justify-between"><span class="text-stone">Sizing</span><span class="text-ink">Camera guide</span></div>
+          <div class="flex justify-between"><span class="text-stone">Shipping</span><span class="text-ink tabular-nums">Rs. 300</span></div>
+          <div class="flex justify-between pt-2 border-t border-hairline"><span class="font-semibold text-ink">Total</span><span class="text-lavender font-semibold tabular-nums">Rs. 3,100</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Place order -->
+    <button id="place-order-btn" class="w-full bg-lavender hover:bg-lavenderDark text-white font-sans font-medium tracking-wide rounded-full py-4 transition-colors duration-200 flex items-center justify-center gap-3" style="font-size:1.0625rem">
+      <span id="place-order-label">Place my order</span>
+      <svg id="place-order-spinner" class="hidden w-5 h-5 spin" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round"><path d="M128,32a96,96,0,1,1-96,96"/></svg>
+    </button>
+
+    <div class="flex items-start gap-3 mt-4">
+      <button id="step3-back" class="shrink-0 border border-hairline text-stone hover:text-ink font-sans text-caption font-medium rounded-full px-6 py-3 transition-colors duration-200 bg-transparent">← Back</button>
+      <p class="font-sans text-caption text-ash pt-3">By placing this order, you confirm you've read and agree to our <a href="#" class="text-stone underline underline-offset-2">return and refit policy</a>.</p>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<!-- MINIMAL FOOTER -->
+<footer class="border-t border-hairline mt-8 py-5 bg-paper">
+  <div class="max-w-4xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-3">
+    <p class="font-sans text-caption text-ash">© 2026 Nails by Mona. All rights reserved.</p>
+    <div class="flex gap-6">
+      <a href="/privacy" class="font-sans text-caption text-ash hover:text-stone transition-colors duration-200">Privacy</a>
+      <a href="/terms" class="font-sans text-caption text-ash hover:text-stone transition-colors duration-200">Terms</a>
+      <a href="contact.html" class="font-sans text-caption text-ash hover:text-stone transition-colors duration-200">Help</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+$(function() {
+  let currentStep = 1;
+
+  // ─── Progress bar update ───
+  function updateProgress(step) {
+    for (let i = 1; i <= 3; i++) {
+      const $node = $(`#pnode-${i}`);
+      const $num  = $(`#pnum-${i}`);
+      const $chk  = $(`#pcheck-${i}`);
+      const $lbl  = $(`#plabel-${i}`);
+      if (i < step) {
+        // Completed
+        $node.addClass('bg-lavender border-lavender').removeClass('border-hairline bg-paper');
+        $num.hide(); $chk.show();
+        $lbl.addClass('text-lavender').removeClass('text-stone text-ink font-semibold');
+      } else if (i === step) {
+        // Current
+        $node.addClass('bg-lavender border-lavender').removeClass('border-hairline bg-paper');
+        $num.show().css('color','white'); $chk.hide();
+        $lbl.addClass('text-ink font-semibold').removeClass('text-stone text-lavender');
+      } else {
+        // Future
+        $node.addClass('border-hairline bg-paper').removeClass('bg-lavender border-lavender');
+        $num.show().css('color',''); $chk.hide();
+        $lbl.addClass('text-stone').removeClass('text-ink font-semibold text-lavender');
+      }
+    }
+    // Lines
+    $('#pline-1').css('width', step > 1 ? '100%' : '0%');
+    $('#pline-2').css('width', step > 2 ? '100%' : '0%');
+    // Scroll to top
+    $('html,body').animate({ scrollTop: 0 }, 200);
+  }
+
+  function goToStep(step) {
+    $('.step-section').hide();
+    $(`#step-${step}`).show();
+    currentStep = step;
+    updateProgress(step);
+  }
+
+  // ─── Step 1: Sizing option selection ───
+  let selectedSizingMethod = 'camera';
+
+  $('.sizing-option').on('click', function() {
+    $('.sizing-option').removeClass('selected');
+    $(this).addClass('selected');
+    $(this).find('input[type=radio]').prop('checked', true);
+    selectedSizingMethod = $(this).data('option');
+    // Show/hide upload inputs
+    if (selectedSizingMethod === 'upload') {
+      $(this).find('.upload-inputs').show();
+    } else {
+      $('.upload-inputs').hide();
+    }
+  });
+
+  // Step 1 continue
+  $('#step1-continue').on('click', function() {
+    if (selectedSizingMethod === 'camera') {
+      // Navigate to sizing capture page
+      window.location.href = 'sizing-capture.html';
+    } else {
+      goToStep(2);
+    }
+  });
+
+  // Check if returning from sizing-capture (hash)
+  if (window.location.hash === '#step-2') {
+    goToStep(2);
+    history.replaceState(null, '', window.location.pathname);
+  }
+
+  // ─── Returning customer toggle ───
+  $('#returning-toggle').on('click', function() {
+    $('#returning-card').toggleClass('hidden');
+  });
+
+  // ─── City "Other" field ───
+  $('#f-city').on('change', function() {
+    if ($(this).val() === 'other') {
+      $('#city-other-wrap').show();
+    } else {
+      $('#city-other-wrap').hide();
+    }
+  });
+
+  // ─── Step 2: Details validation ───
+  function validateStep2() {
+    let valid = true;
+    const checks = [
+      { id: 'f-name',    err: 'err-name',    test: v => v.trim().length >= 2 },
+      { id: 'f-email',   err: 'err-email',   test: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) },
+      { id: 'f-phone',   err: 'err-phone',   test: v => v.trim().length >= 9 },
+      { id: 'f-address', err: 'err-address', test: v => v.trim().length >= 5 },
+      { id: 'f-city',    err: 'err-city',    test: v => v !== '' },
+    ];
+    checks.forEach(({ id, err, test }) => {
+      const val = $(`#${id}`).val();
+      if (!test(val)) {
+        $(`#${id}`).addClass('field-error');
+        $(`#${err}`).show();
+        valid = false;
+      } else {
+        $(`#${id}`).removeClass('field-error');
+        $(`#${err}`).hide();
+      }
+    });
+    return valid;
+  }
+
+  $('[data-requires-validate]').on('input change', function() {
+    $(this).removeClass('field-error');
+    const errId = $(this).data('err');
+    if (errId) $(`#${errId}`).hide();
+  });
+
+  $('#step2-continue').on('click', function() {
+    if (validateStep2()) goToStep(3);
+  });
+  $('#step2-back').on('click', function() { goToStep(1); });
+
+  // ─── Step 3: Payment option selection ───
+  $('.payment-option').on('click', function() {
+    // Reset all
+    $('.payment-option').removeClass('selected').css('border-color','');
+    $('.payment-option .payment-details').hide();
+    // Generic radio indicators reset
+    $('.payment-option').each(function() {
+      $(this).find('[class*="-indicator"]').empty();
+    });
+    // Select this card
+    $(this).addClass('selected');
+    $(this).find('input[type=radio]').prop('checked', true);
+    $(this).find('.payment-details').show();
+    // Update radio indicator visual for non-JC cards
+  });
+
+  // Review accordion
+  let reviewOpen = true;
+  $('#review-toggle').on('click', function() {
+    reviewOpen = !reviewOpen;
+    if (reviewOpen) {
+      $('#review-body').show();
+      $('#review-icon').css('transform','');
+    } else {
+      $('#review-body').hide();
+      $('#review-icon').css('transform','rotate(-90deg)');
+    }
+  });
+
+  $('#step3-back').on('click', function() { goToStep(2); });
+
+  // Place order
+  $('#place-order-btn').on('click', function() {
+    const $btn = $(this);
+    $btn.prop('disabled', true).addClass('opacity-75 cursor-not-allowed');
+    $('#place-order-label').text('Placing your order…');
+    $('#place-order-spinner').show();
+    setTimeout(() => {
+      window.location.href = 'order-confirmation.html';
+    }, 1800);
+  });
+
+});
+</script>
+
+</body>
+</html>
