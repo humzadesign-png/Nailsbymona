@@ -155,14 +155,12 @@ class CustomerResource extends Resource
 
     public static function nailSizesFormSchema(): array
     {
-        $hint = 'Use Mona\'s size notation (e.g. XS, S, M, L or a number).';
-
         return [
             FormSection::make('Right Hand')
-                ->description('Sizes for the customer\'s right hand.')
+                ->description('Sizes for the customer\'s right hand. Use any notation you prefer — XS/S/M/L or a number.')
                 ->columns(5)
                 ->schema([
-                    Forms\Components\TextInput::make('size_r_thumb') ->label('Thumb') ->hint($hint)->maxLength(20),
+                    Forms\Components\TextInput::make('size_r_thumb') ->label('Thumb') ->maxLength(20),
                     Forms\Components\TextInput::make('size_r_index') ->label('Index') ->maxLength(20),
                     Forms\Components\TextInput::make('size_r_middle')->label('Middle')->maxLength(20),
                     Forms\Components\TextInput::make('size_r_ring')  ->label('Ring')  ->maxLength(20),
