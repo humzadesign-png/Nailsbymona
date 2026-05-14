@@ -530,6 +530,9 @@ These are deferred until after launch — they're not on the critical path to MV
 ### Phase 7 — Diaspora pilot (Year 2)
 UK + UAE shipping. Flat international rate. Advance-only. See section 28.
 
+### Phase 7.5 — WhatsApp Business API (post Phase 7, when volume justifies)
+Direct Meta Cloud API integration — no third-party provider, free up to 1,000 conversations/month. Removes the customer call button entirely (API accounts are messaging-only). Requires Meta business verification (website is already live so approval path is clear), a dedicated number, and a Laravel webhook + Filament inbox. Deferred until order volume makes the number migration worthwhile. For now: regular WhatsApp Business app + Silence Unknown Callers setting.
+
 ### Phase 8 — AI chatbot (Year 2, see section 25)
 Only after 3–6 months of Mona's real DM data is collected. Tone-mimicking system prompt + few-shot examples + strict guardrails (always route pricing/sizing to WhatsApp).
 
