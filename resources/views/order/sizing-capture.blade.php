@@ -320,7 +320,7 @@
         SVG overlay — viewBox 400×870 matches modern iPhone aspect ratio (~9:19.5).
         preserveAspectRatio="xMidYMax meet" — scales to fit, anchors to bottom of screen.
         Finger centers at x=68(pinky) 140(ring) 220(middle) 300(index) — confirmed by user.
-        Guides are 72-80px wide to cover real finger nail-bed width.
+        Guides are 56-64px wide to match real finger nail-bed widths.
         Everything shifted down so coin sits comfortably above the hand.
         Coin r=38 — sized to approximate a PKR 5 coin relative to finger widths.
       --}}
@@ -333,17 +333,17 @@
           <text x="220" y="263" text-anchor="middle" font-size="17" fill="rgba(255,255,255,0.9)" font-family="DM Sans, sans-serif">₨</text>
           <text x="220" y="308" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.5)" font-family="DM Sans, sans-serif" letter-spacing="1.5">COIN ABOVE NAILS</text>
 
-          {{-- Pinky — 68px wide, center x=68, x=34-102. Shortest ~55% of middle (520px). Arch r=34. --}}
-          <path d="M34,870 L34,584 Q34,548 68,548 Q102,548 102,584 L102,870"
+          {{-- Pinky — 56px wide, center x=68, x=40-96. Shortest ~55% of middle. Arch r=28. --}}
+          <path d="M40,870 L40,576 Q40,548 68,548 Q96,548 96,576 L96,870"
                 stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
-          {{-- Ring — 72px wide, center x=140, x=104-176. ~82% of middle. Arch r=36. --}}
-          <path d="M104,870 L104,444 Q104,406 140,406 Q176,406 176,444 L176,870"
+          {{-- Ring — 60px wide, center x=140, x=110-170. ~82% of middle. Arch r=30. --}}
+          <path d="M110,870 L110,436 Q110,406 140,406 Q170,406 170,436 L170,870"
                 stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
-          {{-- Middle — 80px wide, center x=220, x=180-260. Tallest (520px). Arch r=40. --}}
-          <path d="M180,870 L180,350 Q180,312 220,312 Q260,312 260,350 L260,870"
+          {{-- Middle — 64px wide, center x=220, x=188-252. Tallest. Arch r=32. --}}
+          <path d="M188,870 L188,344 Q188,312 220,312 Q252,312 252,344 L252,870"
                 stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
-          {{-- Index — 72px wide, center x=300, x=264-336. ~79% of middle. Arch r=36. --}}
-          <path d="M264,870 L264,459 Q264,421 300,421 Q336,421 336,459 L336,870"
+          {{-- Index — 60px wide, center x=300, x=270-330. ~79% of middle. Arch r=30. --}}
+          <path d="M270,870 L270,451 Q270,421 300,421 Q330,421 330,451 L330,870"
                 stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
         </g>
 
