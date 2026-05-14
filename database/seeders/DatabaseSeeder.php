@@ -140,5 +140,11 @@ class DatabaseSeeder extends Seeder
         foreach ($products as $data) {
             Product::firstOrCreate(['slug' => $data['slug']], $data);
         }
+
+        // ── Blog posts + FAQs ─────────────────────────────────────────────────
+        $this->call([
+            BlogPostSeeder::class,
+            FaqSeeder::class,
+        ]);
     }
 }

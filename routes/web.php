@@ -1,15 +1,20 @@
 <?php
 
+use App\Http\Controllers\BlogController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderPaymentProofController;
 use App\Http\Controllers\Order\OrderSizingPhotoController;
 use App\Http\Controllers\Order\OrderTrackingController;
 use App\Http\Controllers\ShopController;
 use App\Enums\UgcPlacement;
+use App\Models\BlogPost;
 use App\Models\ContactMessage;
+use App\Models\Product;
 use App\Models\UgcPhoto;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Spatie\Sitemap\Sitemap;
+use Spatie\Sitemap\Tags\Url;
 
 // ── Public marketing pages ────────────────────────────────────────────────────
 Route::get('/', function () {
@@ -27,8 +32,9 @@ Route::get('/bridal', fn () => view('bridal'))->name('bridal');
 Route::get('/size-guide', fn () => view('size-guide'))->name('size-guide');
 Route::get('/about', fn () => view('about'))->name('about');
 Route::get('/contact', fn () => view('contact'))->name('contact');
-Route::get('/blog', fn () => view('blog'))->name('blog');
-Route::get('/blog/{slug}', fn () => view('blog-post'))->name('blog.post');
+Route::get('/blog', [BlogController::class, 'index'])->name('blog');
+Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.post');
+Route::post('/subscribe', [BlogController::class, 'subscribe'])->middleware('throttle:5,1')->name('subscribe');
 
 // ── Contact form submission ───────────────────────────────────────────────────
 Route::post('/contact', function (Request $request) {
@@ -70,7 +76,62 @@ Route::post('/order/payment',            [OrderController::class, 'store'])->nam
 Route::get('/order/confirm/{order}',     [OrderController::class, 'confirm'])->name('order.confirm');
 Route::post('/order/{order}/proof',      [OrderPaymentProofController::class, 'store'])->name('order.proof');
 
-// Tracking — standalone lookup page (nav search icon links here)
+// ── Sitemap ───────────────────────────────────────────────────────────────────
+Route::get('/sitemap.xml', function () {
+    $sitemap = Sitemap::create()
+        ->add(Url::create(route('home'))->setPriority(1.0)->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY))
+        ->add(Url::create(route('shop'))->setPriority(0.9)->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY))
+        ->add(Url::create(route('bridal'))->setPriority(0.9)->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY))
+        ->add(Url::create(route('about'))->setPriority(0.7)->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY))
+        ->add(Url::create(route('contact'))->setPriority(0.5)->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY))
+        ->add(Url::create(route('size-guide'))->setPriority(0.8)->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY))
+        ->add(Url::create(route('blog'))->setPriority(0.8)->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY));
+
+    Product::where('is_active', true)->each(function ($p) use ($sitemap) {
+        $sitemap->add(Url::create(route('product', $p->slug))->setPriority(0.85)->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)->setLastModificationDate($p->updated_at));
+    });
+
+    BlogPost::where('is_published', true)->orderByDesc('published_at')->each(function ($post) use ($sitemap) {
+        $sitemap->add(Url::create(route('blog.post', $post->slug))->setPriority(0.75)->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)->setLastModificationDate($post->updated_at));
+    });
+
+    return response($sitemap->render(), 200, ['Content-Type' => 'application/xml; charset=utf-8']);
+})->name('sitemap');
+
+// ── RSS feed ──────────────────────────────────────────────────────────────────
+Route::get('/feed.xml', function () {
+    $posts = BlogPost::where('is_published', true)
+        ->orderByDesc('published_at')
+        ->limit(20)
+        ->get();
+
+    $xml  = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    $xml .= '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">' . "\n";
+    $xml .= '<channel>' . "\n";
+    $xml .= '<title>The Journal — Nails by Mona</title>' . "\n";
+    $xml .= '<link>' . route('blog') . '</link>' . "\n";
+    $xml .= '<description>Nail care, bridal guides, and press-on tutorials from Mona\'s studio in Mirpur.</description>' . "\n";
+    $xml .= '<language>en-pk</language>' . "\n";
+    $xml .= '<atom:link href="' . route('feed') . '" rel="self" type="application/rss+xml" />' . "\n";
+
+    foreach ($posts as $post) {
+        $xml .= '<item>' . "\n";
+        $xml .= '<title><![CDATA[' . $post->title . ']]></title>' . "\n";
+        $xml .= '<link>' . route('blog.post', $post->slug) . '</link>' . "\n";
+        $xml .= '<guid isPermaLink="true">' . route('blog.post', $post->slug) . '</guid>' . "\n";
+        $xml .= '<pubDate>' . ($post->published_at ?? $post->created_at)->toRssString() . '</pubDate>' . "\n";
+        $xml .= '<description><![CDATA[' . e($post->excerpt) . ']]></description>' . "\n";
+        $xml .= '<category>' . e($post->category->label()) . '</category>' . "\n";
+        $xml .= '</item>' . "\n";
+    }
+
+    $xml .= '</channel>' . "\n";
+    $xml .= '</rss>';
+
+    return response($xml, 200, ['Content-Type' => 'application/rss+xml; charset=utf-8']);
+})->name('feed');
+
+// ── Tracking — standalone lookup page (nav search icon links here)
 Route::get('/track',                     [OrderTrackingController::class, 'index'])->name('track');
 Route::get('/order/{order}/track',       [OrderTrackingController::class, 'show'])->name('order.track');
 Route::post('/order/track/lookup',       [OrderTrackingController::class, 'lookup'])->name('order.track.lookup')->middleware('throttle:10,1');

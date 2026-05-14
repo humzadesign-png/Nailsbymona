@@ -35,6 +35,7 @@
     description="Everything I know about nails, bridal prep, and press-on care — written for real people, not search engines. New posts 2–3 times a month."
     :schema="$blogSchema"
 />
+<link rel="alternate" type="application/rss+xml" title="The Journal — Nails by Mona" href="{{ route('feed') }}">
 @endsection
 
 @section('content')
@@ -57,35 +58,45 @@
       <button class="filter-tab font-sans text-caption font-medium text-stone hover:text-ink py-4 px-4 border-b-2 border-transparent transition-colors duration-150 bg-transparent" data-filter="tutorials">Tutorials</button>
       <button class="filter-tab font-sans text-caption font-medium text-stone hover:text-ink py-4 px-4 border-b-2 border-transparent transition-colors duration-150 bg-transparent" data-filter="trends">Trends</button>
       <button class="filter-tab font-sans text-caption font-medium text-stone hover:text-ink py-4 px-4 border-b-2 border-transparent transition-colors duration-150 bg-transparent" data-filter="care">Care</button>
-      <button class="filter-tab font-sans text-caption font-medium text-stone hover:text-ink py-4 px-4 border-b-2 border-transparent transition-colors duration-150 bg-transparent" data-filter="behind-the-scenes">Behind the Scenes</button>
+      <button class="filter-tab font-sans text-caption font-medium text-stone hover:text-ink py-4 px-4 border-b-2 border-transparent transition-colors duration-150 bg-transparent" data-filter="behind_scenes">Behind the Scenes</button>
     </div>
   </div>
 </div>
 
 
+@if($featured)
 <!-- FEATURED POST -->
 <section class="bg-paper pt-12 md:pt-16 pb-0">
   <div class="max-w-7xl mx-auto px-6 lg:px-10">
     <p class="font-sans text-eyebrow text-lavender uppercase mb-6">Featured</p>
-    <a href="{{ route('blog.post', 'muslim-women-press-on-nails-wudu') }}" class="group block rounded-2xl border border-hairline/80 overflow-hidden hover:shadow-card-hover transition-shadow duration-300">
+    <a href="{{ route('blog.post', $featured->slug) }}" class="group block rounded-2xl border border-hairline/80 overflow-hidden hover:shadow-card-hover transition-shadow duration-300">
       <div class="flex flex-col md:flex-row">
         <!-- Cover image -->
         <div class="md:w-[55%] shrink-0 aspect-[16/9] md:aspect-auto md:min-h-[380px] img-wrap-fallback relative overflow-hidden" style="background: linear-gradient(135deg, #D4C5E2 0%, #EAE3D9 40%, #F2ECF8 80%, #C8B4D8 100%)">
+          @if($featured->cover_image)
+          <img src="{{ asset('storage/' . $featured->cover_image) }}"
+               alt="{{ $featured->cover_image_alt ?? $featured->title }}"
+               class="w-full h-full object-cover"
+               loading="eager">
+          @else
           <div class="absolute inset-0 flex items-center justify-center opacity-20">
             <svg class="w-24 h-24" viewBox="0 0 24 24" fill="none" stroke="#BFA4CE" stroke-width="1"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
           </div>
+          @endif
           <div class="absolute bottom-4 left-4">
-            <span class="inline-block bg-lavender-wash text-lavender-ink font-sans text-eyebrow uppercase rounded-full px-3 py-1">Tutorials</span>
+            <span class="inline-block bg-lavender-wash text-lavender-ink font-sans text-eyebrow uppercase rounded-full px-3 py-1">{{ $featured->category->label() }}</span>
           </div>
         </div>
         <!-- Post info -->
         <div class="md:w-[45%] p-8 md:p-10 flex flex-col justify-center">
-          <h2 class="font-serif text-display text-ink mb-4 group-hover:text-lavender-ink transition-colors duration-200" style="font-variation-settings:'opsz' 144,'SOFT' 30; font-size:clamp(1.5rem,2.5vw,2rem); line-height:1.1">Can Muslim Women Wear Press-On Nails? Wudu, Nail Polish, and a Simple Solution</h2>
-          <p class="font-sans text-body text-graphite mb-6 leading-relaxed">For years, I wore my nails plain. Not because I didn't care &mdash; but because I couldn't find a way to have beautiful nails without compromising my prayers. This is the solution I found, and it's the reason I started making press-ons in the first place.</p>
+          <h2 class="font-serif text-display text-ink mb-4 group-hover:text-lavender-ink transition-colors duration-200" style="font-variation-settings:'opsz' 144,'SOFT' 30; font-size:clamp(1.5rem,2.5vw,2rem); line-height:1.1">{{ $featured->title }}</h2>
+          @if($featured->excerpt)
+          <p class="font-sans text-body text-graphite mb-6 leading-relaxed">{{ $featured->excerpt }}</p>
+          @endif
           <div class="flex items-center gap-2 mb-7 flex-wrap">
-            <span class="font-sans text-caption text-stone">7 May 2026</span>
+            <span class="font-sans text-caption text-stone">{{ ($featured->published_at ?? $featured->created_at)->format('j M Y') }}</span>
             <span class="text-ash">·</span>
-            <span class="font-sans text-caption text-stone">8 min read</span>
+            <span class="font-sans text-caption text-stone">{{ max(1, (int) ceil(str_word_count(strip_tags($featured->content ?? '')) / 200)) }} min read</span>
             <span class="text-ash">·</span>
             <span class="font-sans text-caption text-stone">by Mona</span>
           </div>
@@ -98,6 +109,7 @@
     </a>
   </div>
 </section>
+@endif
 
 
 <!-- POST GRID -->
@@ -105,93 +117,45 @@
   <div class="max-w-7xl mx-auto px-6 lg:px-10">
     <div id="post-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
-      <!-- Post 1: Bridal -->
-      <article class="post-card" data-category="bridal">
-        <a href="{{ route('blog.post', 'press-on-nails-vs-acrylics-pakistan-brides') }}" class="post-card-link group block rounded-2xl overflow-hidden bg-paper border border-hairline/80 hover:shadow-card transition-shadow duration-300">
-          <div class="aspect-[16/9] img-wrap-fallback overflow-hidden relative" style="background: linear-gradient(135deg, #EDE2C8 0%, #FBF8F2 60%, #D4C8BE 100%)">
-            <img src="" alt="Hands adorned with gel press-on nails against traditional Pakistani bridal fabric" class="w-full h-full object-cover post-card-img" loading="lazy" onerror="this.remove()">
+      @forelse($gridPosts as $post)
+      @php $mins = max(1, (int) ceil(str_word_count(strip_tags($post->content ?? '')) / 200)); @endphp
+      <article class="post-card" data-category="{{ $post->category->value }}">
+        <a href="{{ route('blog.post', $post->slug) }}" class="post-card-link group block rounded-2xl overflow-hidden bg-paper border border-hairline/80 hover:shadow-card transition-shadow duration-300 h-full flex flex-col">
+          <div class="aspect-[16/9] img-wrap-fallback overflow-hidden relative shrink-0" style="background: linear-gradient(135deg, #EAE3D9 0%, #FBF8F2 60%, #D4C8BE 100%)">
+            @if($post->cover_image)
+            <img src="{{ asset('storage/' . $post->cover_image) }}"
+                 alt="{{ $post->cover_image_alt ?? $post->title }}"
+                 class="w-full h-full object-cover post-card-img" loading="lazy">
+            @endif
           </div>
-          <div class="p-6">
-            <span class="inline-block bg-lavender-wash text-lavender-ink font-sans text-eyebrow uppercase rounded-full px-3 py-1 mb-4">Bridal</span>
-            <h3 class="font-serif text-ink mb-3 post-card-title transition-colors duration-200" style="font-size:1.2rem; font-weight:300; line-height:1.3; font-variation-settings:'opsz' 144,'SOFT' 30">Press-On Nails vs Acrylics: Which Is Better for Pakistani Brides?</h3>
-            <p class="font-sans text-caption text-stone mb-4 leading-relaxed">The acrylic trap Pakistani brides fall into &mdash; and a better answer for all three nights of your wedding.</p>
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="font-sans" style="font-size:0.75rem; color:#B5A99C">1 May 2026</span>
+          <div class="p-6 flex flex-col flex-1">
+            <span class="inline-block bg-lavender-wash text-lavender-ink font-sans text-eyebrow uppercase rounded-full px-3 py-1 mb-4 self-start">{{ $post->category->label() }}</span>
+            <h3 class="font-serif text-ink mb-3 post-card-title transition-colors duration-200 flex-1" style="font-size:1.2rem; font-weight:300; line-height:1.3; font-variation-settings:'opsz' 144,'SOFT' 30">{{ $post->title }}</h3>
+            @if($post->excerpt)
+            <p class="font-sans text-caption text-stone mb-4 leading-relaxed">{{ Str::limit($post->excerpt, 120) }}</p>
+            @endif
+            <div class="flex items-center gap-2 flex-wrap mt-auto">
+              <span class="font-sans" style="font-size:0.75rem; color:#B5A99C">{{ ($post->published_at ?? $post->created_at)->format('j M Y') }}</span>
               <span style="color:#B5A99C">·</span>
-              <span class="font-sans" style="font-size:0.75rem; color:#B5A99C">9 min read</span>
-              <span style="color:#B5A99C">·</span>
-              <span class="font-sans" style="font-size:0.75rem; color:#B5A99C">by Mona</span>
-            </div>
-          </div>
-        </a>
-      </article>
-
-      <!-- Post 2: Tutorials -->
-      <article class="post-card" data-category="tutorials">
-        <a href="{{ route('blog.post', 'how-to-apply-press-on-nails') }}" class="post-card-link group block rounded-2xl overflow-hidden bg-paper border border-hairline/80 hover:shadow-card transition-shadow duration-300">
-          <div class="aspect-[16/9] img-wrap-fallback overflow-hidden relative" style="background: linear-gradient(135deg, #F2ECF8 0%, #FBF8F2 60%, #E8E0F0 100%)">
-            <img src="" alt="Step-by-step application of custom-fit press-on nails" class="w-full h-full object-cover post-card-img" loading="lazy" onerror="this.remove()">
-          </div>
-          <div class="p-6">
-            <span class="inline-block bg-lavender-wash text-lavender-ink font-sans text-eyebrow uppercase rounded-full px-3 py-1 mb-4">Tutorials</span>
-            <h3 class="font-serif text-ink mb-3 post-card-title transition-colors duration-200" style="font-size:1.2rem; font-weight:300; line-height:1.3; font-variation-settings:'opsz' 144,'SOFT' 30">How to Apply Press-On Nails &mdash; A Foolproof 7-Step Guide</h3>
-            <p class="font-sans text-caption text-stone mb-4 leading-relaxed">Prep is 80% of the result. Here's exactly how to get a salon finish from home, every time.</p>
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="font-sans" style="font-size:0.75rem; color:#B5A99C">24 Apr 2026</span>
-              <span style="color:#B5A99C">·</span>
-              <span class="font-sans" style="font-size:0.75rem; color:#B5A99C">7 min read</span>
+              <span class="font-sans" style="font-size:0.75rem; color:#B5A99C">{{ $mins }} min read</span>
               <span style="color:#B5A99C">·</span>
               <span class="font-sans" style="font-size:0.75rem; color:#B5A99C">by Mona</span>
             </div>
           </div>
         </a>
       </article>
-
-      <!-- Post 3: Bridal -->
-      <article class="post-card" data-category="bridal">
-        <a href="{{ route('blog.post', 'bridal-nail-trends-pakistan-2026') }}" class="post-card-link group block rounded-2xl overflow-hidden bg-paper border border-hairline/80 hover:shadow-card transition-shadow duration-300">
-          <div class="aspect-[16/9] img-wrap-fallback overflow-hidden relative" style="background: linear-gradient(135deg, #EDE2C8 0%, #FBF8F2 50%, #D8CEB4 100%)">
-            <img src="" alt="Bridal press-on nail trends for Pakistani weddings 2026" class="w-full h-full object-cover post-card-img" loading="lazy" onerror="this.remove()">
-          </div>
-          <div class="p-6">
-            <span class="inline-block bg-lavender-wash text-lavender-ink font-sans text-eyebrow uppercase rounded-full px-3 py-1 mb-4">Bridal</span>
-            <h3 class="font-serif text-ink mb-3 post-card-title transition-colors duration-200" style="font-size:1.2rem; font-weight:300; line-height:1.3; font-variation-settings:'opsz' 144,'SOFT' 30">Bridal Nail Trends in Pakistan for 2026</h3>
-            <p class="font-sans text-caption text-stone mb-4 leading-relaxed">From Mehendi to Valima &mdash; the colours, textures, and 3D details Pakistani brides are choosing this season.</p>
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="font-sans" style="font-size:0.75rem; color:#B5A99C">18 Apr 2026</span>
-              <span style="color:#B5A99C">·</span>
-              <span class="font-sans" style="font-size:0.75rem; color:#B5A99C">6 min read</span>
-              <span style="color:#B5A99C">·</span>
-              <span class="font-sans" style="font-size:0.75rem; color:#B5A99C">by Mona</span>
-            </div>
-          </div>
-        </a>
-      </article>
-
-      <!-- Post 4: Care -->
-      <article class="post-card" data-category="care">
-        <a href="{{ route('blog.post', 'how-to-remove-press-on-nails') }}" class="post-card-link group block rounded-2xl overflow-hidden bg-paper border border-hairline/80 hover:shadow-card transition-shadow duration-300">
-          <div class="aspect-[16/9] img-wrap-fallback overflow-hidden relative" style="background: linear-gradient(135deg, #EAE3D9 0%, #FBF8F2 60%, #D9D2C6 100%)">
-            <img src="" alt="Gentle removal of press-on nails using warm water soak" class="w-full h-full object-cover post-card-img" loading="lazy" onerror="this.remove()">
-          </div>
-          <div class="p-6">
-            <span class="inline-block bg-lavender-wash text-lavender-ink font-sans text-eyebrow uppercase rounded-full px-3 py-1 mb-4">Care</span>
-            <h3 class="font-serif text-ink mb-3 post-card-title transition-colors duration-200" style="font-size:1.2rem; font-weight:300; line-height:1.3; font-variation-settings:'opsz' 144,'SOFT' 30">How to Remove Press-On Nails Without Damaging Your Natural Nails</h3>
-            <p class="font-sans text-caption text-stone mb-4 leading-relaxed">Never peel, never force. The warm-water soak method that protects your nail bed and keeps your set reusable.</p>
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="font-sans" style="font-size:0.75rem; color:#B5A99C">12 Apr 2026</span>
-              <span style="color:#B5A99C">·</span>
-              <span class="font-sans" style="font-size:0.75rem; color:#B5A99C">6 min read</span>
-              <span style="color:#B5A99C">·</span>
-              <span class="font-sans" style="font-size:0.75rem; color:#B5A99C">by Mona</span>
-            </div>
-          </div>
-        </a>
-      </article>
+      @empty
+      @endforelse
 
     </div>
 
-    <!-- Empty state (shown when filter has no matches) -->
+    <!-- Empty state (shown when filter has no matches, or no posts at all) -->
+    @if($gridPosts->isEmpty() && !$featured)
+    <div class="text-center py-20">
+      <p class="font-sans text-body text-stone mb-2">New articles coming soon.</p>
+      <p class="font-sans text-caption text-stone">Check back in a few days &mdash; Mona writes 2&ndash;3 times a month.</p>
+    </div>
+    @endif
     <div id="no-posts" class="hidden text-center py-16">
       <p class="font-sans text-body text-stone mb-2">No articles in this category yet.</p>
       <button class="filter-tab font-sans text-caption font-medium text-lavender hover:text-lavender-dark transition-colors duration-200 bg-transparent" data-filter="all">View all articles &rarr;</button>
@@ -214,19 +178,22 @@
       </div>
       <!-- Form -->
       <div class="md:w-1/2">
-        <form id="subscribe-form" action="#" method="POST" novalidate>
+        @if(session('subscribed'))
+        <div class="bg-paper border border-hairline/80 rounded-2xl px-6 py-5">
+          <p class="font-sans text-body text-graphite">You&rsquo;re in. I&rsquo;ll be in touch soon. &mdash; Mona</p>
+        </div>
+        @else
+        <form id="subscribe-form" action="{{ route('subscribe') }}" method="POST" novalidate>
           @csrf
           <div class="flex flex-col sm:flex-row gap-3">
-            <input id="subscribe-email" name="email" type="email" placeholder="your@email.com" class="flex-1 font-sans text-body bg-paper border border-hairline rounded-full px-5 py-3.5 text-ink placeholder:text-ash focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender transition-colors duration-200" required>
+            <input id="subscribe-email" name="email" type="email" placeholder="your@email.com"
+                   class="flex-1 font-sans text-body bg-paper border border-hairline rounded-full px-5 py-3.5 text-ink placeholder:text-ash focus:outline-none focus:ring-2 focus:ring-lavender/40 focus:border-lavender transition-colors duration-200"
+                   required>
             <button type="submit" class="shrink-0 bg-lavender hover:bg-lavender-dark text-white font-sans text-caption font-medium tracking-wide rounded-full px-7 py-3.5 transition-colors duration-200">Subscribe</button>
           </div>
           <p class="font-sans text-caption text-stone mt-3">No account needed. Just your email.</p>
         </form>
         <div id="subscribe-success" class="hidden bg-paper border border-hairline/80 rounded-2xl px-6 py-5">
-          <p class="font-sans text-body text-graphite">You&rsquo;re in. I&rsquo;ll be in touch soon. &mdash; Mona</p>
-        </div>
-        @if(session('subscribed'))
-        <div class="bg-paper border border-hairline/80 rounded-2xl px-6 py-5 mt-3">
           <p class="font-sans text-body text-graphite">You&rsquo;re in. I&rsquo;ll be in touch soon. &mdash; Mona</p>
         </div>
         @endif
@@ -279,7 +246,6 @@
 $(function() {
   // Category filter tabs
   function activateFilter(filter) {
-    // Update active tab styling
     $('.filter-tab, .filter-trigger').each(function() {
       const $el = $(this);
       const isActive = $el.data('filter') === filter;
@@ -290,7 +256,6 @@ $(function() {
       }
     });
 
-    // Show/hide post cards
     let visible = 0;
     $('.post-card').each(function() {
       const cat = $(this).data('category');
@@ -301,18 +266,13 @@ $(function() {
     $('#no-posts').toggleClass('hidden', visible > 0);
   }
 
-  $('.filter-tab').on('click', function() {
-    activateFilter($(this).data('filter'));
-  });
+  $('.filter-tab').on('click', function() { activateFilter($(this).data('filter')); });
 
   $('.filter-trigger').on('click', function() {
     const filter = $(this).data('filter');
     activateFilter(filter);
-    // Scroll to filter bar
     const $bar = $('#filter-bar');
-    if ($bar.length) {
-      $('html, body').animate({ scrollTop: $bar.offset().top - 80 }, 300);
-    }
+    if ($bar.length) $('html, body').animate({ scrollTop: $bar.offset().top - 80 }, 300);
   });
 
   // Subscribe form AJAX
@@ -320,8 +280,15 @@ $(function() {
     e.preventDefault();
     const email = $('#subscribe-email').val().trim();
     if (!email) return;
-    $(this).hide();
-    $('#subscribe-success').removeClass('hidden');
+    $.post('{{ route('subscribe') }}', { email: email, _token: '{{ csrf_token() }}' })
+      .done(function() {
+        $('#subscribe-form').hide();
+        $('#subscribe-success').removeClass('hidden');
+      })
+      .fail(function() {
+        $('#subscribe-form').hide();
+        $('#subscribe-success').removeClass('hidden');
+      });
   });
 });
 </script>
