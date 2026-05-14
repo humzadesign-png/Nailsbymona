@@ -316,48 +316,55 @@
       {{-- Live video feed --}}
       <video id="camera-video" autoplay playsinline muted></video>
 
-      {{-- SVG overlay —  finger/thumb guides --}}
-      <svg id="overlay-svg" viewBox="0 0 400 710" xmlns="http://www.w3.org/2000/svg" fill="none" preserveAspectRatio="xMidYMid meet">
+      {{-- SVG overlay — finger/thumb guides --}}
+      {{--
+        ViewBox 0 0 400 710 (portrait phone proportions).
+        Fingers centered: pinky(x=40-96) ring(x=112-172) middle(x=188-252) index(x=268-328)
+        Finger widths ~56-64px, 16px gaps. Spans x=40–328, centered in 400px.
+        Thumb: 84px wide centered at 200 (x=158-242). Coin proportional at r=24.
+      --}}
+      <svg id="overlay-svg" viewBox="0 0 400 710" xmlns="http://www.w3.org/2000/svg" fill="none" preserveAspectRatio="xMidYMid slice">
 
         {{-- Fingers overlay (photo 1 and 3) --}}
         <g id="overlay-fingers">
-          {{-- Coin above middle finger --}}
-          <circle cx="234" cy="160" r="30" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-dasharray="6 4"/>
-          <text x="234" y="167" text-anchor="middle" font-size="16" fill="rgba(255,255,255,0.8)" font-family="DM Sans, sans-serif">₨</text>
-          <text x="234" y="205" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.55)" font-family="DM Sans, sans-serif" letter-spacing="1">COIN ABOVE NAILS</text>
+          {{-- Coin above middle finger (center of middle = x=220) --}}
+          <circle cx="220" cy="148" r="24" stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <text x="220" y="155" text-anchor="middle" font-size="14" fill="rgba(255,255,255,0.85)" font-family="DM Sans, sans-serif">₨</text>
+          <text x="220" y="188" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.5)" font-family="DM Sans, sans-serif" letter-spacing="1.5">COIN ABOVE NAILS</text>
 
-          {{-- Pinky --}}
-          <path d="M72,710 L72,520 Q72,480 110,480 Q148,480 148,520 L148,710"
-                stroke="rgba(255,255,255,0.65)" stroke-width="1.5" stroke-dasharray="8 5" stroke-linecap="round"/>
-          {{-- Ring --}}
-          <path d="M163,710 L163,440 Q163,400 201,400 Q239,400 239,440 L239,710"
-                stroke="rgba(255,255,255,0.65)" stroke-width="1.5" stroke-dasharray="8 5" stroke-linecap="round"/>
-          {{-- Middle (tallest) --}}
-          <path d="M253,710 L253,395 Q253,355 291,355 Q329,355 329,395 L329,710"
-                stroke="rgba(255,255,255,0.65)" stroke-width="1.5" stroke-dasharray="8 5" stroke-linecap="round"/>
-          {{-- Index --}}
-          <path d="M343,710 L343,448 Q343,408 381,408 Q400,408 400,448 L400,710"
-                stroke="rgba(255,255,255,0.65)" stroke-width="1.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+          {{-- Pinky — 56px wide, x=40-96, center=68. Top at y=462 (55% of 470). Arch at y=432. --}}
+          <path d="M40,710 L40,462 Q40,432 68,432 Q96,432 96,462 L96,710"
+                stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
+          {{-- Ring — 60px wide, x=112-172, center=142. Top at y=326 (82%). Arch at y=296. --}}
+          <path d="M112,710 L112,326 Q112,296 142,296 Q172,296 172,326 L172,710"
+                stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
+          {{-- Middle — 64px wide, x=188-252, center=220. Top at y=240 (tallest=470px). Arch at y=208. --}}
+          <path d="M188,710 L188,240 Q188,208 220,208 Q252,208 252,240 L252,710"
+                stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
+          {{-- Index — 60px wide, x=268-328, center=298. Top at y=339 (79%). Arch at y=309. --}}
+          <path d="M268,710 L268,339 Q268,309 298,309 Q328,309 328,339 L328,710"
+                stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
         </g>
 
         {{-- Thumb overlay (photo 2 and 4) --}}
+        {{-- 84px wide centered at x=200 (x=158-242). Height 310px (y=400–710). Arch at y=368. --}}
         <g id="overlay-thumb" style="display:none">
-          <circle cx="200" cy="130" r="30" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-dasharray="6 4"/>
-          <text x="200" y="137" text-anchor="middle" font-size="16" fill="rgba(255,255,255,0.8)" font-family="DM Sans, sans-serif">₨</text>
-          <text x="200" y="175" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.55)" font-family="DM Sans, sans-serif" letter-spacing="1">COIN ABOVE NAIL</text>
-          <path d="M130,710 L130,310 Q130,230 200,230 Q270,230 270,310 L270,710"
-                stroke="rgba(255,255,255,0.65)" stroke-width="1.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+          <circle cx="200" cy="240" r="24" stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <text x="200" y="247" text-anchor="middle" font-size="14" fill="rgba(255,255,255,0.85)" font-family="DM Sans, sans-serif">₨</text>
+          <text x="200" y="280" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.5)" font-family="DM Sans, sans-serif" letter-spacing="1.5">COIN ABOVE NAIL</text>
+          <path d="M158,710 L158,400 Q158,368 200,368 Q242,368 242,400 L242,710"
+                stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
         </g>
 
         {{-- Corner bracket guides --}}
-        <line x1="24" y1="24" x2="56" y2="24" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
-        <line x1="24" y1="24" x2="24" y2="56" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
-        <line x1="376" y1="24" x2="344" y2="24" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
-        <line x1="376" y1="24" x2="376" y2="56" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
-        <line x1="24" y1="686" x2="56" y2="686" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
-        <line x1="24" y1="686" x2="24" y2="654" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
-        <line x1="376" y1="686" x2="344" y2="686" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
-        <line x1="376" y1="686" x2="376" y2="654" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="20" y1="20" x2="52" y2="20" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="20" y1="20" x2="20" y2="52" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="380" y1="20" x2="348" y2="20" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="380" y1="20" x2="380" y2="52" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="20" y1="690" x2="52" y2="690" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="20" y1="690" x2="20" y2="658" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="380" y1="690" x2="348" y2="690" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="380" y1="690" x2="380" y2="658" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
 
       {{-- Alignment border --}}
