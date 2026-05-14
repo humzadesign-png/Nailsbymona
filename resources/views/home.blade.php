@@ -341,9 +341,9 @@
 
 {{-- ═══════════════════════════════════════════
      SECTION 5 — BRIDAL TRIO
-     BG: bridal-bg (champagne)
+     BG: paper
 ═══════════════════════════════════════════ --}}
-<section class="py-20 md:py-28 bg-bridal-bg">
+<section class="py-20 md:py-28 bg-paper">
     <div class="max-w-7xl mx-auto px-6 lg:px-10">
         <div class="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
 
@@ -378,7 +378,7 @@
 
             {{-- Bridal image --}}
             <div class="rounded-2xl overflow-hidden shadow-2xl shadow-ink/20"
-                 style="aspect-ratio:3/4; background:linear-gradient(150deg,#EDE2C8 0%,#D9C28A 40%,#B8924A 100%)">
+                 style="aspect-ratio:3/4; background:linear-gradient(150deg,#C4B8D2 0%,#EAE3D9 60%,#FBF8F2 100%)">
                 <img
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMDjMPFXgmgvFReuLT1rq0rhVxtsqEr42UQqTmYLcjUihKexyK-z6bF4jMc2FT4t0v6r1VP2z6smwQlyKQsqlV9-EqBsIsISm9Kt4_BhQH7N6Uk6MVq0JA0rKFxN9wUuWp0OFyt9258JJBFvDa85Md5U-L74wbcnwWfMOv5CzCQWTM4-Z5UYZbccbpqT-q1pCsmHqpi4tyJMXPGOQmU0hQVN899lKjUthcadruE4Tt_jW8W2ZvBMow3FXqsLnKUH_ej49SsBaJvhs"
                     alt="Bridal Trio nail sets — three coordinated looks for Mehendi, Baraat, and Valima"

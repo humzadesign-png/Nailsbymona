@@ -35,7 +35,7 @@
 ═══════════════════════════════════════════════ --}}
 <section class="bg-shell py-14 md:py-16">
   <div class="max-w-7xl mx-auto px-6 lg:px-10">
-    <p class="font-sans text-eyebrow text-lavender uppercase mb-4">The Collection</p>
+    <p class="font-sans text-eyebrow uppercase mb-4" style="color:var(--color-lavender-dark)">The Collection</p>
     <h1 class="font-serif text-display-lg text-ink mb-4" style="font-variation-settings:'opsz' 144,'SOFT' 30">Find your perfect set.</h1>
     <div class="h-0.5 w-10 bg-lavender mb-5"></div>
     <p class="font-sans text-body text-stone max-w-xl">Every design is custom-fit to your nails. Browse by occasion, style, or price.</p>
@@ -218,7 +218,7 @@
      SECTION 5 — BRIDAL CALLOUT
      BG: bridal-bg
 ═══════════════════════════════════════════════ --}}
-<section class="bg-bridal-bg py-16 md:py-20">
+<section class="bg-shell py-16 md:py-20">
   <div class="max-w-7xl mx-auto px-6 lg:px-10">
     <div class="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
 
@@ -244,7 +244,7 @@
       </div>
 
       <!-- Image -->
-      <div class="overflow-hidden rounded-2xl shadow-2xl shadow-ink/20 img-wrap-fallback" style="aspect-ratio:3/4; background:linear-gradient(150deg,#EDE2C8 0%,#D9C28A 40%,#B8924A 100%)">
+      <div class="overflow-hidden rounded-2xl shadow-2xl shadow-ink/20 img-wrap-fallback" style="aspect-ratio:3/4; background:linear-gradient(150deg,#C4B8D2 0%,#EAE3D9 60%,#FBF8F2 100%)">
         <img
           src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMDjMPFXgmgvFReuLT1rq0rhVxtsqEr42UQqTmYLcjUihKexyK-z6bF4jMc2FT4t0v6r1VP2z6smwQlyKQsqlV9-EqBsIsISm9Kt4_BhQH7N6Uk6MVq0JA0rKFxN9wUuWp0OFyt9258JJBFvDa85Md5U-L74wbcnwWfMOv5CzCQWTM4-Z5UYZbccbpqT-q1pCsmHqpi4tyJMXPGOQmU0hQVN899lKjUthcadruE4Tt_jW8W2ZvBMow3FXqsLnKUH_ej49SsBaJvhs"
           alt="Bridal Trio nail sets — three coordinated looks for Mehendi, Baraat, and Valima"

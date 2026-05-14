@@ -46,6 +46,8 @@
 
         {{-- Desktop nav (≥1024px) --}}
         <nav class="hidden lg:flex items-center gap-9" aria-label="Primary">
+            <a href="{{ route('home') }}"
+               class="{{ request()->routeIs('home') ? 'nav-link-active' : 'nav-link' }}">Home</a>
             <a href="{{ route('shop') }}"
                class="{{ request()->routeIs('shop', 'product') ? 'nav-link-active' : 'nav-link' }}">Shop</a>
             <a href="{{ route('bridal') }}"
@@ -122,6 +124,8 @@
     </div>
 
     <nav class="px-8 pt-12 pb-8 flex flex-col gap-6" aria-label="Primary">
+        <a href="{{ route('home') }}"
+           class="font-serif text-display text-ink hover:text-lavender-ink transition-colors duration-200">Home</a>
         <a href="{{ route('shop') }}"
            class="font-serif text-display text-ink hover:text-lavender-ink transition-colors duration-200">Shop</a>
         <a href="{{ route('bridal') }}"

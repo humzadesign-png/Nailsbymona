@@ -59,13 +59,13 @@
   <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 pb-16 pt-32 w-full">
     <div class="max-w-xl">
       <nav class="mb-6" aria-label="Breadcrumb">
-        <ol class="flex items-center gap-2 font-sans text-caption text-stone">
+        <ol class="flex items-center gap-2 font-sans text-caption text-graphite">
           <li><a href="{{ route('home') }}" class="hover:text-ink transition-colors duration-200">Home</a></li>
-          <li aria-hidden="true"><span class="text-ash">›</span></li>
-          <li class="text-graphite font-medium">About</li>
+          <li aria-hidden="true"><span class="text-stone">›</span></li>
+          <li class="text-ink font-medium">About</li>
         </ol>
       </nav>
-      <p class="font-sans text-eyebrow text-lavender uppercase mb-5 tracking-[0.2em]">Our story</p>
+      <p class="font-sans text-eyebrow uppercase mb-5 tracking-[0.2em]" style="color:var(--color-lavender-dark)">Our story</p>
       <h1 class="font-serif text-display-lg text-ink mb-5" style="font-variation-settings:'opsz' 144,'SOFT' 30">
         Hi, I'm Mona. I make every set myself.
       </h1>

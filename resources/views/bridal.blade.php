@@ -35,14 +35,14 @@
 <section class="relative min-h-[70vh] md:min-h-[80vh] flex items-center overflow-hidden">
 
   <!-- Background -->
-  <div class="absolute inset-0 z-0" style="background: linear-gradient(150deg, #EDE2C8 0%, #D4B870 100%)">
+  <div class="absolute inset-0 z-0" style="background: linear-gradient(150deg, #EAE3D9 0%, #F4EFE8 100%)">
     <img
       src=""
       alt="Bridal press-on nails on hands resting on red velvet wedding fabric"
       class="absolute inset-0 w-full h-full object-cover"
       onerror="this.remove()"
       width="1920" height="1080">
-    <div class="absolute inset-0 bg-gradient-to-r from-bridal-bg/60 via-bridal-bg/20 to-transparent"></div>
+    <div class="absolute inset-0" style="background: linear-gradient(to right, rgba(234,227,217,0.6) 0%, rgba(234,227,217,0.2) 50%, transparent 100%)"></div>
   </div>
 
   <!-- Frosted editorial card — centered -->
@@ -103,7 +103,7 @@
 
       <!-- Mehendi Panel -->
       <div class="rounded-2xl overflow-hidden group">
-        <div class="overflow-hidden rounded-t-2xl img-wrap-fallback relative" style="aspect-ratio:3/4; background:linear-gradient(150deg,#D4AE60,#E8C878,#EDE2C8)">
+        <div class="overflow-hidden rounded-t-2xl img-wrap-fallback relative" style="aspect-ratio:3/4; background:linear-gradient(150deg,#C4B8D2,#EAE3D9,#FBF8F2)">
           <img
             src=""
             alt="Mehendi night bridal press-on nails &mdash; intricate henna-inspired gold designs"
@@ -470,7 +470,7 @@
     <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
 
       <!-- Tile 1 — tall -->
-      <div class="rounded-2xl overflow-hidden img-wrap-fallback relative row-span-2 md:row-span-2" style="aspect-ratio:2/3; background:linear-gradient(150deg,#D4AE60 0%,#EDE2C8 100%)">
+      <div class="rounded-2xl overflow-hidden img-wrap-fallback relative row-span-2 md:row-span-2" style="aspect-ratio:2/3; background:linear-gradient(150deg,#C4B8D2 0%,#EAE3D9 100%)">
         <img src="" alt="Bridal press-on nails with gold floral detailing &mdash; Mehendi night" class="w-full h-full object-cover" onerror="this.remove()" width="400" height="600" loading="lazy">
         <div class="absolute inset-0 flex items-end p-4 pointer-events-none">
           <span class="font-sans text-eyebrow uppercase tracking-widest text-stone/40">Mehendi</span>
@@ -494,7 +494,7 @@
       </div>
 
       <!-- Tile 4 -->
-      <div class="rounded-2xl overflow-hidden img-wrap-fallback" style="aspect-ratio:1/1; background:linear-gradient(135deg,#EDE2C8,#D4B870)">
+      <div class="rounded-2xl overflow-hidden img-wrap-fallback" style="aspect-ratio:1/1; background:linear-gradient(135deg,#EAE3D9,#FBF8F2)">
         <img src="" alt="Handmade bridal press-on nails with intricate hand-painted details" class="w-full h-full object-cover" onerror="this.remove()" width="400" height="400" loading="lazy">
       </div>
 
