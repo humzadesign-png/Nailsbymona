@@ -86,28 +86,30 @@ class CustomerResource extends Resource
             InfoSection::make('Saved Nail Sizes')
                 ->description('Sizes recorded by Mona from the customer\'s sizing photos.')
                 ->collapsible()
+                ->columns(1)
                 ->schema([
-                    Infolists\Components\RepeatableEntry::make('sizingProfile')
-                        ->label('')
-                        ->schema([
-                            // Right hand
-                            Infolists\Components\TextEntry::make('size_r_thumb') ->label('R Thumb') ->placeholder('—'),
-                            Infolists\Components\TextEntry::make('size_r_index') ->label('R Index') ->placeholder('—'),
-                            Infolists\Components\TextEntry::make('size_r_middle')->label('R Middle')->placeholder('—'),
-                            Infolists\Components\TextEntry::make('size_r_ring')  ->label('R Ring')  ->placeholder('—'),
-                            Infolists\Components\TextEntry::make('size_r_pinky') ->label('R Pinky') ->placeholder('—'),
-                            // Left hand
-                            Infolists\Components\TextEntry::make('size_l_thumb') ->label('L Thumb') ->placeholder('—'),
-                            Infolists\Components\TextEntry::make('size_l_index') ->label('L Index') ->placeholder('—'),
-                            Infolists\Components\TextEntry::make('size_l_middle')->label('L Middle')->placeholder('—'),
-                            Infolists\Components\TextEntry::make('size_l_ring')  ->label('L Ring')  ->placeholder('—'),
-                            Infolists\Components\TextEntry::make('size_l_pinky') ->label('L Pinky') ->placeholder('—'),
-                            Infolists\Components\TextEntry::make('notes')
-                                ->label('Notes')->placeholder('—')->columnSpanFull(),
-                            Infolists\Components\TextEntry::make('verified_by_admin_at')
-                                ->label('Verified at')->dateTime('d M Y, g:ia')->placeholder('Not verified'),
-                        ])
-                        ->columns(5),
+                    // Right hand — 5 columns
+                    InfoSection::make('Right Hand')->columns(5)->compact()->schema([
+                        Infolists\Components\TextEntry::make('sizingProfile.size_r_thumb') ->label('Thumb') ->placeholder('—'),
+                        Infolists\Components\TextEntry::make('sizingProfile.size_r_index') ->label('Index') ->placeholder('—'),
+                        Infolists\Components\TextEntry::make('sizingProfile.size_r_middle')->label('Middle')->placeholder('—'),
+                        Infolists\Components\TextEntry::make('sizingProfile.size_r_ring')  ->label('Ring')  ->placeholder('—'),
+                        Infolists\Components\TextEntry::make('sizingProfile.size_r_pinky') ->label('Pinky') ->placeholder('—'),
+                    ]),
+                    // Left hand — 5 columns
+                    InfoSection::make('Left Hand')->columns(5)->compact()->schema([
+                        Infolists\Components\TextEntry::make('sizingProfile.size_l_thumb') ->label('Thumb') ->placeholder('—'),
+                        Infolists\Components\TextEntry::make('sizingProfile.size_l_index') ->label('Index') ->placeholder('—'),
+                        Infolists\Components\TextEntry::make('sizingProfile.size_l_middle')->label('Middle')->placeholder('—'),
+                        Infolists\Components\TextEntry::make('sizingProfile.size_l_ring')  ->label('Ring')  ->placeholder('—'),
+                        Infolists\Components\TextEntry::make('sizingProfile.size_l_pinky') ->label('Pinky') ->placeholder('—'),
+                    ]),
+                    InfoSection::make('')->compact()->schema([
+                        Infolists\Components\TextEntry::make('sizingProfile.notes')
+                            ->label('Sizing notes')->placeholder('—'),
+                        Infolists\Components\TextEntry::make('sizingProfile.verified_by_admin_at')
+                            ->label('Last verified')->dateTime('d M Y, g:ia')->placeholder('Not verified'),
+                    ])->columns(2),
                 ]),
         ]);
     }
