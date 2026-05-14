@@ -1,11 +1,7 @@
 /**
  * Nails by Mona — app.js
- * jQuery 4 imported here and exposed globally so Blade templates
- * can use $ without additional module imports.
+ *
+ * jQuery is loaded as a regular <script> tag in both layouts (public/js/jquery.min.js)
+ * so it is available synchronously to all inline Blade scripts.
+ * No module import needed here.
  */
-
-import $ from 'jquery';
-
-// Expose globally for inline Blade scripts
-window.$ = $;
-window.jQuery = $;

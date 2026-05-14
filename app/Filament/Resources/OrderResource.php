@@ -1,0 +1,356 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
+use App\Filament\Resources\OrderResource\Pages;
+use App\Models\Order;
+use Illuminate\Support\Facades\Storage;
+use Filament\Forms;
+use Filament\Infolists;
+use Filament\Schemas\Components\Section as InfoSection;
+use Filament\Notifications\Notification;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Actions;
+use Filament\Tables;
+use Filament\Tables\Table;
+
+class OrderResource extends Resource
+{
+    protected static ?string $model = Order::class;
+    protected static string | \UnitEnum | null $navigationGroup = 'Orders';
+    protected static ?int    $navigationSort  = 1;
+
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) Order::where('status', OrderStatus::New)->count() ?: null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
+    }
+
+    // ── Table ─────────────────────────────────────────────────────────────────
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->defaultSort('created_at', 'desc')
+            ->columns([
+                Tables\Columns\TextColumn::make('order_number')
+                    ->label('Order')
+                    ->searchable()
+                    ->weight('semibold')
+                    ->copyable(),
+
+                Tables\Columns\TextColumn::make('customer_name')
+                    ->label('Customer')
+                    ->searchable()
+                    ->description(fn (Order $r) => $r->customer_phone),
+
+                Tables\Columns\TextColumn::make('total_pkr')
+                    ->label('Total')
+                    ->formatStateUsing(fn ($state) => 'Rs. ' . number_format($state))
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn ($state) => match($state) {
+                        OrderStatus::New          => 'gray',
+                        OrderStatus::Confirmed    => 'warning',
+                        OrderStatus::InProduction => 'primary',
+                        OrderStatus::Shipped      => 'info',
+                        OrderStatus::Delivered    => 'success',
+                        OrderStatus::Cancelled    => 'danger',
+                        default                   => 'gray',
+                    })
+                    ->formatStateUsing(fn ($state) => $state instanceof OrderStatus ? $state->label() : $state),
+
+                Tables\Columns\TextColumn::make('payment_status')
+                    ->label('Payment')
+                    ->badge()
+                    ->color(fn ($state) => match($state) {
+                        PaymentStatus::Awaiting       => 'warning',
+                        PaymentStatus::Verifying      => 'primary',
+                        PaymentStatus::Paid           => 'success',
+                        PaymentStatus::PartialAdvance => 'info',
+                        PaymentStatus::Refunded       => 'danger',
+                        default                       => 'gray',
+                    })
+                    ->formatStateUsing(fn ($state) => $state instanceof PaymentStatus ? $state->label() : $state),
+
+                Tables\Columns\TextColumn::make('payment_method')
+                    ->label('Method')
+                    ->formatStateUsing(fn ($state) => $state instanceof PaymentMethod ? $state->label() : $state)
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('city')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Placed')
+                    ->dateTime('d M Y, g:ia')
+                    ->sortable(),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('status')
+                    ->options(collect(OrderStatus::cases())->mapWithKeys(fn ($e) => [$e->value => $e->label()])),
+                Tables\Filters\SelectFilter::make('payment_status')
+                    ->options(collect(PaymentStatus::cases())->mapWithKeys(fn ($e) => [$e->value => $e->label()])),
+                Tables\Filters\Filter::make('awaiting_payment')
+                    ->label('Awaiting payment')
+                    ->query(fn ($query) => $query->where('payment_status', PaymentStatus::Awaiting)),
+            ])
+            ->actions([
+                Actions\ViewAction::make(),
+                Actions\Action::make('confirm')
+                    ->label('Mark Confirmed')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->visible(fn (Order $r) => $r->status === OrderStatus::New)
+                    ->action(fn (Order $r) => $r->update([
+                        'status'         => OrderStatus::Confirmed,
+                        'payment_status' => PaymentStatus::Paid,
+                    ]))
+                    ->requiresConfirmation(),
+                Actions\Action::make('in_production')
+                    ->label('In Production')
+                    ->icon('heroicon-o-wrench-screwdriver')
+                    ->color('primary')
+                    ->visible(fn (Order $r) => $r->status === OrderStatus::Confirmed)
+                    ->action(fn (Order $r) => $r->update(['status' => OrderStatus::InProduction])),
+                Actions\Action::make('ship')
+                    ->label('Mark Shipped')
+                    ->icon('heroicon-o-truck')
+                    ->color('info')
+                    ->visible(fn (Order $r) => $r->status === OrderStatus::InProduction)
+                    ->form([
+                        Forms\Components\TextInput::make('tracking_number')->required(),
+                        Forms\Components\Select::make('courier')
+                            ->options([
+                                'tcs'      => 'TCS',
+                                'leopards' => 'Leopards',
+                                'mp'       => 'M&P',
+                                'blueex'   => 'BlueEx',
+                            ])->required(),
+                    ])
+                    ->action(function (Order $r, array $data) {
+                        $r->update([
+                            'status'          => OrderStatus::Shipped,
+                            'tracking_number' => $data['tracking_number'],
+                            'courier'         => $data['courier'],
+                            'shipped_at'      => now(),
+                        ]);
+                        Notification::make()->title('Order marked as shipped.')->success()->send();
+                    }),
+                Actions\Action::make('deliver')
+                    ->label('Mark Delivered')
+                    ->icon('heroicon-o-home')
+                    ->color('success')
+                    ->visible(fn (Order $r) => $r->status === OrderStatus::Shipped)
+                    ->action(fn (Order $r) => $r->update(['status' => OrderStatus::Delivered, 'delivered_at' => now()]))
+                    ->requiresConfirmation(),
+            ])
+            ->bulkActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    // ── Infolist (view page) ──────────────────────────────────────────────────
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema->columns(2)->components([
+            InfoSection::make('Order')
+                ->columns(3)
+                ->columnSpan(1)
+                ->compact()
+                ->schema([
+                    Infolists\Components\TextEntry::make('order_number')->weight('bold')->copyable(),
+                    Infolists\Components\TextEntry::make('status')
+                        ->formatStateUsing(fn ($state) => $state->label())
+                        ->badge()
+                        ->color(fn ($state) => match($state) {
+                            OrderStatus::New          => 'gray',
+                            OrderStatus::Confirmed    => 'warning',
+                            OrderStatus::InProduction => 'primary',
+                            OrderStatus::Shipped      => 'info',
+                            OrderStatus::Delivered    => 'success',
+                            OrderStatus::Cancelled    => 'danger',
+                        }),
+                    Infolists\Components\TextEntry::make('payment_status')
+                        ->formatStateUsing(fn ($state) => $state->label())
+                        ->badge()
+                        ->color(fn ($state) => match($state) {
+                            PaymentStatus::Awaiting       => 'warning',
+                            PaymentStatus::Verifying      => 'primary',
+                            PaymentStatus::Paid           => 'success',
+                            PaymentStatus::PartialAdvance => 'info',
+                            PaymentStatus::Refunded       => 'danger',
+                        }),
+                    Infolists\Components\TextEntry::make('created_at')->dateTime('d M Y, g:ia')->label('Placed'),
+                    Infolists\Components\TextEntry::make('payment_method')
+                        ->formatStateUsing(fn ($state) => $state?->label() ?? '—'),
+                    Infolists\Components\TextEntry::make('total_pkr')
+                        ->formatStateUsing(fn ($state) => 'Rs. ' . number_format($state))
+                        ->label('Total'),
+                ]),
+
+            InfoSection::make('Customer')
+                ->columns(2)
+                ->columnSpan(1)
+                ->compact()
+                ->schema([
+                    Infolists\Components\TextEntry::make('customer_name'),
+                    Infolists\Components\TextEntry::make('customer_email')->copyable(),
+                    Infolists\Components\TextEntry::make('customer_phone')->copyable(),
+                    Infolists\Components\TextEntry::make('city'),
+                    Infolists\Components\TextEntry::make('shipping_address')->columnSpanFull(),
+                    Infolists\Components\TextEntry::make('notes')->columnSpanFull()->placeholder('—'),
+                ]),
+
+            InfoSection::make('Items')
+                ->columnSpan(1)
+                ->compact()
+                ->schema([
+                    Infolists\Components\RepeatableEntry::make('items')
+                        ->schema([
+                            Infolists\Components\TextEntry::make('product_name_snapshot')->label('Product'),
+                            Infolists\Components\TextEntry::make('qty')->label('Qty'),
+                            Infolists\Components\TextEntry::make('unit_price_pkr')
+                                ->label('Unit price')
+                                ->formatStateUsing(fn ($state) => 'Rs. ' . number_format($state)),
+                            Infolists\Components\TextEntry::make('lineTotalPkr')
+                                ->label('Line total')
+                                ->formatStateUsing(fn ($state) => 'Rs. ' . number_format($state)),
+                        ])
+                        ->columns(4),
+                ]),
+
+            InfoSection::make('Shipping & Totals')
+                ->columns(3)
+                ->columnSpan(1)
+                ->compact()
+                ->schema([
+                    Infolists\Components\TextEntry::make('subtotal_pkr')
+                        ->formatStateUsing(fn ($state) => 'Rs. ' . number_format($state)),
+                    Infolists\Components\TextEntry::make('shipping_pkr')
+                        ->formatStateUsing(fn ($state) => 'Rs. ' . number_format($state)),
+                    Infolists\Components\TextEntry::make('total_pkr')
+                        ->label('Total')->weight('bold')
+                        ->formatStateUsing(fn ($state) => 'Rs. ' . number_format($state)),
+                    Infolists\Components\TextEntry::make('tracking_number')->placeholder('—'),
+                    Infolists\Components\TextEntry::make('courier')
+                        ->formatStateUsing(fn ($state) => $state?->label() ?? '—'),
+                ]),
+
+            InfoSection::make('Sizing Photos')
+                ->description('Photos uploaded by the customer for nail sizing.')
+                ->columnSpanFull()
+                ->compact()
+                ->schema([
+                    Infolists\Components\TextEntry::make('sizing_capture_method')
+                        ->label('Capture method')
+                        ->formatStateUsing(fn ($state) => $state?->label() ?? '—'),
+                    Infolists\Components\RepeatableEntry::make('sizingPhotos')
+                        ->label('')
+                        ->schema([
+                            Infolists\Components\TextEntry::make('photo_type')
+                                ->label('Type')
+                                ->formatStateUsing(fn ($state) => $state?->label() ?? $state),
+                            Infolists\Components\ImageEntry::make('path')
+                                ->label('Photo')
+                                ->disk('public')
+                                ->height(200)
+                                ->openUrlInNewTab(),
+                            Infolists\Components\TextEntry::make('path')
+                                ->label('')
+                                ->html()
+                                ->formatStateUsing(fn ($state) =>
+                                    '<a href="' . e(Storage::disk('public')->url($state)) . '" download
+                                        class="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-500 underline underline-offset-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                                        </svg>
+                                        Download photo
+                                    </a>'
+                                ),
+                        ])
+                        ->columns(2),
+                ])
+                ->collapsible(),
+
+            InfoSection::make('Payment Proofs')
+                ->description('Screenshots or receipts uploaded by the customer.')
+                ->columnSpanFull()
+                ->compact()
+                ->schema([
+                    Infolists\Components\RepeatableEntry::make('paymentProofs')
+                        ->label('')
+                        ->schema([
+                            Infolists\Components\TextEntry::make('uploaded_at')
+                                ->label('Uploaded')
+                                ->dateTime('d M Y, g:ia'),
+                            Infolists\Components\TextEntry::make('verified_at')
+                                ->label('Verified')
+                                ->dateTime('d M Y, g:ia')
+                                ->placeholder('Not verified yet'),
+                            Infolists\Components\ImageEntry::make('path')
+                                ->label('Proof')
+                                ->disk('public')
+                                ->height(300)
+                                ->columnSpanFull()
+                                ->openUrlInNewTab(),
+                            Infolists\Components\TextEntry::make('path')
+                                ->label('')
+                                ->columnSpanFull()
+                                ->html()
+                                ->formatStateUsing(fn ($state) =>
+                                    '<a href="' . e(Storage::disk('public')->url($state)) . '" download
+                                        class="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-500 underline underline-offset-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                                        </svg>
+                                        Download proof
+                                    </a>'
+                                ),
+                        ])
+                        ->columns(2),
+                ])
+                ->collapsible(),
+        ]);
+    }
+
+    // ── Form (edit) ───────────────────────────────────────────────────────────
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            Forms\Components\Select::make('status')
+                ->options(collect(OrderStatus::cases())->mapWithKeys(fn ($e) => [$e->value => $e->label()]))
+                ->required(),
+            Forms\Components\Select::make('payment_status')
+                ->options(collect(PaymentStatus::cases())->mapWithKeys(fn ($e) => [$e->value => $e->label()]))
+                ->required(),
+            Forms\Components\TextInput::make('tracking_number'),
+            Forms\Components\Select::make('courier')
+                ->options(['tcs' => 'TCS', 'leopards' => 'Leopards', 'mp' => 'M&P', 'blueex' => 'BlueEx']),
+        ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListOrders::route('/'),
+            'view'  => Pages\ViewOrder::route('/{record}'),
+            'edit'  => Pages\EditOrder::route('/{record}/edit'),
+        ];
+    }
+}

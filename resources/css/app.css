@@ -51,6 +51,39 @@
     --color-warning: #A6671A;
     --color-success: #2E7D32;
 
+    /* ── Additional accent color ────────────────────────────────────── */
+    --color-lavender-ink: #5B4570;
+
+    /* ── Display + text scale ───────────────────────────────────────── */
+    --text-display-xl: clamp(3.5rem, 7vw, 5.5rem);
+    --text-display-xl--line-height: 0.95;
+
+    --text-display-lg: clamp(2.5rem, 4.5vw, 3.75rem);
+    --text-display-lg--line-height: 1.0;
+
+    --text-display: clamp(2rem, 3.5vw, 3rem);
+    --text-display--line-height: 1.05;
+
+    --text-h3: 1.25rem;
+    --text-h3--line-height: 1.4;
+
+    --text-body-lg: 1.125rem;
+    --text-body-lg--line-height: 1.75;
+
+    --text-body: 1rem;
+    --text-body--line-height: 1.65;
+
+    --text-caption: 0.875rem;
+    --text-caption--line-height: 1.5;
+
+    --text-eyebrow: 0.6875rem;
+    --text-eyebrow--line-height: 1.0;
+
+    /* ── Shadows ────────────────────────────────────────────────────── */
+    --shadow-card:       0 2px 12px rgb(26 22 20 / 0.06);
+    --shadow-card-hover: 0 8px 32px rgb(26 22 20 / 0.12);
+    --shadow-drawer:    -12px 0 40px rgb(26 22 20 / 0.08);
+
     /* ── Spacing extras ──────────────────────────────────────────────── */
     --spacing-18:  4.5rem;
     --spacing-22:  5.5rem;
@@ -184,4 +217,27 @@
 
     /* ── Fallback image gradient ──────────────────────────────────────── */
     .img-fallback { background: linear-gradient(135deg, var(--color-shell) 0%, var(--color-bone) 100%); }
+
+    /* ── Fraunces variable-font variation settings ────────────────────── */
+    /* Applied alongside Tailwind's font-serif; ensures the optical-size
+       and SOFT axes render at atelier quality on all browsers.           */
+    .font-serif { font-variation-settings: 'opsz' 144, 'SOFT' 30; }
+
+    /* ── Step connector line (How It Works section) ───────────────────── */
+    .steps-grid { position: relative; }
+    .steps-grid::before {
+        content: '';
+        position: absolute;
+        top: 1.75rem;
+        left: 16%;
+        right: 16%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--color-hairline) 15%, var(--color-hairline) 85%, transparent);
+        pointer-events: none;
+    }
+    @media (max-width: 767px) { .steps-grid::before { display: none; } }
+
+    /* ── Dark image fallback ──────────────────────────────────────────── */
+    .img-wrap-fallback      { background: linear-gradient(135deg, var(--color-shell) 0%, var(--color-paper) 60%, var(--color-hairline) 100%); }
+    .img-wrap-dark-fallback { background: linear-gradient(135deg, #3A2840 0%, #2C1F2E 100%); }
 }

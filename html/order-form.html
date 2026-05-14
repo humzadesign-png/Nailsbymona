@@ -194,6 +194,11 @@
               <span class="inline-block bg-lavender text-white font-sans text-eyebrow uppercase rounded-full px-2.5 py-0.5">Recommended</span>
             </div>
             <p class="font-sans text-caption text-stone">I'll show you exactly where to position your hand and coin — on screen, in real time. About 90 seconds.</p>
+            <!-- Desktop-only note: shown when JS detects a non-mobile device -->
+            <div id="camera-desktop-note" class="hidden mt-2 flex items-start gap-1.5">
+              <svg class="w-3.5 h-3.5 text-warning shrink-0 mt-0.5" viewBox="0 0 256 256" fill="currentColor"><path d="M236.8,188.09,149.35,36.22a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM120,104a8,8,0,0,1,16,0v40a8,8,0,0,1-16,0Zm8,88a12,12,0,1,1,12-12A12,12,0,0,1,128,192Z"/></svg>
+              <p class="font-sans text-[11px] text-warning leading-snug">On a laptop or desktop? We'll show you a QR code — scan it to open the camera guide on your phone instead.</p>
+            </div>
           </div>
         </div>
       </label>
@@ -405,7 +410,7 @@
             </div>
             <span class="font-sans font-medium text-ink" style="font-size:0.9375rem">JazzCash</span>
           </div>
-          <div class="w-5 h-5 rounded-full border-2 border-lavender flex items-center justify-center">
+          <div class="payment-radio-indicator w-5 h-5 rounded-full border-2 border-lavender flex items-center justify-center">
             <div class="w-2.5 h-2.5 rounded-full bg-lavender"></div>
           </div>
         </div>
@@ -427,7 +432,7 @@
             </div>
             <span class="font-sans font-medium text-ink" style="font-size:0.9375rem">EasyPaisa</span>
           </div>
-          <div class="w-5 h-5 rounded-full border-2 border-hairline flex items-center justify-center ep-indicator">
+          <div class="payment-radio-indicator w-5 h-5 rounded-full border-2 border-hairline flex items-center justify-center">
           </div>
         </div>
         <div class="payment-details mt-4 bg-lavenderWash rounded-xl p-4">
@@ -448,7 +453,7 @@
             </div>
             <span class="font-sans font-medium text-ink" style="font-size:0.9375rem">Bank Transfer</span>
           </div>
-          <div class="w-5 h-5 rounded-full border-2 border-hairline flex items-center justify-center bank-indicator"></div>
+          <div class="payment-radio-indicator w-5 h-5 rounded-full border-2 border-hairline flex items-center justify-center"></div>
         </div>
         <div class="payment-details mt-4 bg-lavenderWash rounded-xl p-4">
           <p class="font-sans text-caption text-stone mb-2">Transfer to:</p>
@@ -547,6 +552,17 @@ $(function() {
     updateProgress(step);
   }
 
+  // ─── Desktop detection ───
+  function isDesktopDevice() {
+    var mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    var hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 1);
+    var isNarrow = window.innerWidth < 1024;
+    return !mobileUA && (!hasTouch || !isNarrow);
+  }
+  if (isDesktopDevice()) {
+    $('#camera-desktop-note').removeClass('hidden').css('display', 'flex');
+  }
+
   // ─── Step 1: Sizing option selection ───
   let selectedSizingMethod = 'camera';
 
@@ -630,18 +646,20 @@ $(function() {
 
   // ─── Step 3: Payment option selection ───
   $('.payment-option').on('click', function() {
-    // Reset all
-    $('.payment-option').removeClass('selected').css('border-color','');
+    // Reset all cards
+    $('.payment-option').removeClass('selected');
     $('.payment-option .payment-details').hide();
-    // Generic radio indicators reset
-    $('.payment-option').each(function() {
-      $(this).find('[class*="-indicator"]').empty();
-    });
-    // Select this card
+    // Reset all radio indicators — empty + grey border
+    $('.payment-radio-indicator')
+      .removeClass('border-lavender').addClass('border-hairline').empty();
+    // Activate clicked card
     $(this).addClass('selected');
     $(this).find('input[type=radio]').prop('checked', true);
     $(this).find('.payment-details').show();
-    // Update radio indicator visual for non-JC cards
+    // Fill the selected radio indicator with lavender dot
+    $(this).find('.payment-radio-indicator')
+      .removeClass('border-hairline').addClass('border-lavender')
+      .html('<div class="w-2.5 h-2.5 rounded-full bg-lavender"></div>');
   });
 
   // Review accordion

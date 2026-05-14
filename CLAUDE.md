@@ -464,6 +464,7 @@ fontFamily: {
 ### Icon system
 
 - **15 custom thematic SVGs** in `public/icons/`: nail, sparkle, bridal, sizing, camera, package, heart, star, flower, palette, ribbon, coin, instagram, whatsapp, tiktok.
+- **2 sizing overlay SVGs** (added 2026-05-13): `sizing-fingers.svg` (4 U-shaped dashed finger outlines + coin, viewBox 0 0 400 480) and `sizing-thumb.svg` (1 wide U-shaped thumb + coin, viewBox 0 0 300 480). Lavender stroke `#BFA4CE`, `stroke-dasharray="10 6"`. Used in size-guide page illustrations + camera overlay mockups.
 - **UI utility icons:** Heroicons v2 outline — copy SVG paths into Blade partials. Use for search, close, menu, check, truck, envelope, etc.
 - Full icon map in `.claude/skills/design-system.md` §5.
 
@@ -491,19 +492,23 @@ fontFamily: {
 
 ## 11. Build Phases
 
-### Phase 0 — Scaffold (day 1)
-Laravel + Tailwind + jQuery + Filament + `intervention/image` + `spatie/laravel-settings` + `spatie/laravel-sitemap`. SQLite. Initial commit.
+### Phase 0 — Scaffold (day 1) ✅ COMPLETE
+Laravel + Tailwind + jQuery + Filament + `intervention/image` + `spatie/laravel-settings` + `spatie/laravel-sitemap`. SQLite. Initial commit. Tailwind v4 CSS-based config with `@theme` block. All custom palette + font tokens confirmed in compiled CSS.
 
-### Phase 1 — Public marketing site (days 2–3)
-Layout, header/footer, home, `/shop`, `/shop/{slug}`, `/bridal`, `/gallery`, `/contact`, `/about`, `/size-guide`. Tailwind theme, jQuery lightbox, contact form. SEO meta component + JSON-LD on every page.
+### Phase 1 — Public marketing site ✅ COMPLETE (2026-05-10)
+All 9 public marketing Blade views created and returning HTTP 200. 4 Phase 2 order-flow stub views in place. `<x-seo>` component with full meta + OG + JSON-LD. `layouts/app.blade.php` with sticky nav, mobile full-screen overlay, bag drawer (localStorage `nbm.bag`), `window.NbmBag` global API, dark footer. SEO JSON-LD using `@graph` pattern on all multi-schema pages.
+
+**Views delivered:** `home` · `shop` · `product` · `bridal` · `size-guide` · `about` · `contact` · `blog` · `blog-post` · `order-form` (stub) · `sizing-capture` (stub) · `order-confirmation` (stub) · `order-tracking` (stub)
+
+**Next up → Phase 2.** Reference HTML mockups for all 4 order-flow pages in `html/order-form.html`, `html/sizing-capture.html`, `html/order-confirmation.html`, `html/order-tracking.html`.
 
 ### Phase 2 — Order flow + live camera (days 4–8)
 Multi-step order form, **live-camera sizing capture with overlay — 2 close-up photos (fingers + thumb), optional opt-in for 2 more for the other hand** (section 8), upload fallback, returning-customer lookup, advance-payment logic, confirmation + manual payment-proof upload, email notifications, tracking page. **No payment gateway at MVP** — SafePay deferred to Phase 6 (see §26 for the architectural plan).
 
 *Phase budget bumped from 4–6 to 4–8 days on 2026-05-07 — the 2-photo state machine + green/red edge-contrast heuristic + schema migration adds 1–2 days. Justified: the macro flow should drop refit-rate enough to repay the build week within the first 30 orders.*
 
-### Phase 3 — Filament admin (days 7–8)
-Filament install, admin user seed. Resources: Orders (kanban), Products, Gallery, Customers (with sizing profile), Blog, FAQs, Messages, Settings. Dashboard widgets.
+### Phase 3 — Filament admin (days 7–8) ✅ COMPLETE (2026-05-13)
+All 7 resources (Orders, Products, UgcPhotos, Customers, BlogPosts, FAQs, ContactMessages), Settings page, 2 dashboard widgets (OrderStats, RecentOrders), admin seeder, 9 demo products seeded. Filament v4 API patterns documented in §32 session history (2026-05-13 entry).
 
 ### Phase 4 — Blog + SEO infrastructure (days 9–10)
 Blog index + post template with FAQ schema. Sitemap generator. RSS feed. Schema.org Product, BreadcrumbList, Organization, FAQPage. First 4 cornerstone posts written/published.
@@ -1509,6 +1514,35 @@ Two days after the sizing redesign locked in the canonical specs, swept through 
 
 **Build implication:** when Phase 2 starts the real Laravel + Blade build, the SVG overlay assets it needs are documented in CLAUDE.md §8 (state machine) and `docs/pages/12-sizing-capture.md` (per-state overlay specs). The HTML mockups now serve as visual reference for the 2-photo flow rather than the legacy 1-photo flow they previously documented.
 
+### 2026-05-10 — Phase 0 + Phase 1 Laravel Blade build complete
+
+**Phase 0 confirmed complete.** Laravel 11 scaffold with Tailwind v4 CSS-based config (`@theme` block — not `tailwind.config.js`), jQuery, Filament, `intervention/image`, `spatie/laravel-settings`, `spatie/laravel-sitemap`. All custom palette tokens (`bone`, `paper`, `shell`, `ink`, `graphite`, `stone`, `ash`, `hairline`, `lavender`, `lavender-dark`, `lavender-wash`, `lavender-ink`, `bridal-bg`, `gold`, `gold-deep`, `footer-bg`) and font tokens confirmed in Vite-compiled CSS.
+
+**Phase 1 complete.** All 9 public marketing Blade views plus 4 order-flow stub views created, tested, and returning HTTP 200. Key infrastructure built:
+
+- **`resources/views/layouts/app.blade.php`** — sticky glass nav, 5-link centered desktop nav, mobile full-screen overlay (hamburger), bag drawer (right-side `<aside>`, localStorage `nbm.bag` key), `window.NbmBag` global API (`add`, `get`, `save`, `open`), active nav state via route matching, dark aubergine footer.
+- **`resources/views/components/seo.blade.php`** — accepts `:schema` (JSON string), outputs title, meta, OG, Twitter Card, hreflang, canonical, page-specific JSON-LD, plus always-present Organization JSON-LD.
+- **All schemas** use `@graph` array pattern — merges multiple schema types (e.g. Article + FAQPage + BreadcrumbList) into a single `:schema` string.
+
+**Blade bugs found and fixed during this build — critical pattern for Phase 2:**
+
+| Bug | Fix |
+|---|---|
+| Agent put `@php` blocks inside `@push('head')`, then closed with `@endsection` instead of `@endpush` → "Cannot end a section without first starting one" | `@push` contains CSS `<style>` only; `@php` blocks live outside any push/section |
+| `:schemas="$schemas"` (plural) → unknown prop, schemas not output | `:schema="$schema"` (singular, JSON string via `json_encode`) |
+| `route('blog.show', ...)` → "Route not defined" | `route('blog.post', ...)` — correct name from `web.php` |
+| `route('order.sizing-capture')` → "Route not defined" | `route('order.sizing')` — correct name from `web.php` |
+| `route('order.track.lookup')` → "Route not defined" | `url('/order/track')` — tracking requires UUID, no generic lookup route |
+| `session('success')` in contact view | `session('contact_success')` — matches the flash key set in the route handler |
+| `window.NbmBag.get()` / `.save()` / `.open()` not defined on product page | Added all three methods to the `NbmBag` global in `layouts/app.blade.php` |
+
+**Route names confirmed (from `routes/web.php`) — use these in Phase 2:**
+`home` · `shop` · `shop.show` (takes `{slug}`) · `bridal` · `size-guide` · `about` · `contact` · `contact.submit` (POST) · `blog` · `blog.post` (takes `{slug}`) · `order.start` · `order.sizing` · `order.confirm` (takes `{order}`) · `order.track` (takes `{order}`)
+
+**All 13 routes verified HTTP 200.** Phase 2 stubs are in place. HTML mockups in `html/` are the visual reference for Phase 2 implementation.
+
+---
+
 ### 2026-05-09 (later) — All 13 HTML mockup pages complete; homepage renamed; product.html confirmed
 
 **All static HTML mockups are now complete.** This session finished the remaining pages:
@@ -1549,6 +1583,160 @@ The entire static prototype layer is now finished. Phase 1 Laravel scaffold can 
 
 ---
 
+### 2026-05-13 — Phase 3 Filament admin complete + sizing SVGs + payment radio fix
+
+**Phase 3 Filament admin complete.** All 7 Filament resources, 2 dashboard widgets, Settings page, and seeder built and working.
+
+**Filament v4 API patterns (discovered during Phase 3 — critical for Phase 2 build):**
+
+| Issue | Correct Pattern |
+|---|---|
+| `form(Form $form)` signature | `form(Schema $schema): Schema` using `use Filament\Schemas\Schema` |
+| `infolist(Infolist $infolist)` signature | `infolist(Schema $schema): Schema` — same Schema class |
+| `?string $navigationIcon` | `string | \BackedEnum | null $navigationIcon` |
+| `?string $navigationGroup` | `string | \UnitEnum | null $navigationGroup` |
+| `static string $view` | `string $view` (non-static — parent is non-static in Filament v4) |
+| Inside form/infolist | `$schema->components([...])` OR `$schema->schema([...])` — both work as aliases |
+
+**Settings migration order (Spatie):** Publish the package's own migration first (`php artisan vendor:publish --provider="Spatie\LaravelSettings\LaravelSettingsServiceProvider" --tag="migrations" && php artisan migrate`) before running custom settings migrations, or the `settings` table won't exist.
+
+**Resources built:**
+- `OrderResource` — kanban-style status, row actions: confirm → in_production → ship (with tracking input) → deliver, navigation badge (New count)
+- `ProductResource` — full CRUD, image upload, slug auto-fill, SEO section, `->reorderable('sort_order')`
+- `CustomerResource` — table + infolist + edit form, saved-sizing indicator
+- `UgcPhotoResource` — `face_visible` boolean shown as danger/success badge; face_visible=true = never publicly shown
+- `BlogPostResource` — RichEditor, related products via `->relationship('products', 'name')->multiple()`, auto-fill slug + meta_title
+- `FaqResource` — `->reorderable('sort_order')`, categories
+- `ContactMessageResource` — no create page, navigation badge (unread count), auto-marks read on ViewPage open
+
+**Widgets:** `OrderStatsWidget` (4 Stat cards: orders today, week revenue, awaiting payment, in production) · `RecentOrdersWidget` (last 10 orders, full-width table)
+
+**Seeder:** `admin@nailsbymona.test` / `password` · 9 demo products (Everyday through BridalTrio), all idempotent via `firstOrCreate`.
+
+---
+
+**Sizing SVGs created** — two new canonical SVG assets for the nail sizing camera overlay:
+
+- **`public/icons/sizing-fingers.svg`** — 4 dashed U-shaped finger outlines (pinky leftmost/shortest → ring → middle tallest → index), coin circle (₨) above the middle finger. ViewBox `0 0 400 480`. Lavender stroke `#BFA4CE`, `stroke-dasharray="10 6"`. Matches the visual design of `Assets/nails_sizing.svg` (the reference file from Humza) in a clean hand-coded form.
+- **`public/icons/sizing-thumb.svg`** — single wider dashed U-shaped thumb outline, coin circle (₨) above the thumbnail. ViewBox `0 0 300 480`. Same stroke style.
+
+**Files updated with sizing SVGs:**
+- `html/home.html` — phone mockup inline SVG (fit-difference section, "Photo 1 of 2" camera screen): replaced the old `<rect>` finger shapes with proper U-shaped `<path>` elements matching `sizing-fingers.svg` geometry exactly. ViewBox updated to `0 0 140 156`.
+- `html/size-guide.html` — Step 2 (Photo 1: Fingers): Google AI placeholder photo replaced with `<img src="../public/icons/sizing-fingers.svg">` centered on a `bg-shell` panel. Step 3 (Photo 2: Thumb): same replacement with `sizing-thumb.svg`. Live-camera phone mockup (bottom "Use our in-app camera guide" section): old verbose path SVG replaced with the same U-shape overlay design + green alignment border + progress strip + brightness pill + shutter button, matching the home.html phone mockup exactly.
+
+**Payment radio indicator fix (`html/order-form.html`):**
+- Problem: JazzCash had a hardcoded selected dot, but EasyPaisa and Bank Transfer used ad-hoc classes (`ep-indicator`, `bank-indicator`) with empty jQuery that never injected the dot on selection. Result: selecting EasyPaisa or Bank Transfer showed no indicator dot.
+- Fix: Unified all three indicator divs to class `payment-radio-indicator`. Updated the jQuery payment handler to: (1) reset all `payment-radio-indicator` elements to `border-hairline` + `.empty()`, then (2) on the selected card inject `border-lavender` + `<div class="w-2.5 h-2.5 rounded-full bg-lavender">` — the same filled-dot used as the JazzCash default.
+
+---
+
+### 2026-05-14 — Desktop camera handoff (QR code / phone redirect) + SVG overlay fixes
+
+**Session split into two parts:**
+
+---
+
+**Part 1 — Desktop camera handoff**
+
+**Problem:** A laptop webcam faces the user — it cannot photograph nails close up overhead. Any desktop/laptop visitor who clicked "Take a photo with my guide" on the sizing capture page would be shown a live camera feed of their own face, which is both useless for sizing and a bad UX.
+
+**Solution locked:** When a desktop/laptop device is detected, the sizing-capture page shows a **"Open this on your phone" handoff state** instead of the camera explainer. The camera explainer is still shown normally for mobile devices.
+
+**What was built:**
+
+**`html/sizing-capture.html` + `resources/views/order/sizing-capture.blade.php`:**
+- New `#state-desktop` div added before the explainer state. Contains: phone icon, heading "Open this on your phone.", body copy explaining the webcam limitation, QR code (generated client-side by `qrcode.js` CDN), WhatsApp share link, copy-link button, "Upload photos from this computer instead →" fallback, and an **"On a phone but seeing this screen? Use this device's camera →"** escape hatch for false-positives.
+- `isDesktopDevice()` JS function — see detection logic below.
+- On desktop: `#state-explainer` loses `active`; `#state-desktop` gains `active`. Camera init (`NbmCamera.init`) is skipped entirely via `return` — no camera permission request, no stream opened.
+- QR URL resolution: `file://` / `localhost` URLs fall back to `https://nailsbymona.com/order/sizing-capture`; live URLs use `window.location.href` directly.
+- Upload-from-desktop path activates the existing fallback/upload state.
+
+**`html/order-form.html` + `resources/views/order/start.blade.php`:**
+- Camera option card (Option A) contains a `#camera-desktop-note` div (hidden by default). On desktop detection it reveals as a flex row with a warning icon: "On a laptop or desktop? We'll show you a QR code — scan it to open the camera guide on your phone instead."
+
+---
+
+**Part 2 — QR blank + detection false-positive fix (tested live via Cloudflare tunnel)**
+
+During live testing on iPhone via `https://*.trycloudflare.com`, two bugs appeared:
+
+**Bug 1: QR code blank.** The original implementation used `api.qrserver.com` (external image API). On some networks the image failed to load silently, leaving a blank white box.
+- **Fix:** Replaced with `qrcode.js` (CDN: `cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js`). QR is now generated entirely client-side via `new QRCode(container, { text, width, height, colorDark, colorLight, correctLevel })`. No external image request, no network failure possible.
+
+**Bug 2: iPhone showing desktop state.** iPhones with Safari's "Request Desktop Website" setting enabled change their UA string to a Mac desktop string (removing "iPhone") but keep `navigator.maxTouchPoints > 0`. The original detection used `window.innerWidth` which Safari inflates to 1024+ in that mode — causing `isDesktopDevice()` to return `true` on a phone.
+- **Fix:** Detection now uses `window.screen.width` (physical screen CSS pixel width) which is NOT inflated by "Request Desktop Website" mode. Phones max out at ~430px; anything under 768 is treated as mobile regardless of UA. A touch device with `screen.width < 1200` is also treated as mobile.
+
+**Final detection logic (identical in all 4 files):**
+```js
+function isDesktopDevice() {
+  // Mobile UA is the strongest signal
+  if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    return false;
+  }
+  // screen.width = physical screen size, not inflated by "Request Desktop Website"
+  if (window.screen && window.screen.width < 768) return false;
+  var hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  if (hasTouch && window.screen && window.screen.width < 1200) return false;
+  return true;
+}
+```
+
+**Bug 3: Finger heights too uniform in camera overlay.** The pinky was 71% of the middle finger height in the camera SVG — visually hard to distinguish from the other fingers. The original reference SVG (uploaded by Humza) showed a much more dramatic height difference.
+- **Fix:** Pinky reduced to **~55% of middle** (was 71%), ring to ~82%, index to ~79%. Applied to all 3 SVG surfaces:
+
+| Surface | ViewBox | Middle height | Pinky before → after |
+|---|---|---|---|
+| `html/sizing-capture.html` camera overlay | 480×370 | 245px | 175px → 135px |
+| `sizing-capture.blade.php` camera overlay | 400×305 | 180px | 137px → 99px |
+| `public/icons/sizing-fingers.svg` illustration | 400×480 | 260px | 160px → 130px (50%) |
+
+**Testing infrastructure used in this session:**
+- `python3 -m http.server 8080 --directory "Nails Website"` → serves all HTML mockups as a static site
+- `cloudflared tunnel --url http://localhost:8080 --no-autoupdate` → creates a public HTTPS URL (`https://*.trycloudflare.com`) that the phone can access and that satisfies the browser's HTTPS requirement for `getUserMedia`. No account needed.
+- This is the standard local → mobile testing workflow for this project going forward.
+
+**Files updated:** `html/sizing-capture.html`, `html/order-form.html`, `resources/views/order/sizing-capture.blade.php`, `resources/views/order/start.blade.php`, `public/icons/sizing-fingers.svg`, `CLAUDE.md` (this entry).
+
+---
+
+### 2026-05-14 (later) — Backend wiring: product page, shop, admin, contact form, UGC, bag clear
+
+Continuation session completing the database wiring for all public-facing pages. All changes in the main Laravel project (`/Users/humzasdesign/Desktop/Nails Website/`).
+
+**`resources/views/product.blade.php` — fully dynamic (was 430 lines of hardcoded data):**
+- `@php` block computes `$tierValue`, `$tierLabel`, `$badgeClass`, `$imgSrc`, `$schemaAvailability`, `$waText`, `$leadTime`, `$leadMin`, `$stockLabel` from the `$product` model.
+- Gallery thumbnails read from `$product->images` relationship.
+- Related products use `@foreach($related as $rp)` with dynamic badge classes per tier.
+- Add to bag button passes `data-image="{{ $imgSrc }}"`.
+
+**`app/Http/Controllers/ShopController.php` — `show()` now passes `$related`:**
+```php
+$related = Product::where('is_active', true)->where('id', '!=', $product->id)
+    ->orderBy('sort_order')->orderBy('created_at')->limit(3)->get();
+return view('product', compact('product', 'related'));
+```
+
+**`app/Filament/Resources/ProductResource.php` — added `->disk('public')` to `ImageColumn` and `FileUpload`.** Filament v4 defaults to the `local` disk (Laravel 11 maps this to `storage/app/private/`) — without `->disk('public')`, uploads go to `private/` and `asset('storage/...')` URLs 404. Same fix applied to `UgcPhotoResource` and `BlogPostResource`.
+
+**`routes/web.php` — contact form and UGC home query:**
+- `POST /contact` now calls `ContactMessage::create($validated)` before flashing and redirecting.
+- Redirect uses `redirect(route('contact') . '#message-sent')` — browser scrolls to `id="message-sent"` success card.
+- Home `GET /` query now eager-loads with `UgcPhoto::with('product')` for the product link in the UGC grid.
+
+**`resources/views/home.blade.php` — UGC section dynamic:**
+- Replaced 5 hardcoded Google AI placeholder tiles with a `@foreach($ugcPhotos as $photo)` loop.
+- First photo gets `md:row-span-2` (tall tile). Each tile is an `<a>` linking to its linked product's slug (if set) or falling back to `/shop`.
+- Hover reveals: full gradient overlay + alt text paragraph + "Shop this set →" chevron (only if product linked).
+
+**`resources/views/order/confirm.blade.php` — bag cleared on page load:**
+- `@push('scripts')` calls `window.NbmBag.save([])` on `$(function(){...})`. Falls back to `localStorage.removeItem('nbm.bag')` + `$('#bag-count').addClass('hidden')` if `NbmBag` is not available (e.g. order-layout doesn't include the full app layout).
+
+**Key Filament v4 / Laravel 11 gotcha documented here:** `FileUpload` defaults to `local` disk = `storage/app/private/`. All admin file uploads must specify `->disk('public')` or images will never be publicly accessible. Re-upload any files that were already stored in `private/`.
+
+**Files updated:** `resources/views/product.blade.php`, `resources/views/shop.blade.php`, `resources/views/home.blade.php`, `resources/views/order/confirm.blade.php`, `resources/views/contact.blade.php`, `app/Http/Controllers/ShopController.php`, `app/Filament/Resources/ProductResource.php`, `app/Filament/Resources/UgcPhotoResource.php`, `app/Filament/Resources/BlogPostResource.php`, `app/Filament/Resources/OrderResource.php`, `routes/web.php`.
+
+---
+
 ## 33. Pointers for Future Claude Sessions
 
 - **Read this file first.** Overrides anything you think you remember.
@@ -1580,7 +1768,19 @@ The entire static prototype layer is now finished. Phase 1 Laravel scaffold can 
 - **Content architecture plan:** `/Users/humzasdesign/.claude/plans/claude-fetch-the-file-witty-creek.md` — page-by-page sections, H1s, SEO meta, Schema.org, copy direction for all 14 public routes.
 - Plan files: original `/Users/humzasdesign/.claude/plans/claude-create-a-new-scalable-kahan.md` (scaffold), this CLAUDE.md is the condensed working reference.
 - **Homepage file is `html/home.html`** (renamed from `html/index.html` on 2026-05-09). All internal links updated. When building Blade templates, the route `/` maps to the `home` view, not `index`.
-- **All 13 static HTML mockups are complete** (2026-05-09): `home.html` · `shop.html` · `product.html` · `bridal.html` · `size-guide.html` · `about.html` · `contact.html` · `blog.html` · `blog-post.html` · `order-form.html` · `sizing-capture.html` · `order-confirmation.html` · `order-tracking.html`. The `html/` directory is the full visual reference for every public route before Phase 1 Laravel build begins.
+- **All 13 static HTML mockups are complete** (2026-05-09): `home.html` · `shop.html` · `product.html` · `bridal.html` · `size-guide.html` · `about.html` · `contact.html` · `blog.html` · `blog-post.html` · `order-form.html` · `sizing-capture.html` · `order-confirmation.html` · `order-tracking.html`. The `html/` directory is the full visual reference for every public route.
+- **Phase 0 + Phase 1 are complete** (2026-05-10). All 9 marketing Blade views + 4 order-flow stubs live.
+- **Phase 3 Filament admin is complete** (2026-05-13). All 7 resources, Settings page, 2 widgets, seeder. Next work is Phase 2 — implement the 4 order-flow views from their HTML mockups.
+- **Filament v4 API (Phase 3 learnings — critical for Phase 2 Blade/Filament work):** `form()` and `infolist()` take `Schema $schema` (not `Form`/`Infolist`), return `Schema`. Use `use Filament\Schemas\Schema`. `$navigationIcon` and `$navigationGroup` need union types not `?string`. `$view` must be non-static. Full patterns in §32 session history (2026-05-13).
+- **Sizing overlay SVGs** (created 2026-05-13): `public/icons/sizing-fingers.svg` + `public/icons/sizing-thumb.svg`. Use these as the visual reference for the Blade `<x-order.camera-capture>` component and the `resources/js/camera-capture.js` SVG overlay. Both are lavender `#BFA4CE` dashed U-shapes + coin circle. ViewBox: fingers = `0 0 400 480`, thumb = `0 0 300 480`.
+- **Blade directive rules (learned in Phase 1 — do not repeat these bugs):**
+  - `@push('head')` must contain only `<style>` / `<link>` HTML. Never put `@php` blocks inside a `@push`. Always close with `@endpush` on the very next blank line after the CSS.
+  - `@php` blocks go outside any `@push`/`@section` — at the top-level between directives.
+  - `<x-seo>` accepts `:schema` (singular, one JSON string). Merge multiple schemas using `['@context' => 'https://schema.org', '@graph' => [...]]` then `json_encode(..., JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)`.
+  - Tailwind v4 uses CSS-based config — class names are kebab-case matching CSS variable names (e.g. `bg-lavender-wash`, `text-lavender-ink`), not camelCase.
+- **Correct route names** (from `routes/web.php`): `home` · `shop` · `shop.show` · `bridal` · `size-guide` · `about` · `contact` · `contact.submit` · `blog` · `blog.post` · `order.start` · `order.sizing` · `order.confirm` · `order.track`. The contact form flash key is `contact_success`. The tracking route requires `{order}` UUID — there is no generic `/order/track` lookup URL.
+- **`window.NbmBag` global API** (defined in `layouts/app.blade.php`): `add(item)`, `get()`, `save(items)`, `open()`. All product-page and blog-post "Add to bag" buttons call these. Do not add a separate bag implementation on individual pages.
+- **Desktop camera handoff (2026-05-14):** `sizing-capture` (HTML + Blade) shows a QR code "Open this on your phone" state when `isDesktopDevice()` returns true. Desktop detection: no mobile UA + (no touch hardware or wide screen). Camera init is fully skipped on desktop. QR uses `api.qrserver.com` image API. Order form Step 1 shows an inline warning note on the camera option for desktop visitors. The `isDesktopDevice()` function is duplicated in 4 files — keep them in sync if the logic ever changes.
 
 ---
 

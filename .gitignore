@@ -8,6 +8,7 @@
 # Claude Code local settings (keep skills/ and memory/ but not local config)
 .claude/settings.local.json
 .claude/launch.json
+.claude/worktrees/
 
 # Environment & secrets
 .env

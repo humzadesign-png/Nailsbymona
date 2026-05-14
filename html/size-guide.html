@@ -250,19 +250,21 @@
             <p class="font-sans text-caption text-stone">The coin should sit just above your nail bed, not on top of your fingertip. Touching is fine &mdash; covering the nail isn&rsquo;t.</p>
           </div>
         </div>
-        <div class="order-1 md:order-2 img-wrap-fallback rounded-2xl aspect-[4/3] overflow-hidden">
-          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDM56k-cNLcm1pLfZWCiicUPXBqU7H3c1oUllyCdN-Y_2eBZW3kgijSB2C7n-_o7LCQxNz0JbQ0vAlhxE5yJlkgxrgWZ0Lp-oT2o6TNmjJz1siyflScqxA1nfRcVT6EFC8Wd7Nj0AqjpHfvz2EcYbv4pBdktBP3CTCY37bV33r6hJdlC0N5N0rNGjN12fD4CMBFn89YqKPnCGnJ9iVvlEGXgYG7RLMNlpuLt7Yrwp3BLLmXm2ixFGGKk"
-               alt="Four fingers laid flat with coin above middle finger — Photo 1: fingers"
-               class="w-full h-full object-cover" onerror="this.remove()" width="600" height="450">
+        <!-- Sizing fingers guide illustration -->
+        <div class="order-1 md:order-2 rounded-2xl aspect-[4/3] bg-shell flex items-center justify-center p-10">
+          <img src="../public/icons/sizing-fingers.svg"
+               alt="Four fingers laid flat with coin above middle finger — sizing overlay guide"
+               class="w-full h-full object-contain opacity-90">
         </div>
       </div>
 
       <!-- Step 3 — Photo 2: Thumb -->
       <div class="grid md:grid-cols-2 gap-10 items-center">
-        <div class="img-wrap-fallback rounded-2xl aspect-[4/3] overflow-hidden">
-          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJHuKIDTuXFsAXPlXB1Bl1LKYZ9Q_5UWEHiJ7l5C5SuSXoQQxC-fC7s8KSJTgXzUvJXgMR0BbcGsLqRrflFJw4fXKlBEtdnTN9bv0uVzgJU4-N1U8EqoRAezXCRNBe3NM3zGjTON0JDnLwxl8K_wvbnFJNP-0w84MUk2PMCvTInivLMZvdq0L6hpuRXjTWpPLvCYNbhrgLvpT8WFoP-rMlpBp6aVUxfB5BWCY6fNhMoZO2zIWzCmEUns"
-               alt="Thumb extended flat with coin above thumbnail — Photo 2: thumb"
-               class="w-full h-full object-cover" onerror="this.remove()" width="600" height="450">
+        <!-- Sizing thumb guide illustration -->
+        <div class="rounded-2xl aspect-[4/3] bg-shell flex items-center justify-center p-10">
+          <img src="../public/icons/sizing-thumb.svg"
+               alt="Thumb extended flat with coin above thumbnail — sizing overlay guide"
+               class="w-full h-full object-contain opacity-90">
         </div>
         <div>
           <div class="flex items-center gap-4 mb-5">
@@ -441,21 +443,41 @@
       <div class="flex justify-center">
         <div class="relative w-[260px]">
           <div class="rounded-[2.5rem] border-[8px] border-stone/40 bg-graphite overflow-hidden shadow-2xl aspect-[9/19]">
-            <div class="w-full h-full img-wrap-fallback relative flex items-center justify-center">
-              <!-- SVG overlay mockup -->
-              <svg class="absolute inset-0 w-full h-full opacity-60" viewBox="0 0 260 520" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Hand outline -->
-                <path d="M80,400 C80,400 60,350 60,280 L60,180 C60,165 70,155 85,155 L85,240 M85,155 L85,130 C85,115 95,105 110,105 L110,240 M110,105 L110,95 C110,80 120,70 135,70 L135,240 M135,70 L135,85 C135,70 145,60 160,60 L160,240 M160,60 C175,60 185,70 185,85 L185,200 C185,240 190,280 195,310 L195,400 Z" stroke="#BFA4CE" stroke-width="2" stroke-dasharray="4 3"/>
-                <!-- Coin circle -->
-                <circle cx="70" cy="380" r="18" stroke="#BFA4CE" stroke-width="2" stroke-dasharray="4 3"/>
-                <text x="70" y="385" text-anchor="middle" fill="#BFA4CE" font-size="8" font-family="sans-serif">₨5</text>
-                <!-- Corner brackets -->
-                <path d="M40,40 L40,65 M40,40 L65,40" stroke="#BFA4CE" stroke-width="2" stroke-linecap="round"/>
-                <path d="M220,40 L220,65 M220,40 L195,40" stroke="#BFA4CE" stroke-width="2" stroke-linecap="round"/>
-                <path d="M40,480 L40,455 M40,480 L65,480" stroke="#BFA4CE" stroke-width="2" stroke-linecap="round"/>
-                <path d="M220,480 L220,455 M220,480 L195,480" stroke="#BFA4CE" stroke-width="2" stroke-linecap="round"/>
+            <!-- Live camera overlay mockup — U-shaped finger guides matching the actual in-app overlay -->
+            <div class="w-full h-full bg-graphite relative flex flex-col items-center justify-center gap-3">
+              <!-- Progress strip -->
+              <div class="absolute top-0 left-0 right-0 flex items-center gap-2 px-3 pt-3">
+                <p class="font-sans text-bone/70 shrink-0" style="font-size:7px; letter-spacing:0.12em">PHOTO 1 OF 2 — FINGERS</p>
+                <div class="flex-1 h-[3px] rounded-full bg-bone/15 overflow-hidden">
+                  <div class="h-full bg-lavender rounded-full" style="width:50%"></div>
+                </div>
+              </div>
+              <!-- Brightness pill -->
+              <div class="absolute px-2 py-0.5 rounded-full bg-success/80 flex items-center gap-1" style="top:2.2rem">
+                <span class="text-bone" style="font-size:7px">✓</span>
+                <span class="font-sans uppercase text-bone" style="font-size:7px; letter-spacing:0.1em">Good lighting</span>
+              </div>
+              <!-- Sizing overlay SVG — fingers U-shapes + coin, green alignment border -->
+              <svg viewBox="0 0 140 156" class="w-[55%]" fill="none" style="margin-top:1rem">
+                <!-- Green alignment border ("in position") -->
+                <rect x="5" y="5" width="130" height="146" rx="5" stroke="#3F6E4A" stroke-width="2" opacity="0.85"/>
+                <!-- Coin circle above middle finger -->
+                <circle cx="82" cy="36" r="13" stroke="#BFA4CE" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.9"/>
+                <text x="82" y="40" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#BFA4CE" stroke="none" opacity="0.9">₨</text>
+                <!-- Pinky — leftmost, shortest -->
+                <path d="M29,156 L29,100 Q29,92 37,92 Q46,92 46,100 L46,156" stroke="#BFA4CE" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.85"/>
+                <!-- Ring -->
+                <path d="M51,156 L51,88 Q51,80 60,80 Q68,80 68,88 L68,156" stroke="#BFA4CE" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.85"/>
+                <!-- Middle — tallest -->
+                <path d="M73,156 L73,81 Q73,73 82,73 Q90,73 90,81 L90,156" stroke="#BFA4CE" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.85"/>
+                <!-- Index -->
+                <path d="M95,156 L95,90 Q95,82 104,82 Q112,82 112,90 L112,156" stroke="#BFA4CE" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.85"/>
+                <text x="82" y="57" text-anchor="middle" font-family="sans-serif" font-size="5" fill="#BFA4CE" stroke="none" opacity="0.6" letter-spacing="0.8">COIN ABOVE NAILS</text>
               </svg>
-              <p class="font-sans text-stone text-center px-8 relative z-10" style="font-size:0.7rem">Live camera with sizing overlay</p>
+              <!-- Shutter button -->
+              <div class="w-10 h-10 rounded-full border border-bone/25 flex items-center justify-center mt-1">
+                <div class="w-7 h-7 rounded-full bg-bone/15"></div>
+              </div>
             </div>
           </div>
         </div>

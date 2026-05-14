@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 480" fill="none" stroke="#BFA4CE" stroke-linecap="round" stroke-linejoin="round">
+
+  <!-- Coin circle above thumbnail -->
+  <circle cx="150" cy="148" r="38" stroke-width="3" stroke-dasharray="10 6"/>
+  <!-- Coin symbol -->
+  <text x="150" y="154" text-anchor="middle" font-family="DM Sans, ui-sans-serif, system-ui" font-size="18" fill="#BFA4CE" stroke="none">₨</text>
+
+  <!-- Thumb outline — wider than a finger, centred -->
+  <path d="M90,460 L90,270 Q90,225 150,225 Q210,225 210,270 L210,460"
+        stroke-width="3" stroke-dasharray="10 6"/>
+
+  <!-- Small label -->
+  <text x="150" y="178" text-anchor="middle" font-family="DM Sans, ui-sans-serif, system-ui"
+        font-size="11" letter-spacing="2" fill="#BFA4CE" stroke="none" opacity="0.7">COIN ABOVE THUMBNAIL</text>
+
+</svg>
