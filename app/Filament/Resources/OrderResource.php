@@ -5,7 +5,10 @@ namespace App\Filament\Resources;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
+use App\Filament\Resources\CustomerResource;
 use App\Filament\Resources\OrderResource\Pages;
+use App\Models\Customer;
+use App\Models\CustomerSizingProfile;
 use App\Models\Order;
 use Illuminate\Support\Facades\Storage;
 use Filament\Forms;
@@ -155,6 +158,7 @@ class OrderResource extends Resource
                     ->visible(fn (Order $r) => $r->status === OrderStatus::Shipped)
                     ->action(fn (Order $r) => $r->update(['status' => OrderStatus::Delivered, 'delivered_at' => now()]))
                     ->requiresConfirmation(),
+                self::recordNailSizesAction(),
             ])
             ->bulkActions([
                 Actions\BulkActionGroup::make([
@@ -352,5 +356,45 @@ class OrderResource extends Resource
             'view'  => Pages\ViewOrder::route('/{record}'),
             'edit'  => Pages\EditOrder::route('/{record}/edit'),
         ];
+    }
+
+    // ── "Record nail sizes" action — reused on table row and view page header ─
+
+    public static function recordNailSizesAction(): Actions\Action
+    {
+        return Actions\Action::make('record_sizes')
+            ->label('Record nail sizes')
+            ->icon('heroicon-o-finger-print')
+            ->color('gray')
+            ->visible(fn (Order $r) => $r->customer_id !== null)
+            ->fillForm(function (Order $r): array {
+                $profile = CustomerSizingProfile::where('customer_id', $r->customer_id)
+                    ->latest()
+                    ->first();
+
+                return $profile ? $profile->only([
+                    'size_r_thumb', 'size_r_index', 'size_r_middle', 'size_r_ring', 'size_r_pinky',
+                    'size_l_thumb', 'size_l_index', 'size_l_middle', 'size_l_ring', 'size_l_pinky',
+                    'notes',
+                ]) : [];
+            })
+            ->form(CustomerResource::nailSizesFormSchema())
+            ->action(function (Order $r, array $data): void {
+                // Upsert: create profile if none exists, otherwise update the latest one
+                $profile = CustomerSizingProfile::updateOrCreate(
+                    ['customer_id' => $r->customer_id],
+                    array_merge($data, ['source_order_id' => $r->id])
+                );
+
+                // Mark the customer as having sizing on file and stamp verified
+                $profile->update(['verified_by_admin_at' => now()]);
+                Customer::where('id', $r->customer_id)
+                    ->update(['has_sizing_on_file' => true]);
+
+                Notification::make()
+                    ->title('Nail sizes saved for this customer.')
+                    ->success()
+                    ->send();
+            });
     }
 }

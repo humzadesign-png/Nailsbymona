@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Customer extends Model
 {
@@ -22,6 +23,11 @@ class Customer extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function sizingProfile(): HasOne
+    {
+        return $this->hasOne(CustomerSizingProfile::class)->latestOfMany();
     }
 
     /** Look up a customer by phone or email (for returning-customer check). */
