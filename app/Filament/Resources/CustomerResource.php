@@ -7,9 +7,10 @@ use App\Models\Customer;
 use App\Models\CustomerSizingProfile;
 use Filament\Forms;
 use Filament\Infolists;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section as InfoSection;
 use Filament\Schemas\Components\Section as FormSection;
-use Filament\Resources\resource;
+use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Actions;
 use Filament\Tables;
@@ -186,5 +187,38 @@ class CustomerResource extends Resource
                     ->rows(2),
             ]),
         ];
+    }
+
+    // ── "Edit nail sizes" action — used on the customer view page header ──────
+
+    public static function editNailSizesAction(): Actions\Action
+    {
+        return Actions\Action::make('edit_nail_sizes')
+            ->label('Edit nail sizes')
+            ->icon('heroicon-o-finger-print')
+            ->color('gray')
+            ->fillForm(function (Customer $record): array {
+                $profile = $record->sizingProfile;
+
+                return $profile ? $profile->only([
+                    'size_r_thumb', 'size_r_index', 'size_r_middle', 'size_r_ring', 'size_r_pinky',
+                    'size_l_thumb', 'size_l_index', 'size_l_middle', 'size_l_ring', 'size_l_pinky',
+                    'notes',
+                ]) : [];
+            })
+            ->form(self::nailSizesFormSchema())
+            ->action(function (Customer $record, array $data): void {
+                CustomerSizingProfile::updateOrCreate(
+                    ['customer_id' => $record->id],
+                    array_merge($data, ['verified_by_admin_at' => now()])
+                );
+
+                $record->update(['has_sizing_on_file' => true]);
+
+                Notification::make()
+                    ->title('Nail sizes saved.')
+                    ->success()
+                    ->send();
+            });
     }
 }

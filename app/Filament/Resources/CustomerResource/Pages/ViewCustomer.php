@@ -13,6 +13,7 @@ class ViewCustomer extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            CustomerResource::editNailSizesAction(),
             Actions\EditAction::make(),
         ];
     }
