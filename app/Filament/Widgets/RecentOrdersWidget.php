@@ -57,10 +57,12 @@ class RecentOrdersWidget extends BaseWidget
                         PaymentStatus::Refunded       => 'danger',
                         default                       => 'gray',
                     })
-                    ->formatStateUsing(fn ($state) => $state instanceof PaymentStatus ? $state->label() : $state),
+                    ->formatStateUsing(fn ($state) => $state instanceof PaymentStatus ? $state->label() : $state)
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Placed')->dateTime('d M, g:ia'),
+                    ->label('Placed')->dateTime('d M, g:ia')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->actions([
                 Actions\Action::make('view')

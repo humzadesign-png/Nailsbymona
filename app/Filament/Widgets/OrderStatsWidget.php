@@ -12,6 +12,11 @@ class OrderStatsWidget extends BaseWidget
 {
     protected static ?int $sort = 1;
 
+    protected function getColumns(): int | array | null
+    {
+        return ['default' => 2, 'lg' => 4];
+    }
+
     protected function getStats(): array
     {
         $todayOrders = Order::whereDate('created_at', today())->count();
