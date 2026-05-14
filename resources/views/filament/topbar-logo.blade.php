@@ -11,5 +11,5 @@
      style="display:none;position:absolute;left:50%;transform:translateX(-50%);align-items:center;pointer-events:none;z-index:20">
     <img src="{{ asset('logo-text.svg') }}"
          alt="Nails by Mona"
-         style="height:2.5rem;width:auto">
+         style="height:3.5rem;width:auto">
 </div>
