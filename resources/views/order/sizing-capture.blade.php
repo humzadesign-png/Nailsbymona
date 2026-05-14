@@ -4,46 +4,192 @@
 
 @push('head')
 <style>
-  #camera-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* ── State transitions ─────────────────────────────────────── */
+  .state { display: none; }
+  .state.active { display: block; }
 
-  /* SVG overlay */
-  #overlay-svg { position: absolute; inset: 0; pointer-events: none; }
+  /* ── Full-screen camera mode ───────────────────────────────── */
+  #state-camera.active {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
-  /* Alignment border */
-  #alignment-border {
-    position: absolute; inset: 0;
-    border: 3px solid transparent;
-    border-radius: 1rem;
-    transition: border-color 0.3s;
+  /* Video fills the screen */
+  #camera-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* SVG overlay stretches over video */
+  #overlay-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
   }
-  #alignment-border.green  { border-color: #22c55e; }
-  #alignment-border.amber  { border-color: #f59e0b; }
-  #alignment-border.red    { border-color: #ef4444; }
 
-  /* Shutter pulse */
-  @keyframes pulse-ring {
-    0%   { box-shadow: 0 0 0 0 rgba(191,164,206,0.6); }
-    70%  { box-shadow: 0 0 0 14px rgba(191,164,206,0); }
-    100% { box-shadow: 0 0 0 0 rgba(191,164,206,0); }
+  /* Alignment border — full viewport edge */
+  #alignment-border {
+    position: absolute;
+    inset: 0;
+    border: 2.5px solid transparent;
+    transition: border-color 0.35s ease, box-shadow 0.35s ease;
+    pointer-events: none;
+    z-index: 10;
   }
-  #shutter-btn.pulse-ring { animation: pulse-ring 1.2s infinite; }
+  #alignment-border.green {
+    border-color: #4ade80;
+    box-shadow: inset 0 0 24px rgba(74,222,128,0.12);
+  }
+  #alignment-border.amber {
+    border-color: #fbbf24;
+    box-shadow: inset 0 0 24px rgba(251,191,36,0.08);
+  }
+  #alignment-border.red {
+    border-color: #f87171;
+    box-shadow: inset 0 0 24px rgba(248,113,113,0.08);
+  }
 
-  /* Thumbnail retake */
+  /* ── Top HUD bar ───────────────────────────────────────────── */
+  #camera-hud-top {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 20;
+    padding: env(safe-area-inset-top, 16px) 20px 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0) 100%);
+  }
+
+  /* Progress bar track */
+  #progress-track {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .progress-segment {
+    height: 2px;
+    flex: 1;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.25);
+    transition: background 0.3s;
+  }
+  .progress-segment.done   { background: #BFA4CE; }
+  .progress-segment.active { background: rgba(255,255,255,0.85); }
+
+  /* ── Bottom controls bar ───────────────────────────────────── */
+  #camera-controls {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 20;
+    padding: 20px 24px calc(env(safe-area-inset-bottom, 20px) + 20px);
+    background: linear-gradient(to top, rgba(0,0,0,0.70) 0%, rgba(0,0,0,0) 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* Brightness pill */
+  #brightness-pill {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.12);
+    transition: opacity 0.3s;
+  }
+  #brightness-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #6b7280;
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+  #brightness-dot.green  { background: #4ade80; }
+  #brightness-dot.amber  { background: #fbbf24; }
+  #brightness-dot.red    { background: #f87171; }
+  #brightness-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.9);
+  }
+
+  /* Shutter button */
+  #shutter-btn {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.85);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+  }
+  #shutter-btn:active { transform: scale(0.93); }
+  #shutter-inner {
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    transition: background 0.2s;
+  }
+  #shutter-btn:active #shutter-inner { background: #BFA4CE; }
+
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0   rgba(191,164,206,0.7); }
+    60%  { box-shadow: 0 0 0 16px rgba(191,164,206,0);   }
+    100% { box-shadow: 0 0 0 0   rgba(191,164,206,0);   }
+  }
+  #shutter-btn.pulse-ring { animation: pulse-ring 1.4s infinite; }
+
+  /* Instruction hint */
+  #camera-hint {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+  }
+
+  /* ── Thumbnail retake ──────────────────────────────────────── */
   .thumb-wrap { position: relative; }
   .thumb-retake {
     position: absolute; bottom: 0; left: 0; right: 0;
-    background: rgba(28,23,39,0.75);
+    background: rgba(28,23,39,0.78);
     color: #FBF8F2;
+    font-family: 'DM Sans', sans-serif;
     font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
     text-align: center;
-    padding: 0.3rem 0;
+    padding: 0.35rem 0;
     cursor: pointer;
+    transition: background 0.2s;
   }
+  .thumb-retake:hover { background: rgba(191,164,206,0.85); }
 
-  /* State transitions */
-  .state { display: none; }
-  .state.active { display: block; }
+  /* Hide brightness canvas */
+  #brightness-canvas { display: none; }
 </style>
 @endpush
 
@@ -161,100 +307,96 @@
       </p>
     </div>
 
-    {{-- ── State B/C: Camera capture ───────────────────────────────────── --}}
+    {{-- ── State B/C: Camera capture — full-screen ───────────────────── --}}
     <div id="state-camera" class="state">
 
-      {{-- Photo title strip --}}
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <p id="photo-label" class="font-sans font-semibold text-ink text-sm">Photo 1 of 2 — Your fingers</p>
-          <p id="photo-sublabel" class="font-sans text-caption text-stone">Lay fingers flat, coin above middle finger, shoot straight down.</p>
+      {{-- Hidden canvas for brightness sampling --}}
+      <canvas id="brightness-canvas" width="80" height="60"></canvas>
+
+      {{-- Live video feed --}}
+      <video id="camera-video" autoplay playsinline muted></video>
+
+      {{-- SVG overlay —  finger/thumb guides --}}
+      <svg id="overlay-svg" viewBox="0 0 400 710" xmlns="http://www.w3.org/2000/svg" fill="none" preserveAspectRatio="xMidYMid meet">
+
+        {{-- Fingers overlay (photo 1 and 3) --}}
+        <g id="overlay-fingers">
+          {{-- Coin above middle finger --}}
+          <circle cx="234" cy="160" r="30" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text x="234" y="167" text-anchor="middle" font-size="16" fill="rgba(255,255,255,0.8)" font-family="DM Sans, sans-serif">₨</text>
+          <text x="234" y="205" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.55)" font-family="DM Sans, sans-serif" letter-spacing="1">COIN ABOVE NAILS</text>
+
+          {{-- Pinky --}}
+          <path d="M72,710 L72,520 Q72,480 110,480 Q148,480 148,520 L148,710"
+                stroke="rgba(255,255,255,0.65)" stroke-width="1.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+          {{-- Ring --}}
+          <path d="M163,710 L163,440 Q163,400 201,400 Q239,400 239,440 L239,710"
+                stroke="rgba(255,255,255,0.65)" stroke-width="1.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+          {{-- Middle (tallest) --}}
+          <path d="M253,710 L253,395 Q253,355 291,355 Q329,355 329,395 L329,710"
+                stroke="rgba(255,255,255,0.65)" stroke-width="1.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+          {{-- Index --}}
+          <path d="M343,710 L343,448 Q343,408 381,408 Q400,408 400,448 L400,710"
+                stroke="rgba(255,255,255,0.65)" stroke-width="1.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+        </g>
+
+        {{-- Thumb overlay (photo 2 and 4) --}}
+        <g id="overlay-thumb" style="display:none">
+          <circle cx="200" cy="130" r="30" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text x="200" y="137" text-anchor="middle" font-size="16" fill="rgba(255,255,255,0.8)" font-family="DM Sans, sans-serif">₨</text>
+          <text x="200" y="175" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.55)" font-family="DM Sans, sans-serif" letter-spacing="1">COIN ABOVE NAIL</text>
+          <path d="M130,710 L130,310 Q130,230 200,230 Q270,230 270,310 L270,710"
+                stroke="rgba(255,255,255,0.65)" stroke-width="1.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+        </g>
+
+        {{-- Corner bracket guides --}}
+        <line x1="24" y1="24" x2="56" y2="24" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="24" y1="24" x2="24" y2="56" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="376" y1="24" x2="344" y2="24" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="376" y1="24" x2="376" y2="56" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="24" y1="686" x2="56" y2="686" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="24" y1="686" x2="24" y2="654" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="376" y1="686" x2="344" y2="686" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
+        <line x1="376" y1="686" x2="376" y2="654" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+
+      {{-- Alignment border --}}
+      <div id="alignment-border"></div>
+
+      {{-- ── Top HUD ───────────────────────────────────────── --}}
+      <div id="camera-hud-top">
+        <div class="flex items-center gap-3 mb-3 pt-3">
+          <button id="camera-back-btn" aria-label="Cancel" class="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm border border-white/10 text-white/80 hover:text-white transition-colors">
+            <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"><polyline points="160 208 80 128 160 48"/></svg>
+          </button>
+          <div id="progress-track" class="flex-1">
+            <span class="progress-segment active" id="seg-1"></span>
+            <span class="progress-segment" id="seg-2"></span>
+            <span class="progress-segment hidden" id="seg-3"></span>
+            <span class="progress-segment hidden" id="seg-4"></span>
+          </div>
+          <span id="photo-counter" class="shrink-0 font-sans text-white/70 text-xs font-medium tracking-widest uppercase">PHOTO 1 OF 2</span>
         </div>
-        {{-- Progress dots --}}
-        <div class="flex gap-2 shrink-0">
-          <span id="dot-1" class="w-2 h-2 rounded-full bg-lavender"></span>
-          <span id="dot-2" class="w-2 h-2 rounded-full bg-ash"></span>
-          <span id="dot-opt-1" class="w-2 h-2 rounded-full bg-ash hidden"></span>
-          <span id="dot-opt-2" class="w-2 h-2 rounded-full bg-ash hidden"></span>
-        </div>
+        <p id="photo-label" class="font-sans text-white font-semibold text-sm mb-0.5 tracking-wide">Your fingers</p>
+        <p id="photo-sublabel" class="font-sans text-white/60 text-xs leading-snug mb-3">Lay fingers flat · coin above middle finger · shoot straight down</p>
       </div>
 
-      {{-- Viewfinder --}}
-      <div class="relative rounded-2xl overflow-hidden bg-ink aspect-[4/3] mb-4">
-        <video id="camera-video" autoplay playsinline muted></video>
-        <canvas id="brightness-canvas" class="hidden" width="80" height="60"></canvas>
-
-        {{-- SVG overlay — U-shaped finger/thumb guides matching sizing-fingers.svg and sizing-thumb.svg --}}
-        <svg id="overlay-svg" viewBox="0 0 400 305" xmlns="http://www.w3.org/2000/svg" fill="none">
-
-          {{-- Fingers overlay (shown for photo 1 and 3) --}}
-          {{-- Layout: pinky (shortest/left) → ring → middle (tallest, coin above) → index --}}
-          <g id="overlay-fingers">
-            {{-- Coin above middle finger (cx=234 = center of middle finger at x=206, w=55) --}}
-            <circle cx="234" cy="72" r="22" stroke="#BFA4CE" stroke-width="2" stroke-dasharray="6 4" opacity="0.9"/>
-            <text x="234" y="78" text-anchor="middle" font-size="13" fill="#BFA4CE" opacity="0.9" font-family="DM Sans, sans-serif">₨</text>
-            <text x="234" y="100" text-anchor="middle" font-size="10" fill="#BFA4CE" opacity="0.75" font-family="DM Sans, sans-serif" letter-spacing="0.5">Place coin here</text>
-
-            {{-- Pinky — leftmost, notably shortest (~55% of middle). U-shape open at bottom. --}}
-            <path d="M72,305 L72,234 Q72,206 99,206 Q127,206 127,234 L127,305"
-                  stroke="#BFA4CE" stroke-width="2" stroke-dasharray="7 5" stroke-linecap="round" opacity="0.85"/>
-            {{-- Ring finger (~82% of middle) --}}
-            <path d="M139,305 L139,185 Q139,157 167,157 Q195,157 195,185 L195,305"
-                  stroke="#BFA4CE" stroke-width="2" stroke-dasharray="7 5" stroke-linecap="round" opacity="0.85"/>
-            {{-- Middle finger — tallest, coin sits above it --}}
-            <path d="M206,305 L206,153 Q206,125 234,125 Q262,125 262,153 L262,305"
-                  stroke="#BFA4CE" stroke-width="2" stroke-dasharray="7 5" stroke-linecap="round" opacity="0.85"/>
-            {{-- Index finger (~79% of middle) --}}
-            <path d="M273,305 L273,191 Q273,163 301,163 Q329,163 329,191 L329,305"
-                  stroke="#BFA4CE" stroke-width="2" stroke-dasharray="7 5" stroke-linecap="round" opacity="0.85"/>
-          </g>
-
-          {{-- Thumb overlay (shown for photo 2 and 4) --}}
-          {{-- Wider U-shape, coin above thumbnail, open at bottom --}}
-          <g id="overlay-thumb" style="display:none">
-            {{-- Coin above thumbnail --}}
-            <circle cx="200" cy="52" r="22" stroke="#BFA4CE" stroke-width="2" stroke-dasharray="6 4" opacity="0.9"/>
-            <text x="200" y="58" text-anchor="middle" font-size="13" fill="#BFA4CE" opacity="0.9" font-family="DM Sans, sans-serif">₨</text>
-            <text x="200" y="84" text-anchor="middle" font-size="10" fill="#BFA4CE" opacity="0.75" font-family="DM Sans, sans-serif" letter-spacing="0.5">Place coin here</text>
-
-            {{-- Thumb — wider than a finger (90px), semicircle top, open at bottom --}}
-            <path d="M155,305 L155,140 Q155,95 200,95 Q245,95 245,140 L245,305"
-                  stroke="#BFA4CE" stroke-width="2" stroke-dasharray="7 5" stroke-linecap="round" opacity="0.85"/>
-          </g>
-          {{-- Corner guides --}}
-          <line x1="20" y1="20" x2="40" y2="20" stroke="#BFA4CE" stroke-width="1.5" opacity="0.4"/>
-          <line x1="20" y1="20" x2="20" y2="40" stroke="#BFA4CE" stroke-width="1.5" opacity="0.4"/>
-          <line x1="380" y1="20" x2="360" y2="20" stroke="#BFA4CE" stroke-width="1.5" opacity="0.4"/>
-          <line x1="380" y1="20" x2="380" y2="40" stroke="#BFA4CE" stroke-width="1.5" opacity="0.4"/>
-          <line x1="20" y1="280" x2="40" y2="280" stroke="#BFA4CE" stroke-width="1.5" opacity="0.4"/>
-          <line x1="20" y1="280" x2="20" y2="260" stroke="#BFA4CE" stroke-width="1.5" opacity="0.4"/>
-          <line x1="380" y1="280" x2="360" y2="280" stroke="#BFA4CE" stroke-width="1.5" opacity="0.4"/>
-          <line x1="380" y1="280" x2="380" y2="260" stroke="#BFA4CE" stroke-width="1.5" opacity="0.4"/>
-        </svg>
-
-        {{-- Alignment border --}}
-        <div id="alignment-border"></div>
-
-        {{-- Brightness pill --}}
-        <div id="brightness-pill"
-             class="absolute top-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 rounded-full bg-ink/60 backdrop-blur-sm">
-          <span id="brightness-dot" class="w-2 h-2 rounded-full bg-stone"></span>
-          <span id="brightness-label" class="font-sans text-white text-xs">Checking…</span>
+      {{-- ── Bottom controls ──────────────────────────────── --}}
+      <div id="camera-controls">
+        {{-- Brightness/alignment indicator --}}
+        <div id="brightness-pill">
+          <span id="brightness-dot"></span>
+          <span id="brightness-label">Checking…</span>
         </div>
-      </div>
 
-      {{-- Shutter --}}
-      <div class="flex justify-center mb-6">
-        <button id="shutter-btn"
-                class="w-16 h-16 rounded-full bg-white border-4 border-lavender flex items-center justify-center transition-all duration-200 hover:bg-lavender-wash"
-                aria-label="Take photo">
-          <div class="w-10 h-10 rounded-full bg-lavender"></div>
+        {{-- Shutter --}}
+        <button id="shutter-btn" aria-label="Take photo">
+          <div id="shutter-inner"></div>
         </button>
+
+        <p id="camera-hint">Tap when guide is green</p>
       </div>
 
-      <p class="font-sans text-caption text-stone text-center">
-        Tap when your hand fills the guide and the border turns green.
-      </p>
     </div>
 
     {{-- ── State D: Preview ────────────────────────────────────────────── --}}
@@ -471,6 +613,11 @@ $(function () {
       csrfToken:   '{{ csrf_token() }}',
     });
   }
+
+  // Camera back button → return to explainer
+  $('#camera-back-btn').on('click', function () {
+    showState('explainer');
+  });
 
   // Use upload fallback button (from explainer)
   $('#use-upload-btn').on('click', function () {

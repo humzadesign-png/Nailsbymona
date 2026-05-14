@@ -116,56 +116,59 @@
   function updatePhotoStrip(state) {
     const label    = document.getElementById('photo-label');
     const sublabel = document.getElementById('photo-sublabel');
-    const dot1     = document.getElementById('dot-1');
-    const dot2     = document.getElementById('dot-2');
-    const dotO1    = document.getElementById('dot-opt-1');
-    const dotO2    = document.getElementById('dot-opt-2');
+    const counter  = document.getElementById('photo-counter');
     if (!label) return;
-
-    // Show optional dots if we're doing other-hand photos
-    const doingOther = state === 'fingers_other' || state === 'thumb_other';
-    if (doingOther && dotO1) {
-      dotO1.classList.remove('hidden');
-      dotO2.classList.remove('hidden');
-    }
 
     const configs = {
       fingers: {
-        label:    'Photo 1 of 2 — Your fingers',
-        sublabel: 'Lay fingers flat, coin above middle finger, shoot straight down.',
-        dots:     [true, false, false, false],
+        counter:  'PHOTO 1 OF 2',
+        label:    'Your fingers',
+        sublabel: 'Lay fingers flat · coin above middle finger · shoot straight down',
+        segs:     ['active', '', null, null],
       },
       thumb: {
-        label:    'Photo 2 of 2 — Your thumb',
-        sublabel: 'Extend your thumb, coin above the thumbnail, same angle.',
-        dots:     [true, true, false, false],
+        counter:  'PHOTO 2 OF 2',
+        label:    'Your thumb',
+        sublabel: 'Extend your thumb · coin above the thumbnail · same angle',
+        segs:     ['done', 'active', null, null],
       },
       fingers_other: {
-        label:    'Photo 3 of 4 — Other hand fingers',
-        sublabel: 'Same as before — fingers flat, coin above middle finger.',
-        dots:     [true, true, true, false],
+        counter:  'PHOTO 3 OF 4',
+        label:    'Other hand — fingers',
+        sublabel: 'Same as before · fingers flat · coin above middle finger',
+        segs:     ['done', 'done', 'active', ''],
       },
       thumb_other: {
-        label:    'Photo 4 of 4 — Other hand thumb',
-        sublabel: 'Extend your other thumb, coin above the thumbnail.',
-        dots:     [true, true, true, true],
+        counter:  'PHOTO 4 OF 4',
+        label:    'Other hand — thumb',
+        sublabel: 'Extend your other thumb · coin above the thumbnail',
+        segs:     ['done', 'done', 'done', 'active'],
       },
     };
 
     const c = configs[state];
     if (!c) return;
+
+    if (counter) counter.textContent = c.counter;
     label.textContent    = c.label;
     sublabel.textContent = c.sublabel;
 
-    const dots = [dot1, dot2, dotO1, dotO2];
-    dots.forEach((dot, i) => {
-      if (!dot) return;
-      if (c.dots[i]) {
-        dot.classList.remove('bg-ash');
-        dot.classList.add('bg-lavender');
-      } else {
-        dot.classList.remove('bg-lavender');
-        dot.classList.add('bg-ash');
+    // Update progress segments
+    ['seg-1','seg-2','seg-3','seg-4'].forEach((id, i) => {
+      const seg = document.getElementById(id);
+      if (!seg) return;
+      const v = c.segs[i];
+      if (v === null) {
+        // Show optional segments when doing other-hand
+        seg.classList.remove('hidden');
+      }
+      seg.classList.remove('done', 'active');
+      if (v === 'done')   seg.classList.add('done');
+      if (v === 'active') seg.classList.add('active');
+      // Show optional segs
+      if (state === 'fingers_other' || state === 'thumb_other') {
+        document.getElementById('seg-3')?.classList.remove('hidden');
+        document.getElementById('seg-4')?.classList.remove('hidden');
       }
     });
   }
