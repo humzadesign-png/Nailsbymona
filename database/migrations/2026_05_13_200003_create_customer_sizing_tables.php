@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('customer_sizing_profiles', function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->foreignUlid('customer_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
             $table->text('notes')->nullable();
             $table->timestamp('verified_by_admin_at')->nullable();
             $table->timestamps();
