@@ -1737,6 +1737,46 @@ return view('product', compact('product', 'related'));
 
 ---
 
+### 2026-05-15 — Domain, SSL, deployment, admin fix, camera SVG polish
+
+**Domain + SSL live:**
+- nailsbymona.pk connected to DigitalOcean droplet (157.230.252.62). DNS changed from Shopify A record to the server IP at PKNIC (pk6.pknic.net.pk).
+- SSL via Certbot (nginx plugin). Auto-renewal configured. `APP_URL=https://nailsbymona.pk`, `SESSION_SECURE_COOKIE=true`.
+- Script at `/root/enable-ssl.sh` on server documents what was done.
+
+**Camera capture UI — full-screen redesign:**
+- `state-camera` converted to `position:fixed; inset:0; z-index:50; background:#000` — fills the entire phone screen like a native camera app.
+- Top HUD: back button + 4 progress segments (seg-1 to seg-4) + photo counter text.
+- Bottom controls: brightness pill + 72px shutter ring / 54px inner disc.
+- SVG overlay: `viewBox="0 0 400 870"` (9:19.5 iPhone aspect ratio), `preserveAspectRatio="xMidYMax meet"`. Guides anchor to the bottom of the screen.
+
+**SVG finger guide widths (final values — user confirmed):**
+- Pinky: 56px wide, center x=68 (x=40–96)
+- Ring: 60px wide, center x=140 (x=110–170)
+- Middle: 64px wide, center x=220 (x=188–252)
+- Index: 60px wide, center x=300 (x=270–330)
+- Thumb: 90px wide, center x=200 (x=155–245)
+- Coin: r=38 on both overlays
+- Heights: middle top y=312, ring y=406, index y=421, pinky y=548, thumb y=438
+
+**Admin panel 404 fix (critical — Filament v4 breaking change):**
+- Filament v4 `Authenticate` middleware blocks all non-local users whose `User` model doesn't implement `FilamentUser`. `abort(403)` fires in production even after successful login.
+- Fix: `User` model now implements `Filament\Models\Contracts\FilamentUser` with `canAccessPanel(): bool { return true; }`.
+- Without this, the admin panel is completely inaccessible in production (APP_ENV=production).
+
+**Admin dashboard blank (Livewire routes not cached):**
+- After login, `livewire.js` returned 404 because route cache didn't include Livewire's routes.
+- Fix: `php artisan route:clear && php artisan optimize`.
+
+**Production server state (as of 2026-05-15):**
+- `APP_DEBUG=false` ✅
+- Queue worker running via Supervisor (`/etc/supervisor/conf.d/nailsbymona-worker.conf`). Restarts automatically on crash and server reboot. Logs at `storage/logs/worker.log`.
+- Deploy script at `/root/deploy.sh` — runs `git pull → composer install → migrate --force → optimize → supervisorctl restart worker`. One command for all future deploys.
+- DB: 9 products, 1 admin user, first real order NBM-2026-0001 in the system.
+- All pages return correct HTTP status (homepage/shop/order pages 200, /admin 302→login).
+
+---
+
 ## 33. Pointers for Future Claude Sessions
 
 - **Read this file first.** Overrides anything you think you remember.
@@ -1780,6 +1820,9 @@ return view('product', compact('product', 'related'));
   - Tailwind v4 uses CSS-based config — class names are kebab-case matching CSS variable names (e.g. `bg-lavender-wash`, `text-lavender-ink`), not camelCase.
 - **Correct route names** (from `routes/web.php`): `home` · `shop` · `shop.show` · `bridal` · `size-guide` · `about` · `contact` · `contact.submit` · `blog` · `blog.post` · `order.start` · `order.sizing` · `order.confirm` · `order.track`. The contact form flash key is `contact_success`. The tracking route requires `{order}` UUID — there is no generic `/order/track` lookup URL.
 - **`window.NbmBag` global API** (defined in `layouts/app.blade.php`): `add(item)`, `get()`, `save(items)`, `open()`. All product-page and blog-post "Add to bag" buttons call these. Do not add a separate bag implementation on individual pages.
+- **Filament v4 production access (CRITICAL):** User model MUST implement `Filament\Models\Contracts\FilamentUser` with `canAccessPanel(): bool`. Without it, Filament v4 blocks all admin access in non-local environments. Already fixed — do not remove this interface.
+- **Deploy script:** `/root/deploy.sh` on the server. Runs git pull + composer + migrate + optimize + worker restart in one command.
+- **Queue worker:** Running via Supervisor. Config at `/etc/supervisor/conf.d/nailsbymona-worker.conf`. Logs at `storage/logs/worker.log`.
 - **Desktop camera handoff (2026-05-14):** `sizing-capture` (HTML + Blade) shows a QR code "Open this on your phone" state when `isDesktopDevice()` returns true. Desktop detection: no mobile UA + (no touch hardware or wide screen). Camera init is fully skipped on desktop. QR uses `api.qrserver.com` image API. Order form Step 1 shows an inline warning note on the camera option for desktop visitors. The `isDesktopDevice()` function is duplicated in 4 files — keep them in sync if the logic ever changes.
 
 ---
