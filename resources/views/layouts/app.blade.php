@@ -62,16 +62,6 @@
 
         {{-- Right utilities --}}
         <div class="flex items-center gap-5">
-            {{-- Track order (desktop only) --}}
-            <a href="{{ route('track') }}" aria-label="Track order"
-               class="hidden lg:inline-flex text-stone hover:text-ink transition-colors duration-200">
-                <svg class="w-[18px] h-[18px]" viewBox="0 0 256 256" fill="none" stroke="currentColor"
-                     stroke-width="14" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="116" cy="116" r="84"/>
-                    <line x1="175.39" y1="175.39" x2="224" y2="224"/>
-                </svg>
-            </a>
-
             {{-- Bag toggle --}}
             <button id="bag-toggle" aria-label="Open bag"
                     class="relative p-0.5 text-stone hover:text-ink transition-colors duration-200">

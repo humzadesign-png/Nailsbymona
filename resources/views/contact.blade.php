@@ -123,6 +123,21 @@
           </div>
         </div>
 
+        <div class="bg-lavender/8 rounded-2xl p-6 flex items-start gap-5 border border-lavender/20">
+          <div class="w-11 h-11 rounded-xl bg-lavender/15 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-lavender" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M223.9,114.3l-28.3-56.6A8,8,0,0,0,188.4,53H67.6a8,8,0,0,0-7.2,4.5L32.1,114.3A8.1,8.1,0,0,0,32,118v74a14,14,0,0,0,14,14H210a14,14,0,0,0,14-14V118A8.1,8.1,0,0,0,223.9,114.3ZM72.4,69H183.6l22,44H50.4ZM210,190H46V129H210v61Z"/>
+              <line x1="100" y1="159" x2="156" y2="159"/>
+              <line x1="128" y1="143" x2="128" y2="175"/>
+            </svg>
+          </div>
+          <div>
+            <p class="font-sans font-medium text-ink mb-0.5" style="font-size:0.9375rem">Track your order</p>
+            <p class="font-sans text-caption text-stone mb-2">Enter your order number and the email or phone you used when ordering.</p>
+            <a href="{{ route('track') }}" class="font-sans text-caption font-medium text-lavender hover:text-lavender-dark underline-offset-4 hover:underline transition-colors duration-200">Go to order tracking &rarr;</a>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
