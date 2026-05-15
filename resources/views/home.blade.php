@@ -480,40 +480,46 @@
             <div class="h-0.5 w-10 bg-lavender mt-5 mx-auto"></div>
         </div>
 
-        <div class="steps-grid grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-8">
+        <div class="relative">
+            {{-- Connector line: desktop only, runs between centre of circle 01 → centre of circle 04 --}}
+            <div class="hidden md:block absolute h-px bg-hairline"
+                 style="top:28px; left:calc(12.5%); right:calc(12.5%);" aria-hidden="true"></div>
 
-            <div class="relative">
-                <div class="w-14 h-14 rounded-full bg-paper border border-hairline flex items-center justify-center mb-5 relative z-10">
-                    <span class="font-serif text-lavender leading-none" style="font-size:1.25rem">01</span>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-8">
+
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-14 h-14 rounded-full bg-paper border border-hairline flex items-center justify-center mb-5 relative z-10">
+                        <span class="font-serif text-lavender leading-none" style="font-size:1.25rem">01</span>
+                    </div>
+                    <h3 class="font-sans font-semibold text-ink mb-2" style="font-size:0.9375rem">Choose a design</h3>
+                    <p class="font-sans text-caption text-stone leading-relaxed">Browse the collection or describe your dream set.</p>
                 </div>
-                <h3 class="font-sans font-semibold text-ink mb-2" style="font-size:0.9375rem">Choose a design</h3>
-                <p class="font-sans text-caption text-stone leading-relaxed">Browse the collection or describe your dream set.</p>
-            </div>
 
-            <div class="relative">
-                <div class="w-14 h-14 rounded-full bg-paper border border-hairline flex items-center justify-center mb-5 relative z-10">
-                    <span class="font-serif text-lavender leading-none" style="font-size:1.25rem">02</span>
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-14 h-14 rounded-full bg-paper border border-hairline flex items-center justify-center mb-5 relative z-10">
+                        <span class="font-serif text-lavender leading-none" style="font-size:1.25rem">02</span>
+                    </div>
+                    <h3 class="font-sans font-semibold text-ink mb-2" style="font-size:0.9375rem">Send 2 sizing photos</h3>
+                    <p class="font-sans text-caption text-stone leading-relaxed">Fingers, then thumb &mdash; each with a coin for scale. About 90 seconds.</p>
                 </div>
-                <h3 class="font-sans font-semibold text-ink mb-2" style="font-size:0.9375rem">Send 2 sizing photos</h3>
-                <p class="font-sans text-caption text-stone leading-relaxed">Fingers, then thumb &mdash; each with a coin for scale. About 90 seconds.</p>
-            </div>
 
-            <div class="relative">
-                <div class="w-14 h-14 rounded-full bg-paper border border-hairline flex items-center justify-center mb-5 relative z-10">
-                    <span class="font-serif text-lavender leading-none" style="font-size:1.25rem">03</span>
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-14 h-14 rounded-full bg-paper border border-hairline flex items-center justify-center mb-5 relative z-10">
+                        <span class="font-serif text-lavender leading-none" style="font-size:1.25rem">03</span>
+                    </div>
+                    <h3 class="font-sans font-semibold text-ink mb-2" style="font-size:0.9375rem">We make &amp; ship</h3>
+                    <p class="font-sans text-caption text-stone leading-relaxed">Hand-painted in Mirpur. 5&ndash;9 working days to your door.</p>
                 </div>
-                <h3 class="font-sans font-semibold text-ink mb-2" style="font-size:0.9375rem">We make &amp; ship</h3>
-                <p class="font-sans text-caption text-stone leading-relaxed">Hand-painted in Mirpur. 5&ndash;9 working days to your door.</p>
-            </div>
 
-            <div class="relative">
-                <div class="w-14 h-14 rounded-full bg-paper border border-hairline flex items-center justify-center mb-5 relative z-10">
-                    <span class="font-serif text-lavender leading-none" style="font-size:1.25rem">04</span>
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-14 h-14 rounded-full bg-paper border border-hairline flex items-center justify-center mb-5 relative z-10">
+                        <span class="font-serif text-lavender leading-none" style="font-size:1.25rem">04</span>
+                    </div>
+                    <h3 class="font-sans font-semibold text-ink mb-2" style="font-size:0.9375rem">Wear &amp; reuse</h3>
+                    <p class="font-sans text-caption text-stone leading-relaxed">Apply with brush-on glue. Reuse three to five times.</p>
                 </div>
-                <h3 class="font-sans font-semibold text-ink mb-2" style="font-size:0.9375rem">Wear &amp; reuse</h3>
-                <p class="font-sans text-caption text-stone leading-relaxed">Apply with brush-on glue. Reuse three to five times.</p>
-            </div>
 
+            </div>
         </div>
     </div>
 </section>
