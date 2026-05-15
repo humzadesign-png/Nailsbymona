@@ -10,8 +10,12 @@
         'bridal_single','bridal_trio' => 'bg-gold/95 backdrop-blur-sm text-ink',
         default                       => 'bg-paper/90 backdrop-blur-sm text-stone',
     };
-    $imgSrc = $product->cover_image ? asset('storage/' . $product->cover_image) : '';
-    $imgAlt = e($product->name) . ' — ' . $tierLabel . ' tier custom-fit press-on nails';
+    // Gallery images sorted: cover first, then by sort_order
+    $galleryImages = $product->images
+        ->sortBy(fn($img) => $img->path === $product->cover_image ? 0 : ($img->sort_order ?? 999));
+    $firstImg = $galleryImages->first();
+    $imgSrc   = $firstImg ? asset('storage/' . $firstImg->path) : ($product->cover_image ? asset('storage/' . $product->cover_image) : '');
+    $imgAlt   = e($product->name) . ' — ' . $tierLabel . ' tier custom-fit press-on nails';
     $schemaAvailability = match($product->stock_status?->value ?? '') {
         'sold_out'      => 'https://schema.org/OutOfStock',
         'made_to_order' => 'https://schema.org/PreOrder',
@@ -85,15 +89,13 @@
         </div>
         <!-- Thumbnails -->
         <div class="flex gap-3 overflow-x-auto pb-1">
-          @if($imgSrc)
-          <button class="thumb-btn active shrink-0 w-20 h-20 rounded-xl overflow-hidden img-wrap-fallback ring-2 ring-lavender ring-offset-2" data-src="{{ $imgSrc }}">
-            <img src="{{ $imgSrc }}" alt="Main view" class="w-full h-full object-cover" onerror="this.remove()" width="80" height="80" loading="lazy">
-          </button>
-          @endif
-          @foreach($product->images as $img)
-          @php $src = asset('storage/' . $img->path); @endphp
-          <button class="thumb-btn shrink-0 w-20 h-20 rounded-xl overflow-hidden img-wrap-fallback border-2 border-transparent hover:border-lavender transition-colors duration-200" data-src="{{ $src }}">
-            <img src="{{ $src }}" alt="{{ e($img->alt) }}" class="w-full h-full object-cover" onerror="this.remove()" width="80" height="80" loading="lazy">
+          @foreach($galleryImages as $img)
+          @php
+            $src     = asset('storage/' . $img->path);
+            $isCover = $img->path === $product->cover_image;
+          @endphp
+          <button class="thumb-btn shrink-0 w-20 h-20 rounded-xl overflow-hidden img-wrap-fallback {{ $isCover ? 'ring-2 ring-lavender ring-offset-2 active' : 'border-2 border-transparent hover:border-lavender' }} transition-colors duration-200" data-src="{{ $src }}">
+            <img src="{{ $src }}" alt="{{ e($img->alt ?: $product->name) }}" class="w-full h-full object-cover" onerror="this.remove()" width="80" height="80" loading="lazy">
           </button>
           @endforeach
         </div>
