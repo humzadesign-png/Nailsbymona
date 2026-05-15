@@ -352,7 +352,7 @@
       <h3 class="font-sans text-h3 font-medium text-ink mb-4">Curious about something?</h3>
       <p class="font-sans text-body text-graphite mb-8">I'm genuinely happy to answer questions before you order. Ask me anything &mdash; sizing, design options, timelines, whether a specific look is possible. WhatsApp is fastest.</p>
       <div class="flex flex-wrap items-center justify-center gap-3">
-        <a href="https://wa.me/92XXXXXXXXXX?text=Hello%20Nails%20by%20Mona%2C%20I%20have%20a%20question%20before%20I%20order."
+        <a href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}?text=Hello%20Nails%20by%20Mona%2C%20I%20have%20a%20question%20before%20I%20order."
            class="inline-flex items-center gap-2 bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full px-8 py-4 transition-colors duration-200" style="font-size:1rem">
           Get help on WhatsApp &rarr;
         </a>

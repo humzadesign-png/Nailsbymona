@@ -59,7 +59,7 @@
           Start your order
           <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><line x1="40" y1="128" x2="216" y2="128"/><polyline points="144 56 216 128 144 200"/></svg>
         </a>
-        <a href="https://wa.me/92XXXXXXXXXX?text=Hello%20Nails%20by%20Mona%2C%20I%20need%20help%20with%20my%20sizing%20photos."
+        <a href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}?text=Hello%20Nails%20by%20Mona%2C%20I%20need%20help%20with%20my%20sizing%20photos."
            class="font-sans text-caption text-stone hover:text-lavender-ink underline-offset-4 hover:underline transition-colors duration-200">
           Get help &rarr;
         </a>
@@ -410,7 +410,7 @@
         <p class="font-sans text-body text-graphite mb-6">
           If you&rsquo;ve ordered from me before and provided sizing photos, I keep your measurements saved. When you reorder, just mention your name and previous order number &mdash; no re-measuring needed. Reorders also get a 10% discount.
         </p>
-        <a href="https://wa.me/92XXXXXXXXXX?text=Hello%20Nails%20by%20Mona%2C%20I%27d%20like%20to%20reorder%20%E2%80%94%20I%20have%20sizing%20on%20file%20from%20a%20previous%20order."
+        <a href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}?text=Hello%20Nails%20by%20Mona%2C%20I%27d%20like%20to%20reorder%20%E2%80%94%20I%20have%20sizing%20on%20file%20from%20a%20previous%20order."
            class="inline-flex items-center gap-2 font-sans text-caption font-medium text-lavender-ink hover:text-lavender underline-offset-4 hover:underline transition-colors duration-200">
           WhatsApp to reorder &rarr;
         </a>
@@ -421,7 +421,7 @@
         <p class="font-sans text-body text-graphite mb-6">
           If you&rsquo;re unsure whether either photo will work &mdash; maybe the lighting was off or you couldn&rsquo;t get the coin in the right spot &mdash; just send them to me on WhatsApp before placing your order. I&rsquo;ll tell you immediately whether they&rsquo;re usable or if we need a retake.
         </p>
-        <a href="https://wa.me/92XXXXXXXXXX?text=Hello%20Nails%20by%20Mona%2C%20I%27d%20like%20to%20check%20my%20sizing%20photos%20before%20I%20place%20my%20order."
+        <a href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}?text=Hello%20Nails%20by%20Mona%2C%20I%27d%20like%20to%20check%20my%20sizing%20photos%20before%20I%20place%20my%20order."
            class="inline-flex items-center gap-2 font-sans text-caption font-medium text-lavender-ink hover:text-lavender underline-offset-4 hover:underline transition-colors duration-200">
           Send photo for review &rarr;
         </a>

@@ -19,8 +19,8 @@
         'url'      => config('app.url'),
         'logo'     => asset('logo-text.svg'),
         'sameAs'   => [
-            'https://instagram.com/nailsbymona',
-            'https://tiktok.com/@nailsbymona',
+            'https://instagram.com/' . ($settings->instagram_handle ?? 'nailsbymona'),
+            'https://tiktok.com/@' . ($settings->tiktok_handle ?? 'nailsbymona'),
         ],
         'contactPoint' => [
             '@type'             => 'ContactPoint',

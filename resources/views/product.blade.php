@@ -133,7 +133,7 @@
 
         <!-- Get help -->
         <div class="text-center mb-8">
-          <a href="https://wa.me/92XXXXXXXXXX?text={{ $waText }}"
+          <a href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}?text={{ $waText }}"
              class="font-sans text-caption text-stone hover:text-lavender-ink underline-offset-4 hover:underline transition-colors duration-200">
             Get help with this design &rarr;
           </a>

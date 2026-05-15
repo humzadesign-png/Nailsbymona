@@ -158,7 +158,7 @@
     </div>
 
     <div class="px-8 mt-10 mb-12 flex items-center gap-6">
-        <a href="https://instagram.com/nailsbymona" aria-label="Instagram"
+        <a href="https://instagram.com/{{ $settings->instagram_handle }}" aria-label="Instagram"
            class="text-stone hover:text-ink transition-colors duration-200" target="_blank" rel="noopener">
             <svg class="w-5 h-5" viewBox="0 0 256 256" fill="none" stroke="currentColor"
                  stroke-width="12" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -167,7 +167,7 @@
                 <circle cx="180" cy="76" r="10" fill="currentColor" stroke="none"/>
             </svg>
         </a>
-        <a href="https://wa.me/92XXXXXXXXXX?text=Hello%20Nails%20by%20Mona%2C%20I%27d%20like%20to%20enquire%20about%20a%20custom%20set."
+        <a href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}?text=Hello%20Nails%20by%20Mona%2C%20I%27d%20like%20to%20enquire%20about%20a%20custom%20set."
            aria-label="WhatsApp" class="text-stone hover:text-ink transition-colors duration-200"
            target="_blank" rel="noopener">
             <svg class="w-5 h-5" viewBox="0 0 256 256" fill="none" stroke="currentColor"
@@ -212,7 +212,7 @@
                     Handmade in Mirpur.<br>Shipped across Pakistan.
                 </p>
                 <div class="flex items-center gap-4">
-                    <a href="https://instagram.com/nailsbymona" aria-label="Instagram"
+                    <a href="https://instagram.com/{{ $settings->instagram_handle }}" aria-label="Instagram"
                        class="transition-colors duration-200 hover:opacity-100"
                        style="color:rgba(244,239,232,0.40)" target="_blank" rel="noopener">
                         <svg class="w-5 h-5" viewBox="0 0 256 256" fill="none" stroke="currentColor"
@@ -222,7 +222,7 @@
                             <circle cx="180" cy="76" r="10" fill="currentColor" stroke="none"/>
                         </svg>
                     </a>
-                    <a href="https://wa.me/92XXXXXXXXXX?text=Hello%20Nails%20by%20Mona%2C%20I%27d%20like%20to%20enquire%20about%20a%20custom%20set."
+                    <a href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}?text=Hello%20Nails%20by%20Mona%2C%20I%27d%20like%20to%20enquire%20about%20a%20custom%20set."
                        aria-label="WhatsApp" class="transition-colors duration-200"
                        style="color:rgba(244,239,232,0.40)" target="_blank" rel="noopener">
                         <svg class="w-5 h-5" viewBox="0 0 256 256" fill="none" stroke="currentColor"
@@ -276,7 +276,7 @@
                 <p class="font-sans text-eyebrow uppercase tracking-widest mb-6"
                    style="color:rgba(244,239,232,0.30)">Follow</p>
                 <div class="flex items-center gap-5">
-                    <a href="https://instagram.com/nailsbymona" aria-label="Instagram"
+                    <a href="https://instagram.com/{{ $settings->instagram_handle }}" aria-label="Instagram"
                        class="transition-colors duration-200" style="color:rgba(244,239,232,0.40)"
                        target="_blank" rel="noopener">
                         <svg class="w-5 h-5" viewBox="0 0 256 256" fill="none" stroke="currentColor"
@@ -286,7 +286,7 @@
                             <circle cx="180" cy="76" r="10" fill="currentColor" stroke="none"/>
                         </svg>
                     </a>
-                    <a href="https://wa.me/92XXXXXXXXXX" aria-label="WhatsApp"
+                    <a href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}" aria-label="WhatsApp"
                        class="transition-colors duration-200" style="color:rgba(244,239,232,0.40)"
                        target="_blank" rel="noopener">
                         <svg class="w-5 h-5" viewBox="0 0 256 256" fill="none" stroke="currentColor"
@@ -295,7 +295,7 @@
                             <path d="M128,32a96,96,0,0,0-83.32,143.51L32.27,224l49.71-12.49A96,96,0,1,0,128,32Z"/>
                         </svg>
                     </a>
-                    <a href="https://tiktok.com/@nailsbymona" aria-label="TikTok"
+                    <a href="https://tiktok.com/@{{ $settings->tiktok_handle }}" aria-label="TikTok"
                        class="transition-colors duration-200" style="color:rgba(244,239,232,0.40)"
                        target="_blank" rel="noopener">
                         <svg class="w-5 h-5" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
