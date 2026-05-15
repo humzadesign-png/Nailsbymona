@@ -65,10 +65,12 @@
             {{-- Bag toggle --}}
             <button id="bag-toggle" aria-label="Open bag"
                     class="relative p-0.5 text-stone hover:text-ink transition-colors duration-200">
-                <svg class="w-[18px] h-[18px]" viewBox="0 0 256 256" fill="none" stroke="currentColor"
-                     stroke-width="14" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M40,72H216a8,8,0,0,1,8,8.83l-12.43,112a8,8,0,0,1-8,7.17H52.4a8,8,0,0,1-8-7.17L32,80.83A8,8,0,0,1,40,72Z"/>
-                    <path d="M88,104V72a40,40,0,0,1,80,0v32"/>
+                <svg class="w-[22px] h-[22px]" viewBox="0 0 256 256" fill="none" stroke="currentColor"
+                     stroke-width="16" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    {{-- Bag body: clean rectangle --}}
+                    <rect x="32" y="104" width="192" height="120" rx="8"/>
+                    {{-- Handle: arches above the bag opening (sweep=0 = counter-clockwise = up) --}}
+                    <path d="M88,104V72a40,40,0,0,0,80,0V104"/>
                 </svg>
                 <span id="bag-count"
                       class="absolute -top-2 -right-2 hidden min-w-[17px] h-[17px] px-[3px] rounded-full bg-lavender text-white font-sans text-[9px] font-semibold items-center justify-center leading-none">
