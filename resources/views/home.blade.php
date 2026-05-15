@@ -265,62 +265,42 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 md:gap-6">
 
-            {{-- Product 1 — Minimalist Gold --}}
-            <article class="bg-paper rounded-2xl overflow-hidden group shadow-card hover:shadow-card-hover transition-shadow duration-300">
-                <div class="relative overflow-hidden img-wrap-fallback" style="aspect-ratio:4/5">
-                    <img
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDP4a_xebqoAeloV7ZuDk7wzesNllI3BEQfOeIbrIaTyLvVQrMO1DFfaE7rtefvgiDeyIrts60rBIMiQ4mEGgVO1d1_HTkOcZhK4_rdQjzOfVZXusUcsKVYg9flnzsSjxmvlHUYA3CMHplPUMuKmcXT54JCPUWpqUXvfC-pvVksTnoWL5lQHJrrR9U1wbwv7IX_PhKgJx6GYSuF-yiq2-gKtB79eM2NSAbCcHZYCtuPRZ7k6Gf3OL4Juif4eiE_eGvEXPoptVLeBr4"
-                        alt="The Minimalist Gold — Signature tier custom press-on nail set with gold foil accents"
-                        class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
-                        loading="lazy" onerror="this.remove()" width="400" height="500">
-                    <span class="absolute top-4 left-4 font-sans text-eyebrow uppercase tracking-widest px-3 py-1.5 bg-shell/95 backdrop-blur-sm text-graphite rounded-full">Signature</span>
-                    <div class="absolute inset-0 flex items-end justify-center pb-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <span class="font-sans text-caption font-medium text-white tracking-wide bg-ink/70 backdrop-blur-sm rounded-full px-5 py-2">View details &rarr;</span>
+            @foreach($featuredProducts as $loop_product)
+            @php
+                $tierBadgeClass = match($loop_product->tier) {
+                    \App\Enums\ProductTier::Glam         => 'bg-graphite/95 text-bone',
+                    \App\Enums\ProductTier::BridalSingle,
+                    \App\Enums\ProductTier::BridalTrio   => 'bg-gold/95 text-ink',
+                    default                              => 'bg-shell/95 text-graphite',
+                };
+                $isLast = $loop->last && $loop->count % 2 === 1;
+            @endphp
+            <article class="bg-paper rounded-2xl overflow-hidden group shadow-card hover:shadow-card-hover transition-shadow duration-300{{ $isLast ? ' sm:col-span-2 md:col-span-1' : '' }}">
+                <a href="{{ route('product', $loop_product->slug) }}" class="block">
+                    <div class="relative overflow-hidden" style="aspect-ratio:4/5">
+                        @if($loop_product->cover_image)
+                        <img
+                            src="{{ asset('storage/' . $loop_product->cover_image) }}"
+                            alt="{{ $loop_product->name }}"
+                            class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
+                            loading="lazy" width="400" height="500">
+                        @else
+                        <div class="absolute inset-0 bg-shell flex items-center justify-center">
+                            <span class="text-stone text-sm">No image</span>
+                        </div>
+                        @endif
+                        <span class="absolute top-4 left-4 font-sans text-eyebrow uppercase tracking-widest px-3 py-1.5 {{ $tierBadgeClass }} backdrop-blur-sm rounded-full">{{ $loop_product->tier->label() }}</span>
+                        <div class="absolute inset-0 flex items-end justify-center pb-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <span class="font-sans text-caption font-medium text-white tracking-wide bg-ink/70 backdrop-blur-sm rounded-full px-5 py-2">View details &rarr;</span>
+                        </div>
                     </div>
-                </div>
-                <a href="{{ route('product', 'the-minimalist-gold') }}" class="block px-6 py-5">
-                    <h3 class="font-serif text-ink mb-2 leading-snug" style="font-size:1.25rem; font-weight:300">The Minimalist Gold</h3>
-                    <p class="font-sans font-medium text-lavender tabular-nums" style="font-size:1.125rem">From Rs.&nbsp;3,500</p>
+                </a>
+                <a href="{{ route('product', $loop_product->slug) }}" class="block px-6 py-5">
+                    <h3 class="font-serif text-ink mb-2 leading-snug" style="font-size:1.25rem; font-weight:300">{{ $loop_product->name }}</h3>
+                    <p class="font-sans font-medium text-lavender tabular-nums" style="font-size:1.125rem">Rs.&nbsp;{{ number_format($loop_product->price_pkr) }}</p>
                 </a>
             </article>
-
-            {{-- Product 2 — Rose Lace Bridal --}}
-            <article class="bg-paper rounded-2xl overflow-hidden group shadow-card hover:shadow-card-hover transition-shadow duration-300">
-                <div class="relative overflow-hidden img-wrap-fallback" style="aspect-ratio:4/5">
-                    <img
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuANxF6ktqUX0bmvPfvJZX7net-WcEzFXjyyl0TZYFZu65dmPUOUDbAn2GLK7RpgABaw1_kfqEScBQoslu83ALrdIwXuFbrwaPsiSckbhnkJeF7jaob8TrHQNy67ADlONyWPGChq5fIjKgTeTWfQeAEbM20oFk9KlCUDQjihzKlgFyTS1nnP5sEQZfBU1pzjzkl-aRt3vnVB7i9RMsFaVlhCWE9-nk8jcGuWRvP7PDy9Jagyr6Xs6Qm3n5dKJywwcc03DY9BYL0W-rI"
-                        alt="Rose Lace Bridal — Bridal tier custom press-on nail set with delicate lace detail"
-                        class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
-                        loading="lazy" onerror="this.remove()" width="400" height="500">
-                    <span class="absolute top-4 left-4 font-sans text-eyebrow uppercase tracking-widest px-3 py-1.5 bg-gold/95 backdrop-blur-sm text-ink rounded-full">Bridal</span>
-                    <div class="absolute inset-0 flex items-end justify-center pb-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <span class="font-sans text-caption font-medium text-white tracking-wide bg-ink/70 backdrop-blur-sm rounded-full px-5 py-2">View details &rarr;</span>
-                    </div>
-                </div>
-                <a href="{{ route('product', 'rose-lace-bridal') }}" class="block px-6 py-5">
-                    <h3 class="font-serif text-ink mb-2 leading-snug" style="font-size:1.25rem; font-weight:300">Rose Lace Bridal</h3>
-                    <p class="font-sans font-medium text-lavender tabular-nums" style="font-size:1.125rem">From Rs.&nbsp;5,500</p>
-                </a>
-            </article>
-
-            {{-- Product 3 — Midnight Velvet --}}
-            <article class="bg-paper rounded-2xl overflow-hidden group shadow-card hover:shadow-card-hover transition-shadow duration-300 sm:col-span-2 md:col-span-1">
-                <div class="relative overflow-hidden img-wrap-fallback" style="aspect-ratio:4/5">
-                    <img
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCL70arPTXmNVmSYl6-46OBPhWVtBJgwnWzUbsGZFDL2f0yeBClHhMkldZeCbgJ8eoy9T9nX5EB_86IWvNThMKfLi6LFCvp3kTogBcoASi2YGRZxoY_EgpX9Cu0qbs9gJCGQnDtePAI5TuaPq7KI5OMiwq8uz0CRgegC4L5IB1YAwxJbn9eAvs7r9BBBLs0CL_98w5KUaiMoKZOCrQ4XEnPpe_-ZZMHy01cfxoN4WhK7aPy7P03WmyXfl2jrwFWBEyAfGKygY0ek0k"
-                        alt="Midnight Velvet — Glam tier custom press-on nail set with deep velvet finish"
-                        class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
-                        loading="lazy" onerror="this.remove()" width="400" height="500">
-                    <span class="absolute top-4 left-4 font-sans text-eyebrow uppercase tracking-widest px-3 py-1.5 bg-graphite/95 backdrop-blur-sm text-bone rounded-full">Glam</span>
-                    <div class="absolute inset-0 flex items-end justify-center pb-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <span class="font-sans text-caption font-medium text-white tracking-wide bg-ink/70 backdrop-blur-sm rounded-full px-5 py-2">View details &rarr;</span>
-                    </div>
-                </div>
-                <a href="{{ route('product', 'midnight-velvet') }}" class="block px-6 py-5">
-                    <h3 class="font-serif text-ink mb-2 leading-snug" style="font-size:1.25rem; font-weight:300">Midnight Velvet</h3>
-                    <p class="font-sans font-medium text-lavender tabular-nums" style="font-size:1.125rem">From Rs.&nbsp;4,800</p>
-                </a>
-            </article>
+            @endforeach
 
         </div>
 

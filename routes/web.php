@@ -24,7 +24,21 @@ Route::get('/', function () {
         ->where('face_visible', false)
         ->orderBy('sort_order')
         ->get();
-    return view('home', compact('ugcPhotos'));
+
+    $featuredProducts = Product::where('is_active', true)
+        ->where('is_featured', true)
+        ->orderBy('sort_order')
+        ->limit(6)
+        ->get();
+
+    if ($featuredProducts->count() < 3) {
+        $featuredProducts = Product::where('is_active', true)
+            ->orderBy('sort_order')
+            ->limit(6)
+            ->get();
+    }
+
+    return view('home', compact('ugcPhotos', 'featuredProducts'));
 })->name('home');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');
 Route::get('/shop/{slug}', [ShopController::class, 'show'])->name('product');
