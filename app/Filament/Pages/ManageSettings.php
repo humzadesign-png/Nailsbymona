@@ -102,8 +102,10 @@ class ManageSettings extends Page
         $data     = $this->form->getState();
         $settings = app(StoreSettings::class);
 
+        $intFields = ['shipping_flat_pkr', 'shipping_free_above', 'advance_threshold_pkr', 'advance_percent'];
+
         foreach ($data as $key => $value) {
-            $settings->{$key} = $value;
+            $settings->{$key} = in_array($key, $intFields) ? (int) $value : (string) ($value ?? '');
         }
 
         $settings->save();
