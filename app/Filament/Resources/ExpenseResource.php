@@ -71,19 +71,17 @@ class ExpenseResource extends Resource
                     ->date('d M Y')
                     ->sortable(),
 
-                Tables\Columns\BadgeColumn::make('category')
+                Tables\Columns\TextColumn::make('category')
                     ->formatStateUsing(fn ($state) => $state->label())
-                    ->colors([
-                        'primary'  => ExpenseCategory::Materials->value,
-                        'warning'  => ExpenseCategory::Packaging->value,
-                        'info'     => ExpenseCategory::Courier->value,
-                        'danger'   => ExpenseCategory::Marketing->value,
-                        'success'  => ExpenseCategory::Tools->value,
-                        'gray'     => [
-                            ExpenseCategory::Utilities->value,
-                            ExpenseCategory::Other->value,
-                        ],
-                    ]),
+                    ->badge()
+                    ->color(fn ($state) => match($state) {
+                        ExpenseCategory::Materials  => 'primary',
+                        ExpenseCategory::Packaging  => 'warning',
+                        ExpenseCategory::Courier    => 'info',
+                        ExpenseCategory::Marketing  => 'danger',
+                        ExpenseCategory::Tools      => 'success',
+                        default                     => 'gray',
+                    }),
 
                 Tables\Columns\TextColumn::make('description')
                     ->searchable()
@@ -111,9 +109,6 @@ class ExpenseResource extends Resource
                     ->query(fn ($query) => $query->whereMonth('expense_date', now()->month)
                                                   ->whereYear('expense_date', now()->year))
                     ->toggle(),
-            ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()->label('Add expense'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
