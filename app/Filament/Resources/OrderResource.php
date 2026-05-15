@@ -8,6 +8,7 @@ use App\Enums\PaymentStatus;
 use App\Filament\Resources\CustomerResource;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Mail\OrderInProduction;
+use App\Mail\OrderShipped;
 use App\Mail\PaymentVerified;
 use App\Models\Customer;
 use App\Models\CustomerSizingProfile;
@@ -158,9 +159,15 @@ class OrderResource extends Resource
                     ->icon('heroicon-o-truck')
                     ->color('info')
                     ->visible(fn (Order $r) => $r->status === OrderStatus::InProduction)
+                    ->modalHeading('Mark as Shipped')
+                    ->modalDescription('Enter the tracking details below. A shipping confirmation email with the tracking number and estimated delivery will be sent to the customer.')
+                    ->modalSubmitActionLabel('Ship & notify customer')
                     ->form([
-                        Forms\Components\TextInput::make('tracking_number')->required(),
+                        Forms\Components\TextInput::make('tracking_number')
+                            ->label('Tracking number')
+                            ->required(),
                         Forms\Components\Select::make('courier')
+                            ->label('Courier')
                             ->options([
                                 'tcs'      => 'TCS',
                                 'leopards' => 'Leopards',
@@ -175,7 +182,12 @@ class OrderResource extends Resource
                             'courier'         => $data['courier'],
                             'shipped_at'      => now(),
                         ]);
-                        Notification::make()->title('Order marked as shipped.')->success()->send();
+                        try {
+                            Mail::to($r->customer_email)->send(new OrderShipped($r));
+                        } catch (\Throwable $e) {
+                            \Log::error('OrderShipped mail failed', ['order' => $r->id, 'e' => $e->getMessage()]);
+                        }
+                        Notification::make()->title('Order marked as shipped — email sent to customer.')->success()->send();
                     }),
                 Actions\Action::make('deliver')
                     ->label('Mark Delivered')

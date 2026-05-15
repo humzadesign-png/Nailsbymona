@@ -24,7 +24,7 @@ class StoreSettings extends Settings
     public string $bank_iban         = '';
 
     // ── Shipping ──────────────────────────────────────────────────────────────
-    public int    $shipping_flat_pkr    = 250;   // standard nationwide rate
+    public int    $shipping_flat_pkr    = 350;   // standard nationwide rate
     public int    $shipping_free_above  = 5000;  // free shipping threshold (0 = disabled)
 
     // ── Order rules ───────────────────────────────────────────────────────────

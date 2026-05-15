@@ -414,8 +414,11 @@ class OrderController extends Controller
         ));
 
         $discount = $isReturning ? (int) round($subtotal * 0.10) : 0;
-        $shipping = config('nbm.shipping_flat_pkr', 300);
         $afterDiscount = $subtotal - $discount;
+        $freeAbove = app(\App\Settings\StoreSettings::class)->shipping_free_above;
+        $shipping = ($freeAbove > 0 && $afterDiscount >= $freeAbove)
+            ? 0
+            : config('nbm.shipping_flat_pkr', 350);
         $total = $afterDiscount + $shipping;
         $requiresAdvance = $total >= config('nbm.advance_threshold_pkr', 5000);
 

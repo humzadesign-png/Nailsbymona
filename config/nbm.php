@@ -32,7 +32,7 @@ return [
     'bank_iban'        => env('NBM_BANK_IBAN', 'PK00XXXX0000000000000000'),
 
     // ── Shipping ──────────────────────────────────────────────────────────────
-    'shipping_flat_pkr'=> (int) env('NBM_SHIPPING_PKR', 300),
+    'shipping_flat_pkr'=> (int) env('NBM_SHIPPING_PKR', 350),
 
     // ── Order rules ───────────────────────────────────────────────────────────
     'advance_threshold_pkr' => 5000,  // orders ≥ this require a 30% advance
