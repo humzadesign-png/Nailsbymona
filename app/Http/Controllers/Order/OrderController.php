@@ -13,6 +13,7 @@ use App\Jobs\SendPaymentReminderJob;
 use App\Mail\OrderPlaced;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Notifications\NewOrderNotification;
 use App\Models\OrderItem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -361,6 +362,13 @@ class OrderController extends Controller
             Mail::to($order->customer_email)->send(new OrderPlaced($order->load('items')));
         } catch (\Throwable $e) {
             Log::error('OrderPlaced mail failed', ['order' => $order->id, 'error' => $e->getMessage()]);
+        }
+
+        // Push notification to admin for new order.
+        try {
+            \App\Models\User::all()->each->notify(new NewOrderNotification($order));
+        } catch (\Throwable $e) {
+            Log::error('NewOrderNotification push failed', ['order' => $order->id, 'error' => $e->getMessage()]);
         }
 
         // Dispatch payment reminder jobs (24h and 48h) and auto-cancel job (72h).

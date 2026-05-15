@@ -57,6 +57,10 @@ class AdminPanelProvider extends PanelProvider
                 'panels::topbar.start',
                 fn () => view('filament.topbar-logo'),
             )
+            ->renderHook(
+                'panels::head.end',
+                fn () => view('filament.pwa-head'),
+            )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

@@ -5,10 +5,12 @@ use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderPaymentProofController;
 use App\Http\Controllers\Order\OrderSizingPhotoController;
 use App\Http\Controllers\Order\OrderTrackingController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ShopController;
 use App\Enums\UgcPlacement;
 use App\Models\BlogPost;
 use App\Models\ContactMessage;
+use App\Notifications\NewMessageNotification;
 use App\Models\Product;
 use App\Models\UgcPhoto;
 use Illuminate\Support\Facades\Route;
@@ -60,7 +62,12 @@ Route::post('/contact', function (Request $request) {
         'message' => ['required', 'string', 'max:2000'],
     ]);
 
-    ContactMessage::create($validated);
+    $msg = ContactMessage::create($validated);
+    try {
+        \App\Models\User::all()->each->notify(new NewMessageNotification($msg));
+    } catch (\Throwable $e) {
+        \Log::error('NewMessageNotification push failed', ['error' => $e->getMessage()]);
+    }
     session()->flash('contact_success', true);
     return redirect(route('contact') . '#message-sent');
 })->middleware('throttle:5,1')->name('contact.submit');
@@ -149,3 +156,8 @@ Route::get('/feed.xml', function () {
 Route::get('/track',                     [OrderTrackingController::class, 'index'])->name('track');
 Route::get('/order/{order}/track',       [OrderTrackingController::class, 'show'])->name('order.track');
 Route::post('/order/track/lookup',       [OrderTrackingController::class, 'lookup'])->name('order.track.lookup')->middleware('throttle:10,1');
+
+// ── PWA push subscription (admin only) ───────────────────────────────────────
+Route::post('/admin/push-subscription', [PushSubscriptionController::class, 'store'])
+    ->middleware(['web', 'auth'])
+    ->name('push.subscription.store');
