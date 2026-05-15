@@ -295,7 +295,7 @@
                             <path d="M128,32a96,96,0,0,0-83.32,143.51L32.27,224l49.71-12.49A96,96,0,1,0,128,32Z"/>
                         </svg>
                     </a>
-                    <a href="https://tiktok.com/@{{ $settings->tiktok_handle }}" aria-label="TikTok"
+                    <a href="https://tiktok.com/{{ '@' . $settings->tiktok_handle }}" aria-label="TikTok"
                        class="transition-colors duration-200" style="color:rgba(244,239,232,0.40)"
                        target="_blank" rel="noopener">
                         <svg class="w-5 h-5" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">

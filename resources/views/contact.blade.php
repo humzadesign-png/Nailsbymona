@@ -96,8 +96,8 @@
           </div>
           <div>
             <p class="font-sans font-medium text-ink mb-0.5" style="font-size:0.9375rem">Instagram</p>
-            <p class="font-sans text-caption text-stone mb-2">@{{ $settings->instagram_handle }} &mdash; DMs welcome, I check Instagram daily.</p>
-            <a href="https://instagram.com/{{ $settings->instagram_handle }}" class="font-sans text-caption text-lavender-ink hover:text-lavender underline-offset-4 hover:underline transition-colors duration-200">@{{ $settings->instagram_handle }} &rarr;</a>
+            <p class="font-sans text-caption text-stone mb-2">{{ '@' . $settings->instagram_handle }} &mdash; DMs welcome, I check Instagram daily.</p>
+            <a href="https://instagram.com/{{ $settings->instagram_handle }}" class="font-sans text-caption text-lavender-ink hover:text-lavender underline-offset-4 hover:underline transition-colors duration-200">{{ '@' . $settings->instagram_handle }} &rarr;</a>
           </div>
         </div>
 
