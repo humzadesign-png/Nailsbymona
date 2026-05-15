@@ -51,6 +51,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Catalogue')->icon('heroicon-o-sparkles'),
                 NavigationGroup::make('Content')->icon('heroicon-o-pencil-square'),
                 NavigationGroup::make('Customers')->icon('heroicon-o-users'),
+                NavigationGroup::make('Finance')->icon('heroicon-o-chart-bar'),
                 NavigationGroup::make('Settings')->icon('heroicon-o-cog-6-tooth'),
             ])
             ->renderHook(
