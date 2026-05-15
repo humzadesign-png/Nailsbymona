@@ -8,6 +8,7 @@ use App\Models\Expense;
 use Filament\Actions;
 use Filament\Forms;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section as FormSection;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -23,7 +24,7 @@ class ExpenseResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Forms\Components\Section::make()->columns(2)->schema([
+            FormSection::make()->columns(2)->schema([
                 Forms\Components\Select::make('category')
                     ->options(collect(ExpenseCategory::cases())->mapWithKeys(
                         fn ($e) => [$e->value => $e->label()]

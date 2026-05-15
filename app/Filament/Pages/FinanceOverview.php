@@ -11,6 +11,7 @@ use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Grid as SchemaGrid;
 
 class FinanceOverview extends Page
 {
@@ -132,7 +133,7 @@ class FinanceOverview extends Page
                 ->icon('heroicon-o-plus')
                 ->color('primary')
                 ->form([
-                    Forms\Components\Grid::make(2)->schema([
+                    SchemaGrid::make(2)->schema([
                         Forms\Components\Select::make('category')
                             ->options(collect(ExpenseCategory::cases())->mapWithKeys(
                                 fn ($e) => [$e->value => $e->label()]
