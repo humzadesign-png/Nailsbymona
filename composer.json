@@ -14,7 +14,8 @@
         "laravel/tinker": "^3.0",
         "spatie/laravel-settings": "^3.8",
         "spatie/laravel-sitemap": "^7.3",
-        "symfony/brevo-mailer": "^8.0"
+        "symfony/brevo-mailer": "^8.0",
+        "symfony/http-client": "^8.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
