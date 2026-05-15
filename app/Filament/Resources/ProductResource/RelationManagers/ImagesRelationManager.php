@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ProductResource\RelationManagers;
 
 use Filament\Forms;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Actions;
@@ -55,6 +56,14 @@ class ImagesRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('alt')
                     ->label('Alt text')
                     ->limit(40),
+                Tables\Columns\IconColumn::make('is_cover')
+                    ->label('Cover')
+                    ->getStateUsing(fn ($record) => $record->path === $record->product->cover_image)
+                    ->boolean()
+                    ->trueIcon('heroicon-s-star')
+                    ->falseIcon('heroicon-o-star')
+                    ->trueColor('warning')
+                    ->falseColor('gray'),
                 Tables\Columns\TextColumn::make('sort_order')
                     ->label('Order')
                     ->sortable(),
@@ -76,6 +85,10 @@ class ImagesRelationManager extends RelationManager
                     ->color('warning')
                     ->action(function ($record) {
                         $record->product->update(['cover_image' => $record->path]);
+                        Notification::make()
+                            ->title('Cover image updated')
+                            ->success()
+                            ->send();
                     })
                     ->tooltip('Use this image as the main product cover'),
                 Actions\EditAction::make(),

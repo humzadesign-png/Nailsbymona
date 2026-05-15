@@ -108,8 +108,20 @@ class ProductResource extends Resource
                 Forms\Components\TextInput::make('lead_time_days')
                     ->label('Lead time (days)')->numeric()->default(7),
                 Forms\Components\Textarea::make('description')->rows(4)->columnSpanFull(),
-                Forms\Components\FileUpload::make('cover_image')
-                    ->label('Cover image')->image()->disk('public')->directory('products')->columnSpanFull(),
+                Forms\Components\Placeholder::make('cover_preview')
+                    ->label('Cover image')
+                    ->content(function ($record) {
+                        if (! $record?->cover_image) {
+                            return new \Illuminate\Support\HtmlString(
+                                '<p class="text-sm text-gray-400 italic">No cover set — use "Set as cover" in Gallery Images below.</p>'
+                            );
+                        }
+                        $url = \Illuminate\Support\Facades\Storage::disk('public')->url($record->cover_image);
+                        return new \Illuminate\Support\HtmlString(
+                            '<img src="' . e($url) . '" class="h-28 w-28 rounded-xl object-cover ring-2 ring-yellow-400">'
+                        );
+                    })
+                    ->columnSpanFull(),
             ]),
             FormSection::make('Visibility')->columns(2)->schema([
                 Forms\Components\Toggle::make('is_active')
