@@ -63,8 +63,7 @@ class ImagesRelationManager extends RelationManager
                 Actions\CreateAction::make()
                     ->label('Add image')
                     ->after(function ($record) {
-                        // Auto-set cover_image to first image if none set
-                        $product = $this->getOwnerRecord();
+                        $product = $record->product;
                         if (! $product->cover_image) {
                             $product->update(['cover_image' => $record->path]);
                         }
@@ -76,14 +75,13 @@ class ImagesRelationManager extends RelationManager
                     ->icon('heroicon-o-star')
                     ->color('warning')
                     ->action(function ($record) {
-                        $this->getOwnerRecord()->update(['cover_image' => $record->path]);
+                        $record->product->update(['cover_image' => $record->path]);
                     })
                     ->tooltip('Use this image as the main product cover'),
                 Actions\EditAction::make(),
                 Actions\DeleteAction::make()
                     ->after(function ($record) {
-                        // If the deleted image was the cover, set the next image as cover
-                        $product = $this->getOwnerRecord();
+                        $product = $record->product;
                         if ($product->cover_image === $record->path) {
                             $next = $product->images()->first();
                             $product->update(['cover_image' => $next?->path]);
