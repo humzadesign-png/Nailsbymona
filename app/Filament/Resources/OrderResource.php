@@ -7,9 +7,12 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Filament\Resources\CustomerResource;
 use App\Filament\Resources\OrderResource\Pages;
+use App\Mail\OrderInProduction;
+use App\Mail\PaymentVerified;
 use App\Models\Customer;
 use App\Models\CustomerSizingProfile;
 use App\Models\Order;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Filament\Forms;
 use Filament\Infolists;
@@ -116,17 +119,40 @@ class OrderResource extends Resource
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->visible(fn (Order $r) => $r->status === OrderStatus::New)
-                    ->action(fn (Order $r) => $r->update([
-                        'status'         => OrderStatus::Confirmed,
-                        'payment_status' => PaymentStatus::Paid,
-                    ]))
-                    ->requiresConfirmation(),
+                    ->requiresConfirmation()
+                    ->modalHeading('Confirm payment & order')
+                    ->modalDescription('This will mark the payment as paid and confirm the order. A confirmation email will be sent to the customer.')
+                    ->modalSubmitActionLabel('Yes, confirm order')
+                    ->action(function (Order $r) {
+                        $r->update([
+                            'status'         => OrderStatus::Confirmed,
+                            'payment_status' => PaymentStatus::Paid,
+                        ]);
+                        try {
+                            Mail::to($r->customer_email)->send(new PaymentVerified($r));
+                        } catch (\Throwable $e) {
+                            \Log::error('PaymentVerified mail failed', ['order' => $r->id, 'e' => $e->getMessage()]);
+                        }
+                        Notification::make()->title('Order confirmed — email sent to customer.')->success()->send();
+                    }),
                 Actions\Action::make('in_production')
                     ->label('In Production')
                     ->icon('heroicon-o-wrench-screwdriver')
                     ->color('primary')
                     ->visible(fn (Order $r) => $r->status === OrderStatus::Confirmed)
-                    ->action(fn (Order $r) => $r->update(['status' => OrderStatus::InProduction])),
+                    ->requiresConfirmation()
+                    ->modalHeading('Move to In Production')
+                    ->modalDescription('This will notify the customer that their set is now being crafted.')
+                    ->modalSubmitActionLabel('Yes, start production')
+                    ->action(function (Order $r) {
+                        $r->update(['status' => OrderStatus::InProduction]);
+                        try {
+                            Mail::to($r->customer_email)->send(new OrderInProduction($r));
+                        } catch (\Throwable $e) {
+                            \Log::error('OrderInProduction mail failed', ['order' => $r->id, 'e' => $e->getMessage()]);
+                        }
+                        Notification::make()->title('Order moved to production — email sent to customer.')->success()->send();
+                    }),
                 Actions\Action::make('ship')
                     ->label('Mark Shipped')
                     ->icon('heroicon-o-truck')
