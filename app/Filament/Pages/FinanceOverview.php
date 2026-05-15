@@ -20,10 +20,7 @@ class FinanceOverview extends Page
     protected static ?string                    $navigationLabel = 'Finance Overview';
     protected static ?string                    $title           = 'Finance Overview';
 
-    public function getView(): string
-    {
-        return 'filament.pages.finance-overview';
-    }
+    protected string $view = 'filament.pages.finance-overview';
 
     /** Active period tab: 1 | 3 | 6 | 12 */
     public int $period = 1;
