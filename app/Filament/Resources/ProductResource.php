@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\ProductTier;
 use App\Enums\StockStatus;
 use App\Filament\Resources\ProductResource\Pages;
+use App\Filament\Resources\ProductResource\RelationManagers\ImagesRelationManager;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Schemas\Components\Section as FormSection;
@@ -128,7 +129,7 @@ class ProductResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\ImagesRelationManager::class,
+            ImagesRelationManager::class,
         ];
     }
 
