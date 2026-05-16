@@ -100,12 +100,11 @@
       color: #7A6E65;
       margin: 0;
     }
-    .order-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #E0D9CE; }
+    .order-item { padding: 8px 0; border-bottom: 1px solid #E0D9CE; }
     .order-item:last-child { border-bottom: none; }
     .totals { padding-top: 12px; }
-    .total-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 14px; }
+    .total-row { padding: 7px 0; font-size: 14px; }
     .total-row.final { font-weight: 600; font-size: 15px; color: #1A1614; padding-top: 12px; border-top: 1px solid #E0D9CE; margin-top: 8px; }
-    .total-row.final .price { color: #BFA4CE; }
   </style>
 </head>
 <body>

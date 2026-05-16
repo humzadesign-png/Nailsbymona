@@ -12,27 +12,27 @@
 <div class="row">
   <p class="label">Your set</p>
   @foreach($order->items as $item)
-  <div class="order-item">
-    <span>{{ $item->product_name_snapshot }}@if($item->qty > 1) &times;{{ $item->qty }}@endif</span>
-    <span class="price">Rs.&nbsp;{{ number_format($item->lineTotalPkr) }}</span>
+  <div class="order-item" style="display:table;width:100%;border-bottom:1px solid #E0D9CE;padding:8px 0;">
+    <span style="display:table-cell;">{{ $item->product_name_snapshot }}@if($item->qty > 1) &times;{{ $item->qty }}@endif</span>
+    <span class="price" style="display:table-cell;text-align:right;white-space:nowrap;padding-left:12px;">Rs.&nbsp;{{ number_format($item->lineTotalPkr) }}</span>
   </div>
   @endforeach
   <div class="totals">
     @if($order->shipping_pkr > 0)
-    <div class="total-row">
-      <span>Shipping</span>
-      <span>Rs.&nbsp;{{ number_format($order->shipping_pkr) }}</span>
+    <div class="total-row" style="display:table;width:100%;padding:7px 0;font-size:14px;">
+      <span style="display:table-cell;">Shipping</span>
+      <span style="display:table-cell;text-align:right;white-space:nowrap;padding-left:12px;">Rs.&nbsp;{{ number_format($order->shipping_pkr) }}</span>
     </div>
     @endif
     @if($order->reorder_discount_pkr > 0)
-    <div class="total-row" style="color:#BFA4CE">
-      <span>Returning customer discount</span>
-      <span>&minus;Rs.&nbsp;{{ number_format($order->reorder_discount_pkr) }}</span>
+    <div class="total-row" style="display:table;width:100%;padding:7px 0;font-size:14px;color:#BFA4CE;">
+      <span style="display:table-cell;">Returning customer discount</span>
+      <span style="display:table-cell;text-align:right;white-space:nowrap;padding-left:12px;">&minus;Rs.&nbsp;{{ number_format($order->reorder_discount_pkr) }}</span>
     </div>
     @endif
-    <div class="total-row final">
-      <span>Total</span>
-      <span class="price">Rs.&nbsp;{{ number_format($order->total_pkr) }}</span>
+    <div class="total-row final" style="display:table;width:100%;padding:12px 0 7px;font-size:15px;font-weight:600;color:#1A1614;border-top:1px solid #E0D9CE;margin-top:8px;">
+      <span style="display:table-cell;">Total</span>
+      <span class="price" style="display:table-cell;text-align:right;white-space:nowrap;padding-left:12px;">Rs.&nbsp;{{ number_format($order->total_pkr) }}</span>
     </div>
   </div>
 </div>

@@ -15,22 +15,22 @@
 <div class="row" style="margin-top:20px">
   <p class="label">Your set</p>
   @foreach($order->items as $item)
-  <div class="order-item">
-    <span>{{ $item->product_name_snapshot }}@if($item->qty > 1) &times;{{ $item->qty }}@endif</span>
-    <span class="price">Rs.&nbsp;{{ number_format($item->lineTotalPkr) }}</span>
+  <div class="order-item" style="display:table;width:100%;border-bottom:1px solid #E0D9CE;padding:8px 0;">
+    <span style="display:table-cell;">{{ $item->product_name_snapshot }}@if($item->qty > 1) &times;{{ $item->qty }}@endif</span>
+    <span class="price" style="display:table-cell;text-align:right;white-space:nowrap;padding-left:12px;">Rs.&nbsp;{{ number_format($item->lineTotalPkr) }}</span>
   </div>
   @endforeach
   <div class="totals">
-    <div class="total-row final">
-      <span>Total paid</span>
-      <span class="price">Rs.&nbsp;{{ number_format($order->total_pkr) }}</span>
+    <div class="total-row final" style="display:table;width:100%;padding:12px 0 7px;font-size:15px;font-weight:600;color:#1A1614;border-top:1px solid #E0D9CE;margin-top:8px;">
+      <span style="display:table-cell;">Total paid</span>
+      <span class="price" style="display:table-cell;text-align:right;white-space:nowrap;padding-left:12px;">Rs.&nbsp;{{ number_format($order->total_pkr) }}</span>
     </div>
   </div>
 </div>
 
 <div class="divider"></div>
 
-<p>Your set will now go into production. Estimated dispatch: <strong>{{ now()->addWeekdays((int) config('nbm.lead_time_standard', 7))->format('D, d M Y') }}</strong>.</p>
+<p>Your set will now go into production. Estimated dispatch: <strong>{{ now()->addDays(5)->format('D, d M Y') }}</strong>.</p>
 <p style="font-size:14px;color:#7A6E65">I'll send another update when your order is being made, and again when it ships with your tracking number.</p>
 
 <div class="cta-wrap">

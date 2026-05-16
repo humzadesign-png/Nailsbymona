@@ -11,13 +11,13 @@
 <p>Your custom set has been packed and handed to the courier. Here are your shipping details:</p>
 
 <div class="row">
-  <div class="order-item" style="margin-bottom:8px">
-    <span class="label" style="text-transform:none;letter-spacing:0;font-size:14px">Courier</span>
-    <span class="value">{{ $order->courier?->label() ?? '—' }}</span>
+  <div class="order-item" style="display:table;width:100%;border-bottom:1px solid #E0D9CE;padding:8px 0;margin-bottom:0;">
+    <span class="label" style="display:table-cell;text-transform:none;letter-spacing:0;font-size:14px;">Courier</span>
+    <span class="value" style="display:table-cell;text-align:right;white-space:nowrap;padding-left:12px;">{{ $order->courier?->label() ?? '—' }}</span>
   </div>
-  <div class="order-item">
-    <span class="label" style="text-transform:none;letter-spacing:0;font-size:14px">Tracking number</span>
-    <span class="value" style="font-weight:600;color:#1A1614">{{ $order->tracking_number ?? '—' }}</span>
+  <div class="order-item" style="display:table;width:100%;padding:8px 0;">
+    <span class="label" style="display:table-cell;text-transform:none;letter-spacing:0;font-size:14px;">Tracking number</span>
+    <span class="value" style="display:table-cell;text-align:right;white-space:nowrap;padding-left:12px;font-weight:600;color:#1A1614;">{{ $order->tracking_number ?? '—' }}</span>
   </div>
 </div>
 
@@ -33,19 +33,19 @@
 <div class="row">
   <p class="label">Your set</p>
   @foreach($order->items as $item)
-  <div class="order-item">
-    <span>{{ $item->product_name_snapshot }}@if($item->qty > 1) &times;{{ $item->qty }}@endif</span>
-    <span class="price">Rs.&nbsp;{{ number_format($item->lineTotalPkr) }}</span>
+  <div class="order-item" style="display:table;width:100%;border-bottom:1px solid #E0D9CE;padding:8px 0;">
+    <span style="display:table-cell;">{{ $item->product_name_snapshot }}@if($item->qty > 1) &times;{{ $item->qty }}@endif</span>
+    <span class="price" style="display:table-cell;text-align:right;white-space:nowrap;padding-left:12px;">Rs.&nbsp;{{ number_format($item->lineTotalPkr) }}</span>
   </div>
   @endforeach
-  <div class="order-item" style="margin-top:10px;padding-top:10px;border-top:1px solid #E0D9CE">
-    <span style="font-size:13px;color:#7A6E65">Shipping</span>
-    <span class="price" style="font-size:13px;color:#7A6E65">Rs.&nbsp;{{ number_format($order->shipping_pkr) }}</span>
+  <div style="display:table;width:100%;margin-top:10px;padding:10px 0 7px;border-top:1px solid #E0D9CE;font-size:13px;color:#7A6E65;">
+    <span style="display:table-cell;">Shipping</span>
+    <span style="display:table-cell;text-align:right;white-space:nowrap;padding-left:12px;">Rs.&nbsp;{{ number_format($order->shipping_pkr) }}</span>
   </div>
   <div class="totals">
-    <div class="total-row final">
-      <span>Total paid</span>
-      <span class="price">Rs.&nbsp;{{ number_format($order->total_pkr) }}</span>
+    <div class="total-row final" style="display:table;width:100%;padding:12px 0 7px;font-size:15px;font-weight:600;color:#1A1614;border-top:1px solid #E0D9CE;margin-top:8px;">
+      <span style="display:table-cell;">Total paid</span>
+      <span class="price" style="display:table-cell;text-align:right;white-space:nowrap;padding-left:12px;">Rs.&nbsp;{{ number_format($order->total_pkr) }}</span>
     </div>
   </div>
 </div>
