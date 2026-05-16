@@ -40,10 +40,15 @@ class ManageSettings extends Page
             'bank_account_no'    => $settings->bank_account_no,
             'bank_iban'          => $settings->bank_iban,
 
-            'shipping_flat_pkr'     => $settings->shipping_flat_pkr,
-            'shipping_free_above'   => $settings->shipping_free_above,
-            'advance_threshold_pkr' => $settings->advance_threshold_pkr,
-            'advance_percent'       => $settings->advance_percent,
+            'shipping_flat_pkr'        => $settings->shipping_flat_pkr,
+            'shipping_free_above'      => $settings->shipping_free_above,
+            'advance_threshold_pkr'    => $settings->advance_threshold_pkr,
+            'advance_percent'          => $settings->advance_percent,
+            'bridal_deposit_percent'   => $settings->bridal_deposit_percent,
+            'reorder_discount_percent' => $settings->reorder_discount_percent,
+
+            'lead_time_standard_days'  => $settings->lead_time_standard_days,
+            'lead_time_bridal_days'    => $settings->lead_time_bridal_days,
         ]);
     }
 
@@ -83,16 +88,35 @@ class ManageSettings extends Page
                     Forms\Components\TextInput::make('bank_iban')->label('IBAN')->placeholder('PK36 SCBL 0000001123456702'),
                 ]),
 
-                FormSection::make('Shipping & Advance')->columns(2)->schema([
+                FormSection::make('Shipping')->columns(2)->schema([
                     Forms\Components\TextInput::make('shipping_flat_pkr')
                         ->label('Flat shipping rate (PKR)')->numeric()->required()->prefix('Rs.'),
                     Forms\Components\TextInput::make('shipping_free_above')
                         ->label('Free shipping above (PKR)')->numeric()->prefix('Rs.')
                         ->helperText('Set to 0 to disable free shipping.'),
+                ]),
+
+                FormSection::make('Advance & deposits')->columns(2)->schema([
                     Forms\Components\TextInput::make('advance_threshold_pkr')
-                        ->label('Advance required above (PKR)')->numeric()->required()->prefix('Rs.'),
+                        ->label('Advance required above (PKR)')->numeric()->required()->prefix('Rs.')
+                        ->helperText('Orders ≥ this amount must pay a partial advance up-front.'),
                     Forms\Components\TextInput::make('advance_percent')
-                        ->label('Advance percentage')->numeric()->required()->suffix('%'),
+                        ->label('Advance percentage')->numeric()->required()->suffix('%')
+                        ->helperText('Typical: 20–30%.'),
+                    Forms\Components\TextInput::make('bridal_deposit_percent')
+                        ->label('Bridal Trio deposit')->numeric()->required()->suffix('%')
+                        ->helperText('Bridal Trio orders pay this percentage up-front. 100 = full advance.'),
+                    Forms\Components\TextInput::make('reorder_discount_percent')
+                        ->label('Returning-customer discount')->numeric()->required()->suffix('%')
+                        ->helperText('Discount applied at checkout when sizing-on-file is matched.'),
+                ]),
+
+                FormSection::make('Production lead times')->columns(2)->schema([
+                    Forms\Components\TextInput::make('lead_time_standard_days')
+                        ->label('Standard lead time (calendar days)')->numeric()->required()->suffix('days')
+                        ->helperText('Used in customer-facing copy + dispatch estimates.'),
+                    Forms\Components\TextInput::make('lead_time_bridal_days')
+                        ->label('Bridal Trio lead time (calendar days)')->numeric()->required()->suffix('days'),
                 ]),
             ]);
     }
@@ -102,11 +126,21 @@ class ManageSettings extends Page
         $data     = $this->form->getState();
         $settings = app(StoreSettings::class);
 
-        $intFields = ['shipping_flat_pkr', 'shipping_free_above', 'advance_threshold_pkr', 'advance_percent'];
+        $intFields = [
+            'shipping_flat_pkr', 'shipping_free_above',
+            'advance_threshold_pkr', 'advance_percent',
+            'bridal_deposit_percent', 'reorder_discount_percent',
+            'lead_time_standard_days', 'lead_time_bridal_days',
+        ];
 
         foreach ($data as $key => $value) {
             $settings->{$key} = in_array($key, $intFields) ? (int) $value : (string) ($value ?? '');
         }
+
+        // Normalize WhatsApp number to a canonical `+<digits>` form so
+        // `wa.me/{digits}` URLs always work no matter how Mona types it.
+        $digits = preg_replace('/\D+/', '', $settings->whatsapp_number ?? '');
+        $settings->whatsapp_number = $digits !== '' ? '+' . $digits : '';
 
         $settings->save();
 

@@ -75,15 +75,27 @@ class Order extends Model
         return sprintf('NBM-%d-%04d', $year, $seq);
     }
 
-    /** The advance amount required for this order. */
+    /**
+     * The advance amount required for this order, in PKR.
+     *
+     * - Bridal Trio: settings-driven deposit % (default 100 — full advance, per CLAUDE.md §7).
+     * - Other orders ≥ the advance threshold: settings-driven advance % (default 25).
+     * - Otherwise: full total.
+     */
     public function advanceAmountPkr(): int
     {
+        $settings = app(\App\Settings\StoreSettings::class);
+
         if ($this->items->contains(fn ($i) => $i->product_tier_snapshot === 'bridal_trio')) {
-            return (int) round($this->total_pkr * 0.50);
+            $pct = max(0, min(100, $settings->bridal_deposit_percent));
+            return (int) round($this->total_pkr * ($pct / 100));
         }
+
         if ($this->requires_advance) {
-            return (int) round($this->total_pkr * 0.30);
+            $pct = max(0, min(100, $settings->advance_percent));
+            return (int) round($this->total_pkr * ($pct / 100));
         }
+
         return $this->total_pkr;
     }
 

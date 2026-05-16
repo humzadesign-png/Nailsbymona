@@ -145,8 +145,8 @@
             <p class="font-sans font-semibold text-ink">JazzCash</p>
           </div>
           <p class="font-sans text-caption text-stone mb-1">Send to:</p>
-          <p class="font-sans text-body text-ink font-semibold">{{ config('nbm.jazzcash_number') }}</p>
-          <p class="font-sans text-caption text-stone">Account name: {{ config('nbm.jazzcash_name') }}</p>
+          <p class="font-sans text-body text-ink font-semibold">{{ $settings->jazzcash_number }}</p>
+          <p class="font-sans text-caption text-stone">Account name: {{ $settings->jazzcash_name }}</p>
         </div>
 
         @elseif ($method === \App\Enums\PaymentMethod::EasyPaisa)
@@ -158,8 +158,8 @@
             <p class="font-sans font-semibold text-ink">EasyPaisa</p>
           </div>
           <p class="font-sans text-caption text-stone mb-1">Send to:</p>
-          <p class="font-sans text-body text-ink font-semibold">{{ config('nbm.easypaisa_number') }}</p>
-          <p class="font-sans text-caption text-stone">Account name: {{ config('nbm.easypaisa_name') }}</p>
+          <p class="font-sans text-body text-ink font-semibold">{{ $settings->easypaisa_number }}</p>
+          <p class="font-sans text-caption text-stone">Account name: {{ $settings->easypaisa_name }}</p>
         </div>
 
         @else {{-- bank_transfer --}}
@@ -171,9 +171,9 @@
             <p class="font-sans font-semibold text-ink">Bank Transfer</p>
           </div>
           <p class="font-sans text-caption text-stone mb-1">Transfer to:</p>
-          <p class="font-sans text-body text-ink font-semibold">{{ config('nbm.bank_account_name') }}</p>
-          <p class="font-sans text-caption text-stone">IBAN: {{ config('nbm.bank_iban') }}</p>
-          <p class="font-sans text-caption text-stone">Bank: {{ config('nbm.bank_name') }}</p>
+          <p class="font-sans text-body text-ink font-semibold">{{ $settings->bank_account_name }}</p>
+          <p class="font-sans text-caption text-stone">IBAN: {{ $settings->bank_iban }}</p>
+          <p class="font-sans text-caption text-stone">Bank: {{ $settings->bank_name }}</p>
         </div>
         @endif
 
@@ -234,7 +234,7 @@
         </div>
 
         {{-- WhatsApp fallback --}}
-        <a href="https://wa.me/{{ config('nbm.whatsapp_number') }}?text={{ urlencode('Hello Nails by Mona, here is my payment proof for order ' . $order->order_number . '.') }}"
+        <a href="https://wa.me/{{ $settings->whatsappForWaMe() }}?text={{ urlencode('Hello Nails by Mona, here is my payment proof for order ' . $order->order_number . '.') }}"
            target="_blank" rel="noopener"
            class="block text-center mt-4 font-sans text-caption text-stone hover:text-ink transition-colors duration-200">
           Or send your screenshot on WhatsApp →

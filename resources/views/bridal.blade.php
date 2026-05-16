@@ -74,7 +74,7 @@
           </svg>
         </button>
         <a
-          href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}?text=Hello%20Nails%20by%20Mona%2C%20I%27m%20interested%20in%20the%20Bridal%20Trio%20for%20my%20wedding."
+          href="https://wa.me/{{ $settings->whatsappForWaMe() }}?text=Hello%20Nails%20by%20Mona%2C%20I%27m%20interested%20in%20the%20Bridal%20Trio%20for%20my%20wedding."
           class="font-sans text-caption text-stone hover:text-lavender-ink underline-offset-4 hover:underline transition-colors duration-200">
           Get help &rarr;
         </a>
@@ -668,7 +668,7 @@
     <div class="mt-10 text-center">
       <p class="font-sans text-caption text-stone mb-4">Still have questions?</p>
       <a
-        href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}?text=Hello%20Nails%20by%20Mona%2C%20I%27m%20interested%20in%20the%20Bridal%20Trio%20for%20my%20wedding."
+        href="https://wa.me/{{ $settings->whatsappForWaMe() }}?text=Hello%20Nails%20by%20Mona%2C%20I%27m%20interested%20in%20the%20Bridal%20Trio%20for%20my%20wedding."
         class="inline-flex items-center gap-2 border border-ink text-ink hover:bg-ink hover:text-bone font-sans text-caption font-medium tracking-wide rounded-full px-7 py-3 transition-colors duration-200">
         <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M152.61,165.49a48,48,0,0,1-62.1-62.1A8,8,0,0,1,93.8,99.46l13.6,21.84a8,8,0,0,1-1.21,9.62L98.91,138.6a40,40,0,0,0,18.49,18.49l7.68-7.28a8,8,0,0,1,9.62-1.21L156.54,162.2A8,8,0,0,1,152.61,165.49Z"/>

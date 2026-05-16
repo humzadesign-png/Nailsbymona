@@ -217,7 +217,7 @@ $blogPostSchema = json_encode([
         <p class="font-sans font-semibold text-ink mb-0.5">Written by Mona</p>
         <p class="font-sans text-caption text-stone mb-3">Nails by Mona Studio, Mirpur, Azad Kashmir</p>
         <p class="font-sans text-body text-graphite leading-relaxed mb-5">I handmake every press-on gel nail set myself in my studio in Mirpur. If you have a question about anything in this post &mdash; or want a set made &mdash; get in touch on WhatsApp.</p>
-        <a href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}?text={{ urlencode('Hello Nails by Mona, I read your article "' . $post->title . '" and have a question.') }}"
+        <a href="https://wa.me/{{ $settings->whatsappForWaMe() }}?text={{ urlencode('Hello Nails by Mona, I read your article "' . $post->title . '" and have a question.') }}"
            target="_blank" rel="noopener"
            class="inline-flex items-center gap-2 bg-lavender hover:bg-lavender-dark text-white font-sans text-caption font-medium tracking-wide rounded-full px-6 py-3 transition-colors duration-200">
           Get help on WhatsApp &rarr;

@@ -16,6 +16,7 @@ use App\Models\Order;
 use App\Notifications\NewOrderNotification;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Settings\StoreSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -495,10 +496,11 @@ class OrderController extends Controller
 
         $order = Order::with(['items', 'paymentProofs'])->findOrFail($orderId);
 
+        $settings      = app(StoreSettings::class);
         $isBridalTrio  = $order->items->contains(fn ($i) => $i->product_tier_snapshot === 'bridal_trio');
         $leadTimeDays  = $isBridalTrio
-            ? config('nbm.lead_time_bridal')
-            : config('nbm.lead_time_standard');
+            ? $settings->lead_time_bridal_days
+            : $settings->lead_time_standard_days;
 
         return view('order.confirm', compact('order', 'isBridalTrio', 'leadTimeDays'));
     }
@@ -508,19 +510,24 @@ class OrderController extends Controller
     /** Calculate order totals from the session bag. */
     private function calculateTotals(array $bag, bool $isReturning): array
     {
+        $settings = app(StoreSettings::class);
+
         $subtotal = array_sum(array_map(
             fn ($i) => ((int) ($i['price_pkr'] ?? 0)) * ((int) ($i['qty'] ?? 1)),
             $bag
         ));
 
-        $discount = $isReturning ? (int) round($subtotal * 0.05) : 0;
+        $discountRate  = max(0, $settings->reorder_discount_percent) / 100;
+        $discount      = $isReturning ? (int) round($subtotal * $discountRate) : 0;
         $afterDiscount = $subtotal - $discount;
-        $freeAbove = app(\App\Settings\StoreSettings::class)->shipping_free_above;
-        $shipping = ($freeAbove > 0 && $afterDiscount >= $freeAbove)
+
+        $freeAbove = $settings->shipping_free_above;
+        $shipping  = ($freeAbove > 0 && $afterDiscount >= $freeAbove)
             ? 0
-            : config('nbm.shipping_flat_pkr', 350);
-        $total = $afterDiscount + $shipping;
-        $requiresAdvance = $total >= config('nbm.advance_threshold_pkr', 5000);
+            : max(0, $settings->shipping_flat_pkr);
+
+        $total           = $afterDiscount + $shipping;
+        $requiresAdvance = $total >= max(0, $settings->advance_threshold_pkr);
 
         $isBridalTrio = collect($bag)->contains(fn ($i) => ($i['tier'] ?? '') === 'bridal_trio');
 
@@ -532,29 +539,5 @@ class OrderController extends Controller
             'requires_advance' => $requiresAdvance,
             'isBridalTrio'     => $isBridalTrio,
         ];
-    }
-
-    /** Return the payment account details for the given method from config. */
-    private function paymentDetailsFor(PaymentMethod $method): array
-    {
-        return match($method) {
-            PaymentMethod::JazzCash => [
-                'type'   => 'jazzcash',
-                'number' => config('nbm.jazzcash_number'),
-                'name'   => config('nbm.jazzcash_name'),
-            ],
-            PaymentMethod::EasyPaisa => [
-                'type'   => 'easypaisa',
-                'number' => config('nbm.easypaisa_number'),
-                'name'   => config('nbm.easypaisa_name'),
-            ],
-            PaymentMethod::BankTransfer => [
-                'type'    => 'bank_transfer',
-                'bank'    => config('nbm.bank_name'),
-                'name'    => config('nbm.bank_account_name'),
-                'iban'    => config('nbm.bank_iban'),
-            ],
-            default => [],
-        };
     }
 }

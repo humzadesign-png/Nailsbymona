@@ -79,7 +79,7 @@
         </div>
         <h3 class="font-sans text-h3 font-medium text-ink mb-3">Fastest: WhatsApp</h3>
         <p class="font-sans text-body text-graphite mb-8 flex-1">Send me a message and I'll get back to you within a few hours. For order questions, bridal enquiries, and sizing help &mdash; this is the fastest route.</p>
-        <a href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}?text=Hello%20Nails%20by%20Mona%2C%20I%20have%20a%20question."
+        <a href="https://wa.me/{{ $settings->whatsappForWaMe() }}?text=Hello%20Nails%20by%20Mona%2C%20I%20have%20a%20question."
            class="inline-flex items-center gap-2.5 bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full px-8 py-4 transition-colors duration-200 w-full justify-center md:w-auto" style="font-size:1rem">
           Message on WhatsApp
           <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><line x1="40" y1="128" x2="216" y2="128"/><polyline points="144 56 216 128 144 200"/></svg>

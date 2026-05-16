@@ -43,15 +43,15 @@
 <div class="row">
   <p class="label">Send to</p>
   @if($order->payment_method->value === 'jazzcash')
-  <p class="value">JazzCash: {{ config('nbm.jazzcash_number') }}</p>
-  <p style="color:#7A6E65">Account name: {{ config('nbm.jazzcash_name') }}</p>
+  <p class="value">JazzCash: {{ $settings->jazzcash_number }}</p>
+  <p style="color:#7A6E65">Account name: {{ $settings->jazzcash_name }}</p>
   @elseif($order->payment_method->value === 'easypaisa')
-  <p class="value">EasyPaisa: {{ config('nbm.easypaisa_number') }}</p>
-  <p style="color:#7A6E65">Account name: {{ config('nbm.easypaisa_name') }}</p>
+  <p class="value">EasyPaisa: {{ $settings->easypaisa_number }}</p>
+  <p style="color:#7A6E65">Account name: {{ $settings->easypaisa_name }}</p>
   @else
-  <p class="value">{{ config('nbm.bank_name') }}</p>
-  <p style="color:#7A6E65">IBAN: {{ config('nbm.bank_iban') }}</p>
-  <p style="color:#7A6E65">Account name: {{ config('nbm.bank_account_name') }}</p>
+  <p class="value">{{ $settings->bank_name }}</p>
+  <p style="color:#7A6E65">IBAN: {{ $settings->bank_iban }}</p>
+  <p style="color:#7A6E65">Account name: {{ $settings->bank_account_name }}</p>
   @endif
 </div>
 

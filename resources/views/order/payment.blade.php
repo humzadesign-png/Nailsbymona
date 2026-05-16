@@ -69,8 +69,8 @@
               </div>
               <div class="account-details mt-4 bg-paper rounded-xl px-4 py-3 border border-hairline/60">
                 <p class="font-sans text-caption text-stone mb-1">Send to:</p>
-                <p class="font-sans text-body text-ink font-semibold">{{ config('nbm.jazzcash_number') }}</p>
-                <p class="font-sans text-caption text-stone">Account name: {{ config('nbm.jazzcash_name') }}</p>
+                <p class="font-sans text-body text-ink font-semibold">{{ $settings->jazzcash_number }}</p>
+                <p class="font-sans text-caption text-stone">Account name: {{ $settings->jazzcash_name }}</p>
               </div>
             </label>
 
@@ -89,8 +89,8 @@
               </div>
               <div class="account-details mt-4 bg-paper rounded-xl px-4 py-3 border border-hairline/60">
                 <p class="font-sans text-caption text-stone mb-1">Send to:</p>
-                <p class="font-sans text-body text-ink font-semibold">{{ config('nbm.easypaisa_number') }}</p>
-                <p class="font-sans text-caption text-stone">Account name: {{ config('nbm.easypaisa_name') }}</p>
+                <p class="font-sans text-body text-ink font-semibold">{{ $settings->easypaisa_number }}</p>
+                <p class="font-sans text-caption text-stone">Account name: {{ $settings->easypaisa_name }}</p>
               </div>
             </label>
 
@@ -109,9 +109,9 @@
               </div>
               <div class="account-details mt-4 bg-paper rounded-xl px-4 py-3 border border-hairline/60">
                 <p class="font-sans text-caption text-stone mb-1">Transfer to:</p>
-                <p class="font-sans text-body text-ink font-semibold">{{ config('nbm.bank_account_name') }}</p>
-                <p class="font-sans text-caption text-stone">IBAN: {{ config('nbm.bank_iban') }}</p>
-                <p class="font-sans text-caption text-stone">Bank: {{ config('nbm.bank_name') }}</p>
+                <p class="font-sans text-body text-ink font-semibold">{{ $settings->bank_account_name }}</p>
+                <p class="font-sans text-caption text-stone">IBAN: {{ $settings->bank_iban }}</p>
+                <p class="font-sans text-caption text-stone">Bank: {{ $settings->bank_name }}</p>
               </div>
             </label>
 

@@ -167,7 +167,7 @@
                 <circle cx="180" cy="76" r="10" fill="currentColor" stroke="none"/>
             </svg>
         </a>
-        <a href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}?text=Hello%20Nails%20by%20Mona%2C%20I%27d%20like%20to%20enquire%20about%20a%20custom%20set."
+        <a href="https://wa.me/{{ $settings->whatsappForWaMe() }}?text=Hello%20Nails%20by%20Mona%2C%20I%27d%20like%20to%20enquire%20about%20a%20custom%20set."
            aria-label="WhatsApp" class="text-stone hover:text-ink transition-colors duration-200"
            target="_blank" rel="noopener">
             <svg class="w-5 h-5" viewBox="0 0 256 256" fill="none" stroke="currentColor"
@@ -222,7 +222,7 @@
                             <circle cx="180" cy="76" r="10" fill="currentColor" stroke="none"/>
                         </svg>
                     </a>
-                    <a href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}?text=Hello%20Nails%20by%20Mona%2C%20I%27d%20like%20to%20enquire%20about%20a%20custom%20set."
+                    <a href="https://wa.me/{{ $settings->whatsappForWaMe() }}?text=Hello%20Nails%20by%20Mona%2C%20I%27d%20like%20to%20enquire%20about%20a%20custom%20set."
                        aria-label="WhatsApp" class="transition-colors duration-200"
                        style="color:rgba(244,239,232,0.40)" target="_blank" rel="noopener">
                         <svg class="w-5 h-5" viewBox="0 0 256 256" fill="none" stroke="currentColor"
@@ -286,7 +286,7 @@
                             <circle cx="180" cy="76" r="10" fill="currentColor" stroke="none"/>
                         </svg>
                     </a>
-                    <a href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}" aria-label="WhatsApp"
+                    <a href="https://wa.me/{{ $settings->whatsappForWaMe() }}" aria-label="WhatsApp"
                        class="transition-colors duration-200" style="color:rgba(244,239,232,0.40)"
                        target="_blank" rel="noopener">
                         <svg class="w-5 h-5" viewBox="0 0 256 256" fill="none" stroke="currentColor"

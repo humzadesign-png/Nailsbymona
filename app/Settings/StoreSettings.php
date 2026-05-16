@@ -28,11 +28,23 @@ class StoreSettings extends Settings
     public int    $shipping_free_above  = 5000;  // free shipping threshold (0 = disabled)
 
     // ── Order rules ───────────────────────────────────────────────────────────
-    public int    $advance_threshold_pkr = 5000; // orders ≥ this require 20-30% advance
-    public int    $advance_percent       = 25;   // advance percentage
+    public int    $advance_threshold_pkr     = 5000; // orders ≥ this require an advance
+    public int    $advance_percent           = 25;   // advance % for orders ≥ threshold
+    public int    $bridal_deposit_percent    = 100;  // Bridal Trio deposit (CLAUDE.md §7 — full advance)
+    public int    $reorder_discount_percent  = 5;    // returning-customer discount %
+
+    // ── Production lead times (calendar days, used on confirmation + emails) ──
+    public int    $lead_time_standard_days = 5;
+    public int    $lead_time_bridal_days   = 10;
 
     public static function group(): string
     {
         return 'store';
+    }
+
+    /** Digits-only WhatsApp number suitable for `https://wa.me/{n}` URLs. */
+    public function whatsappForWaMe(): string
+    {
+        return preg_replace('/\D+/', '', $this->whatsapp_number ?? '') ?? '';
     }
 }

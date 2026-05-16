@@ -191,7 +191,7 @@
         <p class="font-sans font-semibold text-ink text-sm mb-0.5">Need help with your order?</p>
         <p class="font-sans text-caption text-stone">I'm on WhatsApp — usually respond within a few hours.</p>
       </div>
-      <a href="https://wa.me/{{ config('nbm.whatsapp_number') }}?text={{ $whatsappMsg }}"
+      <a href="https://wa.me/{{ $settings->whatsappForWaMe() }}?text={{ $whatsappMsg }}"
          target="_blank" rel="noopener"
          class="shrink-0 bg-ink hover:opacity-80 text-bone font-sans text-caption font-medium rounded-full px-5 py-2.5 transition-opacity duration-200 flex items-center gap-2">
         <svg class="w-4 h-4" viewBox="0 0 256 256" fill="currentColor"><path d="M187.58,144.84l-32-16a8,8,0,0,0-8,.5l-14.69,9.8a40.55,40.55,0,0,1-16-16l9.8-14.69a8,8,0,0,0,.5-8l-16-32A8,8,0,0,0,104,64a40,40,0,0,0-40,40,88.1,88.1,0,0,0,88,88,40,40,0,0,0,40-40A8,8,0,0,0,187.58,144.84ZM152,176a72.08,72.08,0,0,1-72-72,24,24,0,0,1,19.29-23.54l11.48,22.94L101,117.64a8,8,0,0,0-.73,7.65,56.42,56.42,0,0,0,30.42,30.42,8,8,0,0,0,7.65-.73l14.3-9.55,22.94,11.48A24,24,0,0,1,152,176ZM128,24A104,104,0,0,0,36.18,176.88L24.83,210.93a16,16,0,0,0,20.24,20.24l34.05-11.35A104,104,0,1,0,128,24Zm0,192a88.11,88.11,0,0,1-44.06-11.81,8,8,0,0,0-6.54-.67L40,216l12.47-37.4a8,8,0,0,0-.66-6.54A88,88,0,1,1,128,216Z"/></svg>
