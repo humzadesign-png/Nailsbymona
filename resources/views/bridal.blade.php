@@ -149,10 +149,10 @@
               srcset="{{ asset('images/bridal-baraat-deep-red-480.jpg') }} 480w,
                       {{ asset('images/bridal-baraat-deep-red-960.jpg') }} 960w"
               sizes="(min-width: 768px) 33vw, 100vw"
-              alt="Deep red almond-shape bridal press-on nails on both hands — Baraat night colour palette"
+              alt="Glossy deep red bridal press-on gel nails with subtle crystal accents on both hands — dramatic Baraat night palette"
               class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
               onerror="this.parentElement.remove()"
-              width="960" height="540"
+              width="1080" height="1920"
               loading="lazy">
           </picture>
         </div>
