@@ -408,7 +408,7 @@
       <div class="bg-shell rounded-2xl p-8">
         <h3 class="font-sans text-h3 font-medium text-ink mb-3">Already ordered before? Your sizing is on file.</h3>
         <p class="font-sans text-body text-graphite mb-6">
-          If you&rsquo;ve ordered from me before and provided sizing photos, I keep your measurements saved. When you reorder, just mention your name and previous order number &mdash; no re-measuring needed. Reorders also get a 10% discount.
+          If you&rsquo;ve ordered from me before and provided sizing photos, I keep your measurements saved. When you reorder, just mention your name and previous order number &mdash; no re-measuring needed. Reorders also get a 5% discount.
         </p>
         <a href="https://wa.me/{{ ltrim($settings->whatsapp_number, '+') }}?text=Hello%20Nails%20by%20Mona%2C%20I%27d%20like%20to%20reorder%20%E2%80%94%20I%20have%20sizing%20on%20file%20from%20a%20previous%20order."
            class="inline-flex items-center gap-2 font-sans text-caption font-medium text-lavender-ink hover:text-lavender underline-offset-4 hover:underline transition-colors duration-200">

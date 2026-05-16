@@ -57,7 +57,10 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('customer_name')
                     ->label('Customer')
                     ->searchable()
-                    ->description(fn (Order $r) => $r->customer_phone),
+                    ->description(fn (Order $r) => $r->is_returning_customer
+                        ? '↩ Returning  ·  ' . $r->customer_phone
+                        : $r->customer_phone
+                    ),
 
                 Tables\Columns\TextColumn::make('total_pkr')
                     ->label('Total')
@@ -112,6 +115,9 @@ class OrderResource extends Resource
                 Tables\Filters\Filter::make('awaiting_payment')
                     ->label('Awaiting payment')
                     ->query(fn ($query) => $query->where('payment_status', PaymentStatus::Awaiting)),
+                Tables\Filters\Filter::make('returning_customers')
+                    ->label('Returning customers')
+                    ->query(fn ($query) => $query->where('is_returning_customer', true)),
             ])
             ->actions([
                 Actions\ViewAction::make(),

@@ -67,7 +67,7 @@
         @if ($isReturning)
         <div class="mb-6 bg-lavender-wash border border-hairline rounded-xl px-5 py-4">
           <p class="font-sans text-body text-lavender-ink">
-            <strong>Welcome back!</strong> A 10% reorder discount has been applied to your order.
+            <strong>Welcome back!</strong> A 5% reorder discount has been applied to your order.
           </p>
         </div>
         @endif

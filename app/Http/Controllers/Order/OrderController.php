@@ -413,7 +413,7 @@ class OrderController extends Controller
             $bag
         ));
 
-        $discount = $isReturning ? (int) round($subtotal * 0.10) : 0;
+        $discount = $isReturning ? (int) round($subtotal * 0.05) : 0;
         $afterDiscount = $subtotal - $discount;
         $freeAbove = app(\App\Settings\StoreSettings::class)->shipping_free_above;
         $shipping = ($freeAbove > 0 && $afterDiscount >= $freeAbove)
