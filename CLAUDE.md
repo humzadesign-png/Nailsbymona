@@ -761,7 +761,7 @@ Traditional nail polish and acrylics are not compatible with wudu (Islamic ablut
 | **Glam**                                      | 3,800–4,800     | Charms, 3D, hand-painted                           |
 | **Bridal Single**                             | 5,000–6,500     | One event, premium packaging                       |
 | **Bridal Trio** (Mehendi + Baraat + Valima)   | 11,000–13,500   | 3 sets, one fitting, ~10–15% off vs 3 singles      |
-| **Refill / Reorder**                          | -10%            | Saved sizing on file, faster lead time             |
+| **Refill / Reorder**                          | -5%             | Saved sizing on file, faster lead time             |
 
 **Margin model:** ~35–45% net at handmade scale. Track quarterly.
 
@@ -1749,14 +1749,8 @@ return view('product', compact('product', 'related'));
 - Bottom controls: brightness pill + 72px shutter ring / 54px inner disc.
 - SVG overlay: `viewBox="0 0 400 870"` (9:19.5 iPhone aspect ratio), `preserveAspectRatio="xMidYMax meet"`. Guides anchor to the bottom of the screen.
 
-**SVG finger guide widths (final values — user confirmed):**
-- Pinky: 56px wide, center x=68 (x=40–96)
-- Ring: 60px wide, center x=140 (x=110–170)
-- Middle: 64px wide, center x=220 (x=188–252)
-- Index: 60px wide, center x=300 (x=270–330)
-- Thumb: 90px wide, center x=200 (x=155–245)
-- Coin: r=38 on both overlays
-- Heights: middle top y=312, ring y=406, index y=421, pinky y=548, thumb y=438
+**SVG finger guide widths (superseded — see 2026-05-16 entry for final values):**
+- These were the initial values from this session. Spacing, widths, and ring height were further refined in the 2026-05-16 session.
 
 **Admin panel 404 fix (critical — Filament v4 breaking change):**
 - Filament v4 `Authenticate` middleware blocks all non-local users whose `User` model doesn't implement `FilamentUser`. `abort(403)` fires in production even after successful login.
@@ -1773,6 +1767,63 @@ return view('product', compact('product', 'related'));
 - Deploy script at `/root/deploy.sh` — runs `git pull → composer install → migrate --force → optimize → supervisorctl restart worker`. One command for all future deploys.
 - DB: 9 products, 1 admin user, first real order NBM-2026-0001 in the system.
 - All pages return correct HTTP status (homepage/shop/order pages 200, /admin 302→login).
+
+---
+
+### 2026-05-16 — Frontend bug fixes, email fixes, business rule updates
+
+**Camera overlay — final finger geometry (all confirmed by Humza):**
+
+| Finger | Width | x range | Center x | Top y (camera) | Corner y (camera) |
+|--------|-------|---------|----------|----------------|-------------------|
+| Pinky  | 70px  | 12–82   | 47       | 451            | 486               |
+| Ring   | 75px  | 95–170  | 132      | 348            | 386               |
+| Middle | 75px  | 183–258 | 220      | 312            | 350               |
+| Index  | 75px  | 271–346 | 308      | 379            | 417               |
+
+- Camera overlay viewBox `0 0 400 870`. All inter-finger gaps are exactly 13px (matches index-middle reference gap).
+- Ring finger raised from ~90% to ~93% of middle height (topY 368→348, cornerY 406→386) — user confirmed "looks amazing."
+- `public/icons/sizing-fingers.svg` illustration uses same x-coordinates (viewBox 400×480 shares the same width). Ring topY 226→217, cornerY 244→255 in illustration.
+
+**Frontend bug fixes (all deployed):**
+
+| Bug | Fix |
+|-----|-----|
+| Thumbnail selection border cut off | CSS `outline` instead of `ring` (box-shadow). `outline` is not clipped by parent `overflow:auto`. |
+| Bag icon handle arching wrong | SVG arc `sweep=0` → `sweep=1`. In Y-down SVG, sweep=1 arches upward (correct for a bag handle). |
+| Product image swipe not working | jQuery `.on('touchstart', fn, {passive:true})` treats 3rd arg as event data — passive never set. Fixed with native `mainWrap.addEventListener('touchstart', fn, {passive:true})`. |
+| "Find my profile" button oversized black circle | `rounded-full` → `rounded-xl`, `shrink-0 whitespace-nowrap` on button, `min-w-0 flex-1` on input. |
+| Thumb camera heuristic never green | Added `isThumb` check — thumb has one wide nail (fewer edges). Halved both thresholds for thumb states: green 0.12→0.06, amber 0.06→0.03. |
+
+**Email — logo header:**
+- Created `public/logo-white.svg` (same paths as `logo-text.svg` with `fill: #ffffff`).
+- Email layout `card-header` now has `background-color: #BFA4CE` with `<img src="logo-white.svg">` — proper branded header.
+- Sender DP (avatar in email clients): controlled by Gravatar. Register `hello@nailsbymona.pk` at gravatar.com and upload the logo to fix this — not a code change.
+
+**Email — price alignment (critical Gmail gotcha):**
+- Gmail strips `<style>` block CSS classes. `display:flex; justify-content:space-between` was ignored, causing product name and price to run together ("Barely There NudeRs. 2,500").
+- Fix: replaced all `order-item` and `total-row` divs across all 4 email templates with inline `style="display:table-cell; text-align:right; white-space:nowrap; padding-left:12px"` on price cells. Gmail always preserves inline styles; `display:table-cell` is supported in every email client including Outlook.
+- Files updated: `emails/order-placed.blade.php`, `emails/payment-verified.blade.php`, `emails/order-in-production.blade.php`, `emails/order-shipped.blade.php`, `layouts/email.blade.php`.
+
+**Estimated dispatch dates (corrected across all emails):**
+- Old: `now()->addWeekdays(config('nbm.lead_time_standard', 7))` — showed ~10 calendar days.
+- New: `addDays(6)` in order-placed, `addDays(5)` in payment-verified, `addDays(4)` in order-in-production (payment already verified at that point).
+- Config: `lead_time_standard` 7→5, `lead_time_bridal` 12→10.
+
+**Reorder discount: 10% → 5%:**
+- `OrderController.php` line: `$subtotal * 0.10` → `$subtotal * 0.05`.
+- Views updated: `order/details.blade.php`, `order/partials/price-summary.blade.php`, `size-guide.blade.php`.
+- Pricing ladder in this file updated (§19).
+
+**Returning customer indicator in admin:**
+- `OrderResource` table: Customer column description now shows `↩ Returning  ·  phone` when `order->is_returning_customer = true`. Visible immediately in the orders list.
+- Added "Returning customers" filter to the Orders table filter dropdown.
+- No schema change — `is_returning_customer` boolean was already on the `orders` table.
+
+**Gel Nail Polishes expense category:**
+- New case `GelPolish = 'gel_polish'` added to `app/Enums/ExpenseCategory.php`.
+- Label: "Gel Nail Polishes". Color: `#D4847A` (warm coral, distinct from general Materials lavender).
+- Appears second in the list, after Materials & Supplies.
 
 ---
 
@@ -1823,6 +1874,12 @@ return view('product', compact('product', 'related'));
 - **Deploy script:** `/root/deploy.sh` on the server. Runs git pull + composer + migrate + optimize + worker restart in one command.
 - **Queue worker:** Running via Supervisor. Config at `/etc/supervisor/conf.d/nailsbymona-worker.conf`. Logs at `storage/logs/worker.log`.
 - **Desktop camera handoff (2026-05-14):** `sizing-capture` (HTML + Blade) shows a QR code "Open this on your phone" state when `isDesktopDevice()` returns true. Desktop detection: no mobile UA + (no touch hardware or wide screen). Camera init is fully skipped on desktop. QR uses `api.qrserver.com` image API. Order form Step 1 shows an inline warning note on the camera option for desktop visitors. The `isDesktopDevice()` function is duplicated in 4 files — keep them in sync if the logic ever changes.
+- **Final finger SVG geometry (2026-05-16, user confirmed):** All gaps 13px. Pinky x=12–82 (70px, center 47), Ring x=95–170 (75px, center 132), Middle x=183–258 (75px, center 220), Index x=271–346 (75px, center 308). Heights in camera overlay (viewBox 400×870): middle topY=312, ring topY=348, index topY=379, pinky topY=451. Ring finger is ~93% of middle height.
+- **Email price layout — Gmail gotcha:** Gmail strips `<style>` block CSS — flex layout is ignored. All `order-item` and `total-row` rows in email templates must use inline `style="display:table-cell; text-align:right; white-space:nowrap"` on price `<span>` elements. Never rely on CSS classes for email layout.
+- **Email logo:** `public/logo-white.svg` exists (white fill version of logo-text.svg) for use on coloured email headers. The email layout header has `background-color:#BFA4CE` with the white logo as an `<img>` tag.
+- **Reorder discount is 5%** (changed from 10% on 2026-05-16). Set in `OrderController.php` as `$subtotal * 0.05`. All views reference the literal amount from `$order->reorder_discount_pkr` — no other code change needed for future rate changes.
+- **Returning customer indicator:** `OrderResource` Orders table shows `↩ Returning · phone` in the Customer column description for `is_returning_customer = true` orders. "Returning customers" filter also available.
+- **Expense categories (current):** Materials & Supplies · Gel Nail Polishes · Packaging · Courier & Shipping · Marketing & Ads · Tools & Equipment · Utilities & Overheads · Other. Defined in `app/Enums/ExpenseCategory.php`. Gel Nail Polishes added 2026-05-16 (color `#D4847A`).
 
 ---
 
