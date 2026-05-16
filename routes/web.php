@@ -164,10 +164,12 @@ Route::post('/admin/push-subscription', [PushSubscriptionController::class, 'sto
 
 // ── Private file serving (admin only — sizing photos, payment proofs) ────────
 // Files live on the `local` (private) disk and are NEVER web-accessible.
-// This route is the only way to read them, gated by the admin auth middleware.
+// This route is the only way to read them. Auth check happens inside
+// PrivateFileController::show() to avoid the default Authenticate
+// middleware trying to redirect to a non-existent `login` route.
 Route::get('/admin/files/{category}/{order}/{filename}',
         [\App\Http\Controllers\Admin\PrivateFileController::class, 'show'])
     ->where('category', 'sizing|payment-proofs')
     ->where('filename', '[A-Za-z0-9._-]+')
-    ->middleware(['web', 'auth'])
+    ->middleware(['web'])
     ->name('admin.private-file');

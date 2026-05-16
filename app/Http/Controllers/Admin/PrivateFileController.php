@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,8 +23,13 @@ class PrivateFileController extends Controller
 {
     private const ALLOWED_CATEGORIES = ['sizing', 'payment-proofs'];
 
-    public function show(Request $request, string $category, string $orderId, string $filename): Response|BinaryFileResponse|StreamedResponse
+    public function show(Request $request, string $category, string $orderId, string $filename): Response|BinaryFileResponse|StreamedResponse|RedirectResponse
     {
+        // Require an authenticated admin. Redirect to Filament login if not.
+        if (! Auth::check()) {
+            return redirect('/admin/login');
+        }
+
         // Whitelist the category — no arbitrary disk paths.
         if (! in_array($category, self::ALLOWED_CATEGORIES, true)) {
             abort(404);
