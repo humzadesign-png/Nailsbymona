@@ -87,8 +87,8 @@
                      stroke-width="14" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     {{-- Bag body: clean rectangle --}}
                     <rect x="32" y="104" width="192" height="120" rx="8"/>
-                    {{-- Handle: arches above the bag opening (sweep=0 = counter-clockwise = up) --}}
-                    <path d="M88,104V72a40,40,0,0,0,80,0V104"/>
+                    {{-- Handle: arches above the bag opening (sweep=1 = clockwise in SVG Y-down = visually upward) --}}
+                    <path d="M88,104V72a40,40,0,0,1,80,0V104"/>
                 </svg>
                 <span id="bag-count"
                       class="absolute -top-2 -right-2 hidden min-w-[17px] h-[17px] px-[3px] rounded-full bg-lavender text-white font-sans text-[9px] font-semibold items-center justify-center leading-none">

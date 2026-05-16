@@ -13,8 +13,8 @@
   <path d="M95,460 L95,244 Q95,226 132,226 Q170,226 170,244 L170,460"
         stroke-width="3" stroke-dasharray="10 6"/>
 
-  <!-- Middle finger — tallest, coin sits above (unchanged) -->
-  <path d="M188,460 L188,228 Q188,200 216,200 Q244,200 244,228 L244,460"
+  <!-- Middle finger — 75px wide, center x=216, tallest -->
+  <path d="M179,460 L179,238 Q179,200 216,200 Q254,200 254,238 L254,460"
         stroke-width="3" stroke-dasharray="10 6"/>
 
   <!-- Index finger — 75px wide, center x=308, ~88% of middle height -->

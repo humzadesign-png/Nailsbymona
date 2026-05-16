@@ -423,19 +423,22 @@ $(function () {
 
   $thumbBtns.on('click', function () { setActiveThumb($(this)); });
 
-  // Touch swipe on main image
+  // Touch swipe on main image — native listeners so passive:true actually applies
   let swipeStartX = 0;
-  $('#main-img-wrap').on('touchstart', function (e) {
-    swipeStartX = e.originalEvent.touches[0].clientX;
-  }, { passive: true });
-  $('#main-img-wrap').on('touchend', function (e) {
-    const dx = e.originalEvent.changedTouches[0].clientX - swipeStartX;
-    if (Math.abs(dx) < 40) return;
-    const $active = $thumbBtns.filter('.active');
-    const idx = $thumbBtns.index($active);
-    if (dx < 0 && idx < $thumbBtns.length - 1) setActiveThumb($($thumbBtns[idx + 1]));
-    else if (dx > 0 && idx > 0) setActiveThumb($($thumbBtns[idx - 1]));
-  });
+  const mainWrap = document.getElementById('main-img-wrap');
+  if (mainWrap) {
+    mainWrap.addEventListener('touchstart', function (e) {
+      swipeStartX = e.touches[0].clientX;
+    }, { passive: true });
+    mainWrap.addEventListener('touchend', function (e) {
+      const dx = e.changedTouches[0].clientX - swipeStartX;
+      if (Math.abs(dx) < 35) return;
+      const $active = $thumbBtns.filter('.active');
+      const idx = $thumbBtns.index($active);
+      if (dx < 0 && idx < $thumbBtns.length - 1) setActiveThumb($($thumbBtns[idx + 1]));
+      else if (dx > 0 && idx > 0) setActiveThumb($($thumbBtns[idx - 1]));
+    });
+  }
 
   // ── Tab switching ────────────────────────────────
   $('.tab-btn').on('click', function () {
