@@ -52,6 +52,11 @@ Route::get('/blog', [BlogController::class, 'index'])->name('blog');
 Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.post');
 Route::post('/subscribe', [BlogController::class, 'subscribe'])->middleware('throttle:5,1')->name('subscribe');
 
+// ── Legal / informational pages ───────────────────────────────────────────────
+Route::view('/privacy',  'legal.privacy')->name('privacy');
+Route::view('/terms',    'legal.terms')->name('terms');
+Route::view('/shipping', 'legal.shipping')->name('shipping');
+
 // ── Contact form submission ───────────────────────────────────────────────────
 Route::post('/contact', function (Request $request) {
     $validated = $request->validate([
@@ -113,7 +118,12 @@ Route::get('/sitemap.xml', function () {
     });
 
     BlogPost::where('is_published', true)->orderByDesc('published_at')->each(function ($post) use ($sitemap) {
-        $sitemap->add(Url::create(route('blog.post', $post->slug))->setPriority(0.75)->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)->setLastModificationDate($post->updated_at));
+        // Prefer the later of published_at and updated_at — published_at is more meaningful
+        // for crawlers but updated_at catches small edits without re-publishing.
+        $lastmod = $post->published_at && $post->updated_at
+            ? ($post->published_at->gt($post->updated_at) ? $post->published_at : $post->updated_at)
+            : ($post->updated_at ?? $post->published_at);
+        $sitemap->add(Url::create(route('blog.post', $post->slug))->setPriority(0.75)->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)->setLastModificationDate($lastmod));
     });
 
     return response($sitemap->render(), 200, ['Content-Type' => 'application/xml; charset=utf-8']);

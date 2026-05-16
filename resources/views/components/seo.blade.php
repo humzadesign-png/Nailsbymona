@@ -2,6 +2,7 @@
     'title'       => 'Nails by Mona — Custom-Fit Press-On Gel Nails, Pakistan',
     'description' => 'Handmade, custom-fit press-on gel nails. Live-camera sizing. Wudu-friendly. Reusable 3–5×. Shipped across Pakistan from Mirpur.',
     'ogImage'     => null,
+    'ogType'      => 'website',
     'canonical'   => null,
     'noindex'     => false,
     'schema'      => null,
@@ -11,9 +12,8 @@
     $canonical = $canonical ?? request()->url();
     $ogImage   = $ogImage   ?? asset('og-default.jpg');
 
-    // Build Organization schema as PHP — avoids Blade parsing @context / @type as directives
-    $orgSchema = json_encode([
-        '@context' => 'https://schema.org',
+    // Organization payload — used by every page.
+    $orgPayload = [
         '@type'    => 'Organization',
         'name'     => 'Nails by Mona',
         'url'      => config('app.url'),
@@ -27,7 +27,24 @@
             'contactType'       => 'customer service',
             'availableLanguage' => 'English',
         ],
-    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    ];
+
+    // If the page passed its own @graph schema, merge Organization into it
+    // rather than emitting a second standalone block. Otherwise we render
+    // a single Organization-only block below.
+    $combinedSchema = null;
+    if ($schema) {
+        $decoded = json_decode($schema, true);
+        if (is_array($decoded) && isset($decoded['@graph']) && is_array($decoded['@graph'])) {
+            array_unshift($decoded['@graph'], $orgPayload);
+            $combinedSchema = json_encode($decoded, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        }
+    }
+
+    $orgOnlySchema = json_encode(
+        ['@context' => 'https://schema.org'] + $orgPayload,
+        JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
+    );
 @endphp
 
 <title>{{ $title }}</title>
@@ -44,7 +61,7 @@
 {{-- Open Graph --}}
 <meta property="og:title"       content="{{ $title }}">
 <meta property="og:description" content="{{ $description }}">
-<meta property="og:type"        content="website">
+<meta property="og:type"        content="{{ $ogType }}">
 <meta property="og:url"         content="{{ $canonical }}">
 <meta property="og:image"       content="{{ $ogImage }}">
 <meta property="og:locale"      content="en_PK">
@@ -59,10 +76,13 @@
 {{-- hreflang --}}
 <link rel="alternate" hreflang="en-PK" href="{{ $canonical }}">
 
-{{-- Page-specific JSON-LD (passed via :schema prop) --}}
-@if ($schema)
+{{-- JSON-LD: combined (Organization + page schema) OR Organization alone --}}
+@if ($combinedSchema)
+    <script type="application/ld+json">{!! $combinedSchema !!}</script>
+@elseif ($schema)
+    {{-- Page passed a non-@graph schema (single type). Emit it AND Organization separately. --}}
     <script type="application/ld+json">{!! $schema !!}</script>
+    <script type="application/ld+json">{!! $orgOnlySchema !!}</script>
+@else
+    <script type="application/ld+json">{!! $orgOnlySchema !!}</script>
 @endif
-
-{{-- Organization schema — on every page --}}
-<script type="application/ld+json">{!! $orgSchema !!}</script>

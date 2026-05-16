@@ -71,6 +71,7 @@ $blogPostSchema = json_encode([
     :title="($post->meta_title ?: $post->title) . ' | Nails by Mona'"
     :description="$post->meta_description ?: $post->excerpt"
     :og-image="$post->og_image ? asset('storage/' . $post->og_image) : ($post->cover_image ? asset('storage/' . $post->cover_image) : null)"
+    og-type="article"
     :schema="$blogPostSchema"
   />
 @endsection

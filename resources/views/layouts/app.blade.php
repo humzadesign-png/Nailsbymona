@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en-PK" class="scroll-smooth">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +15,10 @@
 
     {{-- Favicon --}}
     <link rel="icon" type="image/svg+xml" href="{{ asset('logo-text.svg') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+
+    {{-- RSS autodiscovery for the journal --}}
+    <link rel="alternate" type="application/rss+xml" title="Nails by Mona — Journal" href="{{ route('feed') }}">
 
     {{-- Vite — Tailwind v4 + jQuery --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -314,11 +318,11 @@
                 &copy; {{ date('Y') }} Nails by Mona. All rights reserved.
             </p>
             <div class="flex gap-7">
-                <a href="{{ url('/privacy') }}"  class="font-sans text-caption transition-colors duration-200"
+                <a href="{{ route('privacy') }}"  class="font-sans text-caption transition-colors duration-200 hover:opacity-100"
                    style="color:rgba(244,239,232,0.28)">Privacy</a>
-                <a href="{{ url('/terms') }}"    class="font-sans text-caption transition-colors duration-200"
+                <a href="{{ route('terms') }}"    class="font-sans text-caption transition-colors duration-200 hover:opacity-100"
                    style="color:rgba(244,239,232,0.28)">Terms</a>
-                <a href="{{ url('/shipping') }}" class="font-sans text-caption transition-colors duration-200"
+                <a href="{{ route('shipping') }}" class="font-sans text-caption transition-colors duration-200 hover:opacity-100"
                    style="color:rgba(244,239,232,0.28)">Shipping</a>
             </div>
         </div>
