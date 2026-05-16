@@ -144,6 +144,10 @@ class FinanceOverview extends Page
 
     private function getChartDataForPeriod(int $months): array
     {
+        if ($months === 1) {
+            return $this->getChartDataDaily();
+        }
+
         $labels   = [];
         $revenue  = [];
         $expenses = [];
@@ -156,6 +160,28 @@ class FinanceOverview extends Page
                 ->sum('total_pkr');
             $expenses[] = (int) Expense::whereYear('expense_date', $month->year)
                 ->whereMonth('expense_date', $month->month)
+                ->sum('amount_pkr');
+        }
+        return compact('labels', 'revenue', 'expenses');
+    }
+
+    private function getChartDataDaily(): array
+    {
+        $labels   = [];
+        $revenue  = [];
+        $expenses = [];
+        $today    = now()->day;
+
+        for ($day = 1; $day <= $today; $day++) {
+            $labels[]   = $day . ' ' . now()->format('M');
+            $revenue[]  = (int) Order::where('payment_status', PaymentStatus::Paid)
+                ->whereYear('created_at', now()->year)
+                ->whereMonth('created_at', now()->month)
+                ->whereDay('created_at', $day)
+                ->sum('total_pkr');
+            $expenses[] = (int) Expense::whereYear('expense_date', now()->year)
+                ->whereMonth('expense_date', now()->month)
+                ->whereDay('expense_date', $day)
                 ->sum('amount_pkr');
         }
         return compact('labels', 'revenue', 'expenses');
