@@ -40,16 +40,19 @@
             <source type="image/webp"
                     srcset="{{ asset('images/hero-home-red-matte-768.webp') }} 768w,
                             {{ asset('images/hero-home-red-matte-1280.webp') }} 1280w,
-                            {{ asset('images/hero-home-red-matte-1920.webp') }} 1920w"
+                            {{ asset('images/hero-home-red-matte-1920.webp') }} 1920w,
+                            {{ asset('images/hero-home-red-matte-2560.webp') }} 2560w"
                     sizes="100vw">
             <img
-                src="{{ asset('images/hero-home-red-matte-1280.jpg') }}"
+                src="{{ asset('images/hero-home-red-matte-1920.jpg') }}"
                 srcset="{{ asset('images/hero-home-red-matte-768.jpg') }} 768w,
                         {{ asset('images/hero-home-red-matte-1280.jpg') }} 1280w,
-                        {{ asset('images/hero-home-red-matte-1920.jpg') }} 1920w"
+                        {{ asset('images/hero-home-red-matte-1920.jpg') }} 1920w,
+                        {{ asset('images/hero-home-red-matte-2560.jpg') }} 2560w"
                 sizes="100vw"
                 alt="Matte deep-red almond press-on gel nails on both hands against a draped purple silk backdrop — handmade by Nails by Mona in Mirpur"
                 class="absolute inset-0 w-full h-full object-cover"
+                style="object-position: 70% center"
                 loading="eager" fetchpriority="high"
                 onerror="this.parentElement.remove()"
                 width="1920" height="1080">
