@@ -52,7 +52,6 @@
                 sizes="100vw"
                 alt="Matte deep-red almond press-on gel nails on both hands against a draped purple silk backdrop — handmade by Nails by Mona in Mirpur"
                 class="absolute inset-0 w-full h-full object-cover"
-                style="object-position: 70% center"
                 loading="eager" fetchpriority="high"
                 onerror="this.parentElement.remove()"
                 width="1920" height="1080">
