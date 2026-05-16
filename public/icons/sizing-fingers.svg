@@ -9,8 +9,8 @@
   <path d="M12,460 L12,300 Q12,265 47,265 Q82,265 82,300 L82,460"
         stroke-width="3" stroke-dasharray="10 6"/>
 
-  <!-- Ring finger — 75px wide, center x=132, x=95-170. 13px gap each side. ~90% of middle height -->
-  <path d="M95,460 L95,244 Q95,226 132,226 Q170,226 170,244 L170,460"
+  <!-- Ring finger — 75px wide, center x=132, x=95-170. 13px gap each side. ~93% of middle height -->
+  <path d="M95,460 L95,255 Q95,217 132,217 Q170,217 170,255 L170,460"
         stroke-width="3" stroke-dasharray="10 6"/>
 
   <!-- Middle finger — 75px wide, center x=220, x=183-258. 13px gap each side. Tallest -->
