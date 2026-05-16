@@ -143,6 +143,60 @@ HTML,
             ],
 
             [
+                'slug'            => 'bridal-nail-trends-pakistan-2026',
+                'title'           => 'Bridal Nail Trends in Pakistan for 2026',
+                'excerpt'         => 'From glazed porcelain to jewel-toned baraat statements — what Pakistani brides are actually choosing for their wedding nails this season, and why press-ons are at the centre of every one of these looks.',
+                'category'        => BlogCategory::Bridal,
+                'target_keyword'  => 'bridal nail trends Pakistan 2026',
+                'meta_title'      => 'Bridal Nail Trends Pakistan 2026 — What\'s In, What\'s Out',
+                'meta_description'=> 'The nail trends Pakistani brides are choosing for Mehendi, Baraat, and Valima in 2026 — from glazed porcelain to jewel-toned statements. Custom-fit press-ons for every look.',
+                'is_published'    => true,
+                'published_at'    => now()->subDays(3),
+                'content'         => <<<'HTML'
+<p>Every bridal season, the same thing happens in salons across Pakistan. Brides book their nail appointments the day before their Mehendi, pick from a standard set of designs on a laminated card, and end up with nails that are fine — but not quite right for the outfit, the jewellery, or the three very different events they're attending over the next few days.</p>
+<p>That's changing. Brides in 2026 are approaching their nails the same way they approach their jewellery: planned in advance, coordinated across each event, and specific to what they're wearing. Here is what that looks like in practice, and what's actually trending this season.</p>
+
+<h2>Trend 1: Glazed porcelain for Valima</h2>
+<p>The glazed finish — a milky, luminous base with a subtle chrome shimmer — has been building globally for two years. In Pakistan, it's arriving at the Valima. The reasoning is perfect: Valima looks tend to be softer, lighter, and more romantic than the Baraat. A glazed ivory or pale blush nail reads like polished skin with the light turned up. It photographs beautifully and doesn't compete with whatever the bride is wearing.</p>
+<p>What makes this trend work in a Pakistani context is the warmth of the base. Pure white can look clinical under flash photography. A warm glazed ivory — slightly off-white, leaning champagne — sits more naturally against South Asian skin tones and golden hour photography. Paired with a simple gold ring or minimal hand jewellery, it's the most elegant thing a bride can wear on her hands for the third event.</p>
+
+<h2>Trend 2: Geometric gold for Mehendi</h2>
+<p>The Mehendi night has always been the most expressive of the three. Terracotta, rust, emerald, mustard — this is where colour lives in a Pakistani wedding. In 2026, the nail trend to match is geometric gold: a warm base (terracotta, burnt sienna, or deep camel) with hand-drawn geometric lines in gold. Think thin diagonal lines, negative space triangles, or a single gold lattice pattern on the accent nail.</p>
+<p>This trend works because it echoes the geometry of the mehndi pattern itself. Your nails and your henna tell the same design story. The effect in photographs — hands held up, henna visible, the geometric nail detail catching the light — is genuinely striking.</p>
+<p>For 2026 specifically, the bolder the geometry, the better. Thin gold lines on a terracotta base are expected. A deep burgundy base with a gold diamond lattice covering the full nail is what's actually making an impression this season.</p>
+
+<h2>Trend 3: Jewel tones for Baraat</h2>
+<p>The Baraat is the most photographed event. The dupatta. The exchange. The close-ups. For this reason, Baraat nails in 2026 are rich, saturated, and unambiguous.</p>
+<p>Deep ruby red, dark burgundy, inky violet, and forest emerald are all strong this season. These are not trend-forward colours — they are statement colours, the kind that photograph well under any lighting and hold their own in a frame crowded with gold jewellery and heavy embroidery.</p>
+<p>What's new this year is the finish: not flat, not glossy, but satin. A satin finish on a deep jewel tone has a weight to it that plain glossy doesn't. Under natural light it looks almost velvety. Under flash photography it picks up a subtle depth that reads as expensive. If you're planning a Baraat set in 2026, ask for a satin finish rather than high shine.</p>
+
+<h2>Trend 4: 3D embellishment on the accent nail</h2>
+<p>Full 3D nails — every nail with raised detail — peaked a few years ago. What's replaced them is more considered: a clean base across all nails, with one statement accent nail per hand that carries the detail. A single 3D rose. A stone-set gold arch. A hand-applied pearl cluster.</p>
+<p>This works for Pakistani brides specifically because it doesn't compete with the jewellery. Haathphool, multiple rings, and stacked bangles are already doing a lot of visual work on the hand. A full set of 3D nails adds more clutter; a single accent nail adds punctuation.</p>
+<p>The accent nail trend also photographs better. Close-up ring-exchange shots often feature two or three fingers. When the detail is concentrated on one nail, it shows clearly in frame rather than getting lost in a busy background of rings and henna.</p>
+
+<h2>Trend 5: The three-night palette — designed together, not separately</h2>
+<p>This is the biggest shift in how brides approach their nails, and it's been building for two seasons.</p>
+<p>The old approach: choose one set for the whole wedding, or book three separate salon appointments and hope the colours vaguely match.</p>
+<p>The 2026 approach: design all three nights as a coordinated collection. Each set has its own character — Mehendi is warm and expressive, Baraat is bold and dramatic, Valima is soft and refined — but they share a colour family, a design language, or a recurring detail that ties them together. Seen side-by-side in the wedding album, they read as a set rather than as three accidents.</p>
+<p>This is exactly what the <a href="/bridal">Bridal Trio</a> is designed for. One order, one sizing fitting, three coordinated sets made by the same hand. The designs are planned together so the progression from Mehendi to Valima tells a coherent story. Most brides share their outfit colours when they order and the sets are built around them.</p>
+
+<h2>What's falling away in 2026</h2>
+<p>Some things that were popular in 2023–2024 are now looking dated:</p>
+<ul>
+<li><strong>Heavy rhinestone coverage across all nails.</strong> This is now associated with older-generation bridal looks. A few stones on an accent nail is still elegant; full-coverage rhinestone on every nail is not.</li>
+<li><strong>Nude across all three events.</strong> A single nude for the whole wedding was never a statement. It was just the safe option. In 2026, brides who want a neutral are choosing glazed or satin finishes that have presence — not plain bare nudes.</li>
+<li><strong>Matching nails to outfit exactly.</strong> The instinct to match your nail colour exactly to your dupatta produces nails that look costume-y rather than considered. Complementary is better than matching. A deep wine nail with an embroidered maroon outfit reads as intentional; an exact colour match reads as overly literal.</li>
+</ul>
+
+<h2>How to order ahead of time</h2>
+<p>The single most important thing about bridal nails is lead time. Every trend above requires custom production — this is not a set you pick off a shelf.</p>
+<p>Order your <a href="/bridal">Bridal Trio</a> at least 4 weeks before your Mehendi date. This gives time for sizing (two close-up photos with a coin as reference), production (10–14 days), and one fitting round if anything needs adjustment. Rush orders are possible but put pressure on quality, and bridal quality should never be rushed.</p>
+<p>Share your outfit colours and any jewellery photos when you order. The design conversation happens at the time of order, and the more context I have, the more cohesive the final sets will be.</p>
+HTML,
+            ],
+
+            [
                 'slug'            => 'how-to-remove-press-on-nails',
                 'title'           => 'How to Remove Press-On Nails Without Damaging Your Natural Nails',
                 'excerpt'         => 'Never peel, never force. The warm-water soak method that protects your nail bed and keeps your set reusable for next time.',
