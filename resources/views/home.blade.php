@@ -86,41 +86,47 @@
         <div class="absolute inset-0 bg-gradient-to-t from-ink/15 via-transparent to-transparent"></div>
     </div>
 
-    {{-- Liquid-glass editorial card — translucent so the photo behind stays visible --}}
+    {{-- Liquid-glass editorial card — Apple-restrained: single eyebrow, two-line H1,
+         tight proof copy, one confident CTA + a small secondary text link --}}
     <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 py-24 w-full">
-        <div class="liquid-glass w-full max-w-[560px] rounded-3xl p-10 md:p-14">
+        <div class="liquid-glass w-full max-w-[480px] rounded-3xl p-9 md:p-12">
 
-            <div class="flex flex-wrap gap-2 mb-6">
-                <span class="inline-flex items-center rounded-full border border-lavender/40 bg-lavender/10 px-3 py-1 font-sans font-medium text-lavender-ink"
-                      style="font-size:0.72rem;letter-spacing:0.06em">
-                    Handmade in Mirpur
-                </span>
-                <span class="inline-flex items-center rounded-full border border-lavender/40 bg-lavender/10 px-3 py-1 font-sans font-medium text-lavender-ink"
-                      style="font-size:0.72rem;letter-spacing:0.06em">
-                    Made to fit
-                </span>
-            </div>
-
-            <h1 class="font-serif text-display-xl text-ink mb-7 max-w-[14ch]">
-                Custom-fit press-on nails,<br>made for your hands.
-            </h1>
-
-            <p class="font-sans text-body-lg text-graphite mb-10 max-w-[400px]">
-                Handmade gel sets, sized from two close-up photos of your fingers and thumb. Wudu-friendly. Reusable three to five times. Shipped across Pakistan.
+            <p class="font-sans uppercase text-lavender-ink mb-7"
+               style="font-size:0.7rem; letter-spacing:0.22em; font-weight:500">
+                Handmade press-on nails
             </p>
 
-            <div class="flex flex-wrap items-center gap-3">
-                <a href="{{ route('shop') }}"
-                   class="inline-flex items-center gap-2.5 bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full px-9 py-4 transition-colors duration-200" style="font-size:1rem">
-                    Browse the collection
-                    <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <line x1="40" y1="128" x2="216" y2="128"/>
-                        <polyline points="144 56 216 128 144 200"/>
-                    </svg>
-                </a>
+            <h1 class="font-serif text-ink mb-6"
+                style="font-size:clamp(2.6rem, 5.4vw, 4rem);
+                       line-height:0.98;
+                       letter-spacing:-0.022em;
+                       font-weight:300;
+                       font-variation-settings:'opsz' 144,'SOFT' 30">
+                Made to fit<br>your hands.
+            </h1>
+
+            <p class="font-sans text-graphite mb-9 max-w-[28ch]"
+               style="font-size:1.0625rem; line-height:1.55">
+                Sized from two close-up photos of your fingertips.<br>
+                Wudu-friendly. Reusable three to five times.
+            </p>
+
+            <a href="{{ route('shop') }}"
+               class="group inline-flex items-center gap-2.5 bg-ink hover:bg-graphite text-bone font-sans rounded-full px-8 py-3.5 transition-colors duration-200"
+               style="font-size:0.95rem; font-weight:500; letter-spacing:0.01em">
+                Shop the collection
+                <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="40" y1="128" x2="216" y2="128"/>
+                    <polyline points="144 56 216 128 144 200"/>
+                </svg>
+            </a>
+
+            <div class="mt-6">
                 <a href="{{ route('bridal') }}"
-                   class="inline-flex items-center gap-2 border border-ink/70 text-ink hover:bg-ink hover:text-bone font-sans text-caption font-medium tracking-wide rounded-full px-7 py-4 transition-colors duration-200">
-                    Bridal Trio &rarr;
+                   class="group inline-flex items-center gap-1.5 font-sans text-graphite hover:text-ink transition-colors duration-200"
+                   style="font-size:0.875rem">
+                    View the Bridal Trio
+                    <span class="transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">&rarr;</span>
                 </a>
             </div>
 
