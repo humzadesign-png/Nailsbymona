@@ -40,7 +40,7 @@ return [
     'bridal_deposit_rate'   => 0.50,  // 50% deposit for Bridal Trio
 
     // ── Lead times (working days) ─────────────────────────────────────────────
-    'lead_time_standard' => 7,
-    'lead_time_bridal'   => 12,
+    'lead_time_standard' => 5,   // ~1 day payment + 4 days production
+    'lead_time_bridal'   => 10,  // bridal sets need more production time
 
 ];

@@ -23,15 +23,15 @@
       overflow: hidden;
     }
     .card-header {
-      padding: 32px 40px 24px;
-      border-bottom: 1px solid #E0D9CE;
+      background-color: #BFA4CE;
+      padding: 28px 40px;
+      text-align: center;
     }
     .logo {
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: #BFA4CE;
+      display: block;
+      height: 40px;
+      width: auto;
+      margin: 0 auto;
     }
     .card-body { padding: 32px 40px; }
     h1 {
@@ -103,8 +103,8 @@
     .order-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #E0D9CE; }
     .order-item:last-child { border-bottom: none; }
     .totals { padding-top: 12px; }
-    .total-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
-    .total-row.final { font-weight: 600; font-size: 15px; color: #1A1614; padding-top: 10px; border-top: 1px solid #E0D9CE; margin-top: 6px; }
+    .total-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 14px; }
+    .total-row.final { font-weight: 600; font-size: 15px; color: #1A1614; padding-top: 12px; border-top: 1px solid #E0D9CE; margin-top: 8px; }
     .total-row.final .price { color: #BFA4CE; }
   </style>
 </head>
@@ -112,7 +112,7 @@
 <div class="wrapper">
   <div class="card">
     <div class="card-header">
-      <div class="logo">Nails by Mona</div>
+      <img src="{{ config('app.url') }}/logo-white.svg" alt="Nails by Mona" class="logo" width="160" height="40">
     </div>
     <div class="card-body">
       @yield('body')

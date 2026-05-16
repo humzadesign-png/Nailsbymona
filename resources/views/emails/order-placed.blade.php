@@ -56,7 +56,7 @@
 <p>To confirm your order, please send <strong>Rs.&nbsp;{{ number_format($order->total_pkr) }}</strong> using the method you selected. Payment details are on your confirmation page.</p>
 @endif
 
-<p style="font-size:14px;color:#7A6E65">Your order goes into production once I verify your payment — usually within 24 hours. Estimated dispatch: <strong>{{ now()->addWeekdays((int) config('nbm.lead_time_standard', 7))->format('D, d M Y') }}</strong>.</p>
+<p style="font-size:14px;color:#7A6E65">Your order goes into production once I verify your payment — usually within 24 hours. Estimated dispatch: <strong>{{ now()->addDays(6)->format('D, d M Y') }}</strong>.</p>
 
 <div class="cta-wrap">
   <a href="{{ route('order.confirm', $order->id) }}" class="cta">View order &amp; upload payment proof</a>
