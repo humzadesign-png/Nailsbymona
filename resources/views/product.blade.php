@@ -32,6 +32,10 @@
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
   .faq-answer { display: none; }
+  /* Thumbnail selection — outline is NOT clipped by parent overflow-x:auto */
+  .thumb-btn { outline: 2px solid transparent; outline-offset: 2px; transition: outline-color 0.15s ease; }
+  .thumb-btn:hover { outline-color: rgba(191,164,206,0.45); }
+  .thumb-btn.active { outline-color: #BFA4CE; }
 </style>
 @endpush
 
@@ -88,13 +92,13 @@
           @endif
         </div>
         <!-- Thumbnails -->
-        <div class="flex gap-3 overflow-x-auto pb-1">
+        <div class="flex gap-3 overflow-x-auto py-2">
           @foreach($galleryImages as $img)
           @php
             $src     = asset('storage/' . $img->path);
             $isCover = $img->path === $product->cover_image;
           @endphp
-          <button class="thumb-btn shrink-0 w-20 h-20 rounded-xl overflow-hidden img-wrap-fallback {{ $isCover ? 'ring-2 ring-lavender ring-offset-2 active' : 'border-2 border-transparent hover:border-lavender' }} transition-colors duration-200" data-src="{{ $src }}">
+          <button class="thumb-btn shrink-0 w-20 h-20 rounded-xl overflow-hidden img-wrap-fallback {{ $isCover ? 'active' : '' }}" data-src="{{ $src }}">
             <img src="{{ $src }}" alt="{{ e($img->alt ?: $product->name) }}" class="w-full h-full object-cover" onerror="this.remove()" width="80" height="80" loading="lazy">
           </button>
           @endforeach
@@ -407,11 +411,30 @@ $(function () {
     window.NbmBag.open();
   });
 
-  // ── Image gallery thumbnails ──────────────────────
-  $('.thumb-btn').on('click', function () {
-    $('.thumb-btn').removeClass('ring-2 ring-lavender ring-offset-2 active').addClass('border-2 border-transparent');
-    $(this).addClass('ring-2 ring-lavender ring-offset-2 active').removeClass('border-2 border-transparent');
-    $('#main-product-img').attr('src', $(this).data('src'));
+  // ── Image gallery thumbnails + swipe ─────────────
+  const $thumbBtns = $('.thumb-btn');
+
+  function setActiveThumb($thumb) {
+    $thumbBtns.removeClass('active');
+    $thumb.addClass('active');
+    $('#main-product-img').attr('src', $thumb.data('src'));
+    $thumb[0].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+
+  $thumbBtns.on('click', function () { setActiveThumb($(this)); });
+
+  // Touch swipe on main image
+  let swipeStartX = 0;
+  $('#main-img-wrap').on('touchstart', function (e) {
+    swipeStartX = e.originalEvent.touches[0].clientX;
+  }, { passive: true });
+  $('#main-img-wrap').on('touchend', function (e) {
+    const dx = e.originalEvent.changedTouches[0].clientX - swipeStartX;
+    if (Math.abs(dx) < 40) return;
+    const $active = $thumbBtns.filter('.active');
+    const idx = $thumbBtns.index($active);
+    if (dx < 0 && idx < $thumbBtns.length - 1) setActiveThumb($($thumbBtns[idx + 1]));
+    else if (dx > 0 && idx > 0) setActiveThumb($($thumbBtns[idx - 1]));
   });
 
   // ── Tab switching ────────────────────────────────

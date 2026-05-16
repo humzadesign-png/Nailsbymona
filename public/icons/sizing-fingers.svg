@@ -5,20 +5,20 @@
   <!-- Coin symbol -->
   <text x="215" y="154" text-anchor="middle" font-family="DM Sans, ui-sans-serif, system-ui" font-size="18" fill="#BFA4CE" stroke="none">₨</text>
 
-  <!-- Pinky finger — leftmost, notably shortest (~50% of middle height) -->
-  <path d="M50,460 L50,360 Q50,330 77,330 Q104,330 104,360 L104,460"
+  <!-- Pinky finger — 70px wide, center x=53, ~75% of middle height -->
+  <path d="M18,460 L18,281 Q18,265 53,265 Q88,265 88,281 L88,460"
         stroke-width="3" stroke-dasharray="10 6"/>
 
-  <!-- Ring finger (~80% of middle) -->
-  <path d="M118,460 L118,280 Q118,250 146,250 Q174,250 174,280 L174,460"
+  <!-- Ring finger — 75px wide, center x=132, ~90% of middle height -->
+  <path d="M95,460 L95,244 Q95,226 132,226 Q170,226 170,244 L170,460"
         stroke-width="3" stroke-dasharray="10 6"/>
 
-  <!-- Middle finger — tallest, coin sits above -->
+  <!-- Middle finger — tallest, coin sits above (unchanged) -->
   <path d="M188,460 L188,228 Q188,200 216,200 Q244,200 244,228 L244,460"
         stroke-width="3" stroke-dasharray="10 6"/>
 
-  <!-- Index finger (~77% of middle) -->
-  <path d="M258,460 L258,288 Q258,258 286,258 Q314,258 314,288 L314,460"
+  <!-- Index finger — 75px wide, center x=308, ~88% of middle height -->
+  <path d="M271,460 L271,249 Q271,231 308,231 Q346,231 346,249 L346,460"
         stroke-width="3" stroke-dasharray="10 6"/>
 
   <!-- Small label -->
