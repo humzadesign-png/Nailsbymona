@@ -48,10 +48,23 @@
 <section class="relative min-h-[60vh] md:min-h-[70vh] flex items-end overflow-hidden">
   <!-- Background hand portrait -->
   <div class="absolute inset-0 z-0" style="background: linear-gradient(135deg, #EAE3D9 0%, #FBF8F2 60%, #E0D9CE 100%)">
-    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJ32yAAfsHl2sbXiBXZLY3IKtRwIkwWXvKcHiU-VwXu3GcBZS-OCOQtkAzs0rwKgW4Dxp9-Z2au4aru1Nu0BtdA5S-uZ-NUYxfvCRB_EPlJ78I5QkkZiWeSOyecrlfT0sA2Kwo2P3RsYdsqE_IW2xtSSrJ7oKPp3RpON2gXOphhVK9Cf3kYPdg_HLtT-hDSpv_Dk7TIiOOMCwZD8yjf2AGWErYtoydiByeD07Oucov2MbMli1OY4mgn38QBbTbMGRf_-KaN1SZYy0"
-         alt="Mona's hands working on a press-on nail set in her studio in Mirpur"
-         class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()" width="1440" height="900"
-         loading="eager" fetchpriority="high">
+    <picture>
+      <source type="image/webp"
+              srcset="{{ asset('images/hero-about-red-matte-768.webp') }} 768w,
+                      {{ asset('images/hero-about-red-matte-1280.webp') }} 1280w,
+                      {{ asset('images/hero-about-red-matte-1920.webp') }} 1920w"
+              sizes="100vw">
+      <img src="{{ asset('images/hero-about-red-matte-1280.jpg') }}"
+           srcset="{{ asset('images/hero-about-red-matte-768.jpg') }} 768w,
+                   {{ asset('images/hero-about-red-matte-1280.jpg') }} 1280w,
+                   {{ asset('images/hero-about-red-matte-1920.jpg') }} 1920w"
+           sizes="100vw"
+           alt="Matte deep-red almond press-on gel nails on both hands resting against a draped purple silk — Mona's signature work"
+           class="absolute inset-0 w-full h-full object-cover"
+           onerror="this.parentElement.remove()"
+           width="1080" height="1920"
+           loading="eager" fetchpriority="high">
+    </picture>
     <div class="absolute inset-0 bg-gradient-to-t from-bone via-bone/30 to-transparent"></div>
     <div class="absolute inset-0 bg-gradient-to-r from-bone/60 via-transparent to-transparent"></div>
   </div>

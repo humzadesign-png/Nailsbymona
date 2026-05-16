@@ -36,14 +36,25 @@
 
   <!-- Background -->
   <div class="absolute inset-0 z-0" style="background: linear-gradient(150deg, #EAE3D9 0%, #F4EFE8 100%)">
-    <img
-      src=""
-      alt="Bridal press-on nails on hands resting on red velvet wedding fabric"
-      class="absolute inset-0 w-full h-full object-cover"
-      onerror="this.remove()"
-      width="1920" height="1080"
-      loading="eager" fetchpriority="high">
-    <div class="absolute inset-0" style="background: linear-gradient(to right, rgba(234,227,217,0.6) 0%, rgba(234,227,217,0.2) 50%, transparent 100%)"></div>
+    <picture>
+      <source type="image/webp"
+              srcset="{{ asset('images/hero-bridal-rose-768.webp') }} 768w,
+                      {{ asset('images/hero-bridal-rose-1280.webp') }} 1280w,
+                      {{ asset('images/hero-bridal-rose-1920.webp') }} 1920w"
+              sizes="100vw">
+      <img
+        src="{{ asset('images/hero-bridal-rose-1280.jpg') }}"
+        srcset="{{ asset('images/hero-bridal-rose-768.jpg') }} 768w,
+                {{ asset('images/hero-bridal-rose-1280.jpg') }} 1280w,
+                {{ asset('images/hero-bridal-rose-1920.jpg') }} 1920w"
+        sizes="100vw"
+        alt="Hand wearing classic French-tip bridal press-on gel nails, holding a single red rose against a midnight blue backdrop"
+        class="absolute inset-0 w-full h-full object-cover"
+        onerror="this.parentElement.remove()"
+        width="1080" height="1920"
+        loading="eager" fetchpriority="high">
+    </picture>
+    <div class="absolute inset-0" style="background: linear-gradient(to right, rgba(234,227,217,0.55) 0%, rgba(234,227,217,0.15) 50%, transparent 100%)"></div>
   </div>
 
   <!-- Frosted editorial card — centered -->
@@ -128,16 +139,22 @@
       <!-- Baraat Panel -->
       <div class="rounded-2xl overflow-hidden group">
         <div class="overflow-hidden rounded-t-2xl img-wrap-fallback relative" style="aspect-ratio:3/4; background:linear-gradient(150deg,#8B2535,#5C1520,#3A0A10)">
-          <img
-            src=""
-            alt="Baraat night bridal press-on nails &mdash; rich deep reds and gold accents"
-            class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
-            onerror="this.remove()"
-            width="480" height="640"
-            loading="lazy">
-          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <p class="font-serif text-bone/30 text-4xl italic" style="font-variation-settings:'opsz' 144,'SOFT' 60">Baraat</p>
-          </div>
+          <picture>
+            <source type="image/webp"
+                    srcset="{{ asset('images/bridal-baraat-deep-red-480.webp') }} 480w,
+                            {{ asset('images/bridal-baraat-deep-red-960.webp') }} 960w"
+                    sizes="(min-width: 768px) 33vw, 100vw">
+            <img
+              src="{{ asset('images/bridal-baraat-deep-red-960.jpg') }}"
+              srcset="{{ asset('images/bridal-baraat-deep-red-480.jpg') }} 480w,
+                      {{ asset('images/bridal-baraat-deep-red-960.jpg') }} 960w"
+              sizes="(min-width: 768px) 33vw, 100vw"
+              alt="Deep red almond-shape bridal press-on nails on both hands — Baraat night colour palette"
+              class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
+              onerror="this.parentElement.remove()"
+              width="960" height="540"
+              loading="lazy">
+          </picture>
         </div>
         <div class="p-6 bg-paper border border-t-0 border-hairline rounded-b-2xl">
           <h3 class="font-serif text-ink mb-3" style="font-size:1.5rem; font-weight:300; font-variation-settings:'opsz' 144,'SOFT' 30">Baraat</h3>
@@ -151,16 +168,22 @@
       <!-- Valima Panel -->
       <div class="rounded-2xl overflow-hidden group">
         <div class="overflow-hidden rounded-t-2xl img-wrap-fallback relative" style="aspect-ratio:3/4; background:linear-gradient(150deg,#E8D8C8,#F0E8E0,#F8F4EE)">
-          <img
-            src=""
-            alt="Valima night bridal press-on nails &mdash; soft blush and ivory with gold details"
-            class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
-            onerror="this.remove()"
-            width="480" height="640"
-            loading="lazy">
-          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <p class="font-serif text-stone/30 text-4xl italic" style="font-variation-settings:'opsz' 144,'SOFT' 60">Valima</p>
-          </div>
+          <picture>
+            <source type="image/webp"
+                    srcset="{{ asset('images/bridal-valima-french-480.webp') }} 480w,
+                            {{ asset('images/bridal-valima-french-960.webp') }} 960w"
+                    sizes="(min-width: 768px) 33vw, 100vw">
+            <img
+              src="{{ asset('images/bridal-valima-french-960.jpg') }}"
+              srcset="{{ asset('images/bridal-valima-french-480.jpg') }} 480w,
+                      {{ asset('images/bridal-valima-french-960.jpg') }} 960w"
+              sizes="(min-width: 768px) 33vw, 100vw"
+              alt="Classic French-tip bridal press-on nails on outstretched hand — restrained Valima reception polish"
+              class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
+              onerror="this.parentElement.remove()"
+              width="960" height="540"
+              loading="lazy">
+          </picture>
         </div>
         <div class="p-6 bg-paper border border-t-0 border-hairline rounded-b-2xl">
           <h3 class="font-serif text-ink mb-3" style="font-size:1.5rem; font-weight:300; font-variation-settings:'opsz' 144,'SOFT' 30">Valima</h3>
