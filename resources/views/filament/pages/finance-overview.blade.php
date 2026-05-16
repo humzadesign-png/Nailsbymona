@@ -34,9 +34,9 @@
 .nbm-section-title { font-size:14px; font-weight:600; color:#374151; margin:0 0 20px; }
 
 html.dark .nbm-card {
-    background: #1f2937;
-    border-color: #374151;
-    box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+    box-shadow: none;
 }
 html.dark .nbm-card-profit-pos {
     background: #052e16;
@@ -95,8 +95,9 @@ html.dark .nbm-bar-bg { background:#374151; }
 </style>
 
 {{-- All-periods data for JS switching — updated by Livewire on re-render --}}
+@php $allPeriods = $this->getAllPeriodsData(); @endphp
 <div id="nbm-periods-data" style="display:none;"
-     data-periods='@json($this->getAllPeriodsData(), JSON_HEX_APOS)'></div>
+     data-periods='@json($allPeriods, JSON_HEX_APOS)'></div>
 
 {{-- Period selector — onclick JS, no Livewire round-trip --}}
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
@@ -151,16 +152,16 @@ html.dark .nbm-bar-bg { background:#374151; }
 </div>
 
 {{-- Chart + Breakdown --}}
-@php $chart = $this->getChartData(); @endphp
+@php $initChart = $allPeriods[1]['chart']; @endphp
 <div class="nbm-grid-21">
     <div class="nbm-card">
         <p class="nbm-section-title">Monthly Revenue vs Expenses</p>
         {{-- wire:ignore prevents Livewire morphdom from destroying the chart canvas on period tab changes --}}
         <div wire:ignore style="position:relative;height:240px;">
             <canvas id="financeChart"
-                data-labels='@json($chart["labels"])'
-                data-revenue='@json($chart["revenue"])'
-                data-expenses='@json($chart["expenses"])'
+                data-labels='@json($initChart["labels"])'
+                data-revenue='@json($initChart["revenue"])'
+                data-expenses='@json($initChart["expenses"])'
             ></canvas>
         </div>
     </div>
@@ -277,6 +278,15 @@ function switchPeriod(months) {
     marginEl.className   = d.profitable ? 'nbm-sub-pos' : 'nbm-sub-neg';
     marginEl.textContent = d.margin !== null ? d.margin + '% margin' : 'No revenue yet';
 
+    // Chart — update data when period changes
+    const canvas = document.getElementById('financeChart');
+    if (canvas && canvas._chartInstance && d.chart) {
+        canvas._chartInstance.data.labels              = d.chart.labels;
+        canvas._chartInstance.data.datasets[0].data   = d.chart.revenue;
+        canvas._chartInstance.data.datasets[1].data   = d.chart.expenses;
+        canvas._chartInstance.update('active');
+    }
+
     // Breakdown
     const bEl = document.getElementById('nbm-breakdown');
     if (!bEl) return;
@@ -337,7 +347,11 @@ function _initChart() {
             },
             scales: {
                 x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } },
-                y: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 }, callback: function (val) { return 'Rs. ' + (val >= 1000 ? (val/1000).toFixed(0)+'k' : val); } } },
+                y: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 }, callback: function (val) {
+                    if (val === 0) return 'Rs. 0';
+                    if (val >= 1000) return val % 1000 === 0 ? 'Rs. ' + Math.round(val/1000) + 'k' : null;
+                    return val % 100 === 0 ? 'Rs. ' + val : null;
+                } } },
             },
         },
     });

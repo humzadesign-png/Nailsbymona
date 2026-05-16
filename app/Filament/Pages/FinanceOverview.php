@@ -135,10 +135,30 @@ class FinanceOverview extends Page
                 'margin'     => $revenue > 0 ? round(($net / $revenue) * 100) : null,
                 'avgOrder'   => $orderCount > 0 ? intdiv($revenue, $orderCount) : null,
                 'breakdown'  => $this->getCategoryBreakdown(),
+                'chart'      => $this->getChartDataForPeriod($months),
             ];
         }
         $this->period = $original;
         return $result;
+    }
+
+    private function getChartDataForPeriod(int $months): array
+    {
+        $labels   = [];
+        $revenue  = [];
+        $expenses = [];
+        for ($i = $months - 1; $i >= 0; $i--) {
+            $month      = now()->startOfMonth()->subMonths($i);
+            $labels[]   = $month->format('M y');
+            $revenue[]  = (int) Order::where('payment_status', PaymentStatus::Paid)
+                ->whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->sum('total_pkr');
+            $expenses[] = (int) Expense::whereYear('expense_date', $month->year)
+                ->whereMonth('expense_date', $month->month)
+                ->sum('amount_pkr');
+        }
+        return compact('labels', 'revenue', 'expenses');
     }
 
     // ── Recent expenses ───────────────────────────────────────────────────────

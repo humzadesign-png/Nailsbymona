@@ -2,9 +2,10 @@
 
 namespace App\Filament\Widgets;
 
-use App\Filament\Resources\BlogPostResource;
-use App\Models\BlogPost;
-use Filament\Actions;
+use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
+use App\Filament\Resources\OrderResource;
+use App\Models\Order;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -13,38 +14,62 @@ class TopBlogPostsWidget extends BaseWidget
 {
     protected static ?int $sort = 3;
     protected int | string | array $columnSpan = 'full';
-    protected static ?string $heading = 'Top blog posts';
+    protected static ?string $heading = 'Orders needing attention';
 
     public function table(Table $table): Table
     {
         return $table
             ->query(
-                BlogPost::query()
-                    ->where('is_published', true)
-                    ->orderByDesc('view_count')
-                    ->limit(5)
+                Order::query()
+                    ->where(function ($q) {
+                        $q->where('payment_status', PaymentStatus::Awaiting)
+                          ->orWhere('payment_status', PaymentStatus::Verifying)
+                          ->orWhere('status', OrderStatus::New);
+                    })
+                    ->latest()
+                    ->limit(10)
             )
             ->columns([
-                Tables\Columns\TextColumn::make('title')
-                    ->label('Post')->weight('semibold')->wrap()
-                    ->description(fn (BlogPost $r) => $r->slug),
+                Tables\Columns\TextColumn::make('order_number')
+                    ->label('Order')
+                    ->weight('semibold')
+                    ->url(fn (Order $r) => OrderResource::getUrl('edit', ['record' => $r])),
 
-                Tables\Columns\TextColumn::make('category')
+                Tables\Columns\TextColumn::make('customer_name')
+                    ->label('Customer')
+                    ->description(fn (Order $r) => $r->customer_phone),
+
+                Tables\Columns\TextColumn::make('total_pkr')
+                    ->label('Total')
+                    ->formatStateUsing(fn ($state) => 'Rs. ' . number_format($state)),
+
+                Tables\Columns\TextColumn::make('payment_status')
+                    ->label('Payment')
                     ->badge()
+                    ->color(fn ($state) => match ($state) {
+                        PaymentStatus::Awaiting  => 'warning',
+                        PaymentStatus::Verifying => 'info',
+                        default                  => 'gray',
+                    })
                     ->formatStateUsing(fn ($state) => $state->label()),
 
-                Tables\Columns\TextColumn::make('view_count')
-                    ->label('Views')->sortable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn ($state) => match ($state) {
+                        OrderStatus::New       => 'warning',
+                        OrderStatus::Confirmed => 'success',
+                        default                => 'gray',
+                    })
+                    ->formatStateUsing(fn ($state) => $state->label()),
 
-                Tables\Columns\TextColumn::make('published_at')
-                    ->label('Published')->dateTime('d M Y')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Placed')
+                    ->since()
+                    ->color('gray'),
             ])
-            ->actions([
-                Actions\Action::make('edit')
-                    ->url(fn (BlogPost $r) => BlogPostResource::getUrl('edit', ['record' => $r]))
-                    ->icon('heroicon-m-pencil-square'),
-            ])
+            ->emptyStateIcon('heroicon-o-check-circle')
+            ->emptyStateHeading('All caught up!')
+            ->emptyStateDescription('No orders are waiting for payment verification or confirmation.')
             ->paginated(false);
     }
 }
