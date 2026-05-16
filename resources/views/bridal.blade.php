@@ -41,7 +41,8 @@
       alt="Bridal press-on nails on hands resting on red velvet wedding fabric"
       class="absolute inset-0 w-full h-full object-cover"
       onerror="this.remove()"
-      width="1920" height="1080">
+      width="1920" height="1080"
+      loading="eager" fetchpriority="high">
     <div class="absolute inset-0" style="background: linear-gradient(to right, rgba(234,227,217,0.6) 0%, rgba(234,227,217,0.2) 50%, transparent 100%)"></div>
   </div>
 

@@ -26,6 +26,7 @@ class Order extends Model
         'payment_method', 'payment_status', 'status', 'sizing_capture_method',
         'tracking_number', 'courier',
         'confirmed_at', 'production_started_at', 'shipped_at', 'delivered_at', 'cancelled_at',
+        'refit_requested_at', 'refit_shipped_at', 'refit_notes',
     ];
 
     protected $casts = [
@@ -41,6 +42,8 @@ class Order extends Model
         'shipped_at'            => 'datetime',
         'delivered_at'          => 'datetime',
         'cancelled_at'          => 'datetime',
+        'refit_requested_at'    => 'datetime',
+        'refit_shipped_at'      => 'datetime',
     ];
 
     public function customer(): BelongsTo

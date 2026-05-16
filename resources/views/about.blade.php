@@ -50,7 +50,8 @@
   <div class="absolute inset-0 z-0" style="background: linear-gradient(135deg, #EAE3D9 0%, #FBF8F2 60%, #E0D9CE 100%)">
     <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJ32yAAfsHl2sbXiBXZLY3IKtRwIkwWXvKcHiU-VwXu3GcBZS-OCOQtkAzs0rwKgW4Dxp9-Z2au4aru1Nu0BtdA5S-uZ-NUYxfvCRB_EPlJ78I5QkkZiWeSOyecrlfT0sA2Kwo2P3RsYdsqE_IW2xtSSrJ7oKPp3RpON2gXOphhVK9Cf3kYPdg_HLtT-hDSpv_Dk7TIiOOMCwZD8yjf2AGWErYtoydiByeD07Oucov2MbMli1OY4mgn38QBbTbMGRf_-KaN1SZYy0"
          alt="Mona's hands working on a press-on nail set in her studio in Mirpur"
-         class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()" width="1440" height="900">
+         class="absolute inset-0 w-full h-full object-cover" onerror="this.remove()" width="1440" height="900"
+         loading="eager" fetchpriority="high">
     <div class="absolute inset-0 bg-gradient-to-t from-bone via-bone/30 to-transparent"></div>
     <div class="absolute inset-0 bg-gradient-to-r from-bone/60 via-transparent to-transparent"></div>
   </div>

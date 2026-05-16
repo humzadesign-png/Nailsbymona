@@ -4,11 +4,12 @@ namespace App\Notifications;
 
 use App\Models\ContactMessage;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\WebPush\WebPushChannel;
 use NotificationChannels\WebPush\WebPushMessage;
 
-class NewMessageNotification extends Notification
+class NewMessageNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

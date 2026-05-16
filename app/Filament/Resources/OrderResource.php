@@ -78,7 +78,12 @@ class OrderResource extends Resource
                         OrderStatus::Cancelled    => 'danger',
                         default                   => 'gray',
                     })
-                    ->formatStateUsing(fn ($state) => $state instanceof OrderStatus ? $state->label() : $state),
+                    ->formatStateUsing(fn ($state) => $state instanceof OrderStatus ? $state->label() : $state)
+                    ->description(fn (Order $r) =>
+                        $r->refit_requested_at && ! $r->refit_shipped_at
+                            ? '↺ refit pending'
+                            : ($r->refit_shipped_at ? '↺ refit shipped' : null)
+                    ),
 
                 Tables\Columns\TextColumn::make('payment_status')
                     ->label('Payment')
@@ -114,10 +119,19 @@ class OrderResource extends Resource
                     ->options(collect(PaymentStatus::cases())->mapWithKeys(fn ($e) => [$e->value => $e->label()])),
                 Tables\Filters\Filter::make('awaiting_payment')
                     ->label('Awaiting payment')
-                    ->query(fn ($query) => $query->where('payment_status', PaymentStatus::Awaiting)),
+                    // Surface oldest-first so the SLA-breached orders rise to the top.
+                    ->query(fn ($query) => $query
+                        ->where('payment_status', PaymentStatus::Awaiting)
+                        ->reorder('created_at', 'asc')),
                 Tables\Filters\Filter::make('returning_customers')
                     ->label('Returning customers')
                     ->query(fn ($query) => $query->where('is_returning_customer', true)),
+                Tables\Filters\Filter::make('refit_pending')
+                    ->label('Refit pending')
+                    ->query(fn ($query) => $query
+                        ->whereNotNull('refit_requested_at')
+                        ->whereNull('refit_shipped_at')
+                        ->reorder('refit_requested_at', 'asc')),
             ])
             ->actions([
                 Actions\ViewAction::make(),
@@ -266,6 +280,43 @@ class OrderResource extends Resource
                     ->visible(fn (Order $r) => $r->status === OrderStatus::Shipped)
                     ->action(fn (Order $r) => $r->update(['status' => OrderStatus::Delivered, 'delivered_at' => now()]))
                     ->requiresConfirmation(),
+
+                Actions\Action::make('refit_requested')
+                    ->label('Refit requested')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->visible(fn (Order $r) => $r->status === OrderStatus::Delivered && ! $r->refit_requested_at)
+                    ->modalHeading('Record refit request')
+                    ->modalDescription('Marks this order as needing a free first refit. Add any notes about which nails Mona needs to remake.')
+                    ->modalSubmitActionLabel('Save refit request')
+                    ->form([
+                        Forms\Components\Textarea::make('refit_notes')
+                            ->label('Refit notes (which nails, what the issue is)')
+                            ->rows(3)
+                            ->maxLength(2000),
+                    ])
+                    ->action(function (Order $r, array $data) {
+                        $r->update([
+                            'refit_requested_at' => now(),
+                            'refit_notes'        => $data['refit_notes'] ?? null,
+                        ]);
+                        Notification::make()->title('Refit request recorded.')->success()->send();
+                    }),
+
+                Actions\Action::make('refit_shipped')
+                    ->label('Refit shipped')
+                    ->icon('heroicon-o-truck')
+                    ->color('success')
+                    ->visible(fn (Order $r) => $r->refit_requested_at && ! $r->refit_shipped_at)
+                    ->requiresConfirmation()
+                    ->modalHeading('Mark refit as shipped')
+                    ->modalDescription('Confirms the free refit has been re-made and posted to the customer.')
+                    ->modalSubmitActionLabel('Yes, refit dispatched')
+                    ->action(function (Order $r) {
+                        $r->update(['refit_shipped_at' => now()]);
+                        Notification::make()->title('Refit dispatch recorded.')->success()->send();
+                    }),
+
                 self::recordNailSizesAction(),
             ])
             ->bulkActions([
@@ -379,6 +430,23 @@ class OrderResource extends Resource
                                 ->formatStateUsing(fn ($state) => 'Rs. ' . number_format($state)),
                         ])
                         ->columns(4),
+                ]),
+
+            InfoSection::make('Refit (free first refit policy)')
+                ->columns(2)
+                ->columnSpanFull()
+                ->compact()
+                ->visible(fn (Order $r) => $r->refit_requested_at || $r->refit_shipped_at || $r->refit_notes)
+                ->schema([
+                    Infolists\Components\TextEntry::make('refit_requested_at')
+                        ->dateTime('d M Y, g:ia')
+                        ->placeholder('—'),
+                    Infolists\Components\TextEntry::make('refit_shipped_at')
+                        ->dateTime('d M Y, g:ia')
+                        ->placeholder('—'),
+                    Infolists\Components\TextEntry::make('refit_notes')
+                        ->columnSpanFull()
+                        ->placeholder('—'),
                 ]),
 
             InfoSection::make('Shipping & Totals')

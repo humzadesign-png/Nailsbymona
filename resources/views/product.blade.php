@@ -88,7 +88,7 @@
             src="{{ $imgSrc }}"
             alt="{{ $imgAlt }}"
             class="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700"
-            onerror="this.remove()" width="800" height="800">
+            onerror="this.remove()" width="800" height="800" loading="eager" fetchpriority="high">
           @endif
         </div>
         <!-- Thumbnails -->

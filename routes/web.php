@@ -69,7 +69,11 @@ Route::post('/contact', function (Request $request) {
 
     $msg = ContactMessage::create($validated);
     try {
-        \App\Models\User::all()->each->notify(new NewMessageNotification($msg));
+        \App\Models\User::query()->chunkById(50, function ($users) use ($msg) {
+            foreach ($users as $u) {
+                $u->notify(new NewMessageNotification($msg));
+            }
+        });
     } catch (\Throwable $e) {
         \Log::error('NewMessageNotification push failed', ['error' => $e->getMessage()]);
     }

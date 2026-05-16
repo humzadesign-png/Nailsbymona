@@ -381,9 +381,15 @@ class OrderController extends Controller
             Log::error('OrderPlaced mail failed', ['order' => $order->id, 'error' => $e->getMessage()]);
         }
 
-        // Push notification to admin for new order.
+        // Push notification to admin for new order. Notification class implements
+        // ShouldQueue, so this enqueues one job per user and doesn't block the
+        // request. chunkById avoids loading all admins into memory.
         try {
-            \App\Models\User::all()->each->notify(new NewOrderNotification($order));
+            \App\Models\User::query()->chunkById(50, function ($users) use ($order) {
+                foreach ($users as $u) {
+                    $u->notify(new NewOrderNotification($order));
+                }
+            });
         } catch (\Throwable $e) {
             Log::error('NewOrderNotification push failed', ['order' => $order->id, 'error' => $e->getMessage()]);
         }

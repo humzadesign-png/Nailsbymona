@@ -412,17 +412,62 @@
 <script>
 $(function () {
 
+    // ── Focus trap helpers (WCAG 2.2 — keyboard users can't tab outside an open modal) ──
+    const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    function getFocusables(container) {
+        return container.find(FOCUSABLE_SELECTOR).filter(':visible').filter(function () {
+            return this.offsetParent !== null; // not display:none ancestor
+        });
+    }
+
+    function activateFocusTrap($container) {
+        const $focusables = getFocusables($container);
+        if ($focusables.length === 0) return;
+
+        const first = $focusables.first()[0];
+        const last  = $focusables.last()[0];
+
+        $container.on('keydown.focusTrap', function (e) {
+            if (e.key !== 'Tab') return;
+            const focusables = getFocusables($container);
+            if (focusables.length === 0) return;
+            const f = focusables.first()[0];
+            const l = focusables.last()[0];
+            if (e.shiftKey && document.activeElement === f) {
+                e.preventDefault(); l.focus();
+            } else if (!e.shiftKey && document.activeElement === l) {
+                e.preventDefault(); f.focus();
+            }
+        });
+    }
+
+    function deactivateFocusTrap($container) {
+        $container.off('keydown.focusTrap');
+    }
+
     // ── Mobile menu ─────────────────────────────────────
     const $menu = $('#mobile-menu');
     const $body = $('body');
+    let menuRestoreEl = null;
 
     function openMenu() {
+        menuRestoreEl = document.activeElement;
         $menu.removeClass('hidden').attr('aria-hidden', 'false');
         $body.css('overflow', 'hidden');
+        // Move focus into the menu (close button is a reliable first stop).
+        setTimeout(() => $('#mobile-menu-close').trigger('focus'), 0);
+        activateFocusTrap($menu);
     }
     function closeMenu() {
+        deactivateFocusTrap($menu);
         $menu.addClass('hidden').attr('aria-hidden', 'true');
         $body.css('overflow', '');
+        // Restore focus to whatever the user clicked to open the menu.
+        if (menuRestoreEl && typeof menuRestoreEl.focus === 'function') {
+            menuRestoreEl.focus();
+        }
+        menuRestoreEl = null;
     }
 
     $('#mobile-menu-toggle').on('click', openMenu);
@@ -431,17 +476,31 @@ $(function () {
     // ── Bag drawer ──────────────────────────────────────
     const $drawer   = $('#bag-drawer');
     const $backdrop = $('#bag-backdrop');
+    let bagRestoreEl = null;
 
     function openBag() {
+        bagRestoreEl = document.activeElement;
         $drawer.removeClass('translate-x-full').attr('aria-hidden', 'false');
         $backdrop.removeClass('hidden');
         $body.css('overflow', 'hidden');
         renderBag();
+        // Focus the close button first (or the checkout button if the bag has items).
+        setTimeout(() => {
+            const items = getBag();
+            const $target = items.length ? $('#bag-checkout-btn') : $('#bag-close');
+            if ($target.length) $target.trigger('focus');
+        }, 0);
+        activateFocusTrap($drawer);
     }
     function closeBag() {
+        deactivateFocusTrap($drawer);
         $drawer.addClass('translate-x-full').attr('aria-hidden', 'true');
         $backdrop.addClass('hidden');
         $body.css('overflow', '');
+        if (bagRestoreEl && typeof bagRestoreEl.focus === 'function') {
+            bagRestoreEl.focus();
+        }
+        bagRestoreEl = null;
     }
 
     $('#bag-toggle').on('click', openBag);
@@ -456,9 +515,11 @@ $(function () {
         $('#bag-checkout-form')[0].submit();
     });
 
-    // Escape closes both
+    // Escape closes both (only acts on the currently open overlay)
     $(document).on('keydown', function (e) {
-        if (e.key === 'Escape') { closeMenu(); closeBag(); }
+        if (e.key !== 'Escape') return;
+        if (!$menu.hasClass('hidden'))   closeMenu();
+        if (!$drawer.hasClass('translate-x-full')) closeBag();
     });
 
     // ── Bag: localStorage ───────────────────────────────
@@ -499,7 +560,7 @@ $(function () {
         const html = items.map((item, idx) => `
           <li class="flex gap-4 px-6 py-5 items-start">
             <div class="w-[60px] h-[60px] rounded-xl overflow-hidden bg-shell shrink-0">
-              ${item.image ? `<img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover" width="60" height="60">` : ''}
+              ${item.image ? `<img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover" width="60" height="60" loading="lazy">` : ''}
             </div>
             <div class="flex-1 min-w-0">
               <p class="font-serif text-ink leading-snug mb-0.5 truncate" style="font-size:1rem; font-weight:300">${item.name}</p>

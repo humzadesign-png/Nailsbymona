@@ -172,7 +172,7 @@
         <div class="order-1 md:order-2 rounded-2xl aspect-[4/3] bg-shell flex items-center justify-center p-10">
           <img src="{{ asset('icons/sizing-fingers.svg') }}"
                alt="Four fingers laid flat with coin above middle finger — sizing overlay guide"
-               class="w-full h-full object-contain opacity-90" width="400" height="480">
+               class="w-full h-full object-contain opacity-90" width="400" height="480" loading="lazy">
         </div>
       </div>
 
@@ -182,7 +182,7 @@
         <div class="rounded-2xl aspect-[4/3] bg-shell flex items-center justify-center p-10">
           <img src="{{ asset('icons/sizing-thumb.svg') }}"
                alt="Thumb extended flat with coin above thumbnail — sizing overlay guide"
-               class="w-full h-full object-contain opacity-90" width="300" height="480">
+               class="w-full h-full object-contain opacity-90" width="300" height="480" loading="lazy">
         </div>
         <div>
           <div class="flex items-center gap-4 mb-5">

@@ -115,7 +115,8 @@ $blogPostSchema = json_encode([
     <div class="rounded-2xl overflow-hidden aspect-[16/9] relative">
       <img src="{{ asset('storage/' . $post->cover_image) }}"
            alt="{{ $post->cover_image_alt ?? $post->title }}"
-           class="w-full h-full object-cover" loading="eager">
+           class="w-full h-full object-cover"
+           loading="eager" fetchpriority="high">
     </div>
   </div>
 </section>
