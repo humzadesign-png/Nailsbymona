@@ -2,7 +2,7 @@
 
 > Press-on gel nails e-commerce website + brand strategy for Mona's business, currently run via Instagram DMs. Surprise gift from Humza (in Germany) for his wife (in Mirpur, Azad Kashmir). Mona does not know we're building this.
 >
-> **Status:** Planning + market research + UX & marketing strategy complete. No code written yet.
+> **Status:** Phases 0–3 complete and live at nailsbymona.pk. Phase 4 (Blog + SEO) is next.
 >
 > This file is the source of truth for future Claude sessions. If anything here conflicts with memory or training data, trust this file.
 
@@ -496,16 +496,12 @@ fontFamily: {
 Laravel + Tailwind + jQuery + Filament + `intervention/image` + `spatie/laravel-settings` + `spatie/laravel-sitemap`. SQLite. Initial commit. Tailwind v4 CSS-based config with `@theme` block. All custom palette + font tokens confirmed in compiled CSS.
 
 ### Phase 1 — Public marketing site ✅ COMPLETE (2026-05-10)
-All 9 public marketing Blade views created and returning HTTP 200. 4 Phase 2 order-flow stub views in place. `<x-seo>` component with full meta + OG + JSON-LD. `layouts/app.blade.php` with sticky nav, mobile full-screen overlay, bag drawer (localStorage `nbm.bag`), `window.NbmBag` global API, dark footer. SEO JSON-LD using `@graph` pattern on all multi-schema pages.
+All 9 public marketing Blade views created and returning HTTP 200. `<x-seo>` component with full meta + OG + JSON-LD. `layouts/app.blade.php` with sticky nav, mobile full-screen overlay, bag drawer (localStorage `nbm.bag`), `window.NbmBag` global API, dark footer. SEO JSON-LD using `@graph` pattern on all multi-schema pages.
 
-**Views delivered:** `home` · `shop` · `product` · `bridal` · `size-guide` · `about` · `contact` · `blog` · `blog-post` · `order-form` (stub) · `sizing-capture` (stub) · `order-confirmation` (stub) · `order-tracking` (stub)
+**Views delivered:** `home` · `shop` · `product` · `bridal` · `size-guide` · `about` · `contact` · `blog` · `blog-post` · `order/start` · `order/sizing-capture` · `order/confirm` · `order/track`
 
-**Next up → Phase 2.** Reference HTML mockups for all 4 order-flow pages in `html/order-form.html`, `html/sizing-capture.html`, `html/order-confirmation.html`, `html/order-tracking.html`.
-
-### Phase 2 — Order flow + live camera (days 4–8)
-Multi-step order form, **live-camera sizing capture with overlay — 2 close-up photos (fingers + thumb), optional opt-in for 2 more for the other hand** (section 8), upload fallback, returning-customer lookup, advance-payment logic, confirmation + manual payment-proof upload, email notifications, tracking page. **No payment gateway at MVP** — SafePay deferred to Phase 6 (see §26 for the architectural plan).
-
-*Phase budget bumped from 4–6 to 4–8 days on 2026-05-07 — the 2-photo state machine + green/red edge-contrast heuristic + schema migration adds 1–2 days. Justified: the macro flow should drop refit-rate enough to repay the build week within the first 30 orders.*
+### Phase 2 — Order flow + live camera ✅ COMPLETE (2026-05-16)
+Multi-step order form (sizing → details → payment, each a separate URL), **live-camera sizing capture with 2-photo state machine (fingers + thumb)**, optional opt-in for 2 more photos (other hand), upload fallback, desktop QR-code handoff, returning-customer lookup (phone/email → skip sizing if profile on file), advance-payment logic (30% for orders ≥ Rs. 5,000; full advance for Bridal Trio), confirmation page with payment-proof drag-and-drop upload, order tracking page with 5-node timeline, 6 transactional email templates (OrderPlaced, PaymentVerified, InProduction, Shipped, PaymentReminder ×2, AutoCancel), background jobs for 24h/48h payment reminders and 72h auto-cancel. **No payment gateway** — SafePay deferred to Phase 6.
 
 ### Phase 3 — Filament admin (days 7–8) ✅ COMPLETE (2026-05-13)
 All 7 resources (Orders, Products, UgcPhotos, Customers, BlogPosts, FAQs, ContactMessages), Settings page, 2 dashboard widgets (OrderStats, RecentOrders), admin seeder, 9 demo products seeded. Filament v4 API patterns documented in §32 session history (2026-05-13 entry).
