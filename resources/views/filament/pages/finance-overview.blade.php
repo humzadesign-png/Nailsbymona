@@ -150,7 +150,14 @@ html.dark .nbm-bar-bg { background:#374151; }
 <div class="nbm-grid-21">
     <div class="nbm-card">
         <p class="nbm-section-title">Monthly Revenue vs Expenses</p>
-        <canvas id="financeChart" style="width:100%;max-height:240px;"></canvas>
+        {{-- wire:ignore prevents Livewire morphdom from destroying the chart canvas on period tab changes --}}
+        <div wire:ignore style="position:relative;height:240px;">
+            <canvas id="financeChart"
+                data-labels='@json($chart["labels"])'
+                data-revenue='@json($chart["revenue"])'
+                data-expenses='@json($chart["expenses"])'
+            ></canvas>
+        </div>
     </div>
 
     <div class="nbm-card">
@@ -221,9 +228,7 @@ html.dark .nbm-bar-bg { background:#374151; }
 <script>
 document.addEventListener('DOMContentLoaded', function () { loadOrInitChart(); });
 document.addEventListener('livewire:navigated', function () { loadOrInitChart(); });
-Livewire.hook('commit', ({ succeed }) => {
-    succeed(() => { requestAnimationFrame(() => initFinanceChart()); });
-});
+
 function loadOrInitChart() {
     if (typeof Chart === 'undefined') {
         const s = document.createElement('script');
@@ -241,18 +246,21 @@ function initFinanceChart() {
     const isDark = document.documentElement.classList.contains('dark');
     const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
     const textColor = isDark ? '#9CA3AF' : '#6B7280';
+    const labels   = JSON.parse(canvas.dataset.labels);
+    const revenue  = JSON.parse(canvas.dataset.revenue);
+    const expenses = JSON.parse(canvas.dataset.expenses);
     canvas._chartInstance = new Chart(canvas, {
         type: 'bar',
         data: {
-            labels: @json($chart['labels']),
+            labels,
             datasets: [
-                { label: 'Revenue', data: @json($chart['revenue']), backgroundColor: 'rgba(191,164,206,0.85)', borderRadius: 5, borderSkipped: false },
-                { label: 'Expenses', data: @json($chart['expenses']), backgroundColor: 'rgba(201,110,110,0.75)', borderRadius: 5, borderSkipped: false },
+                { label: 'Revenue', data: revenue, backgroundColor: 'rgba(191,164,206,0.85)', borderRadius: 5, borderSkipped: false },
+                { label: 'Expenses', data: expenses, backgroundColor: 'rgba(201,110,110,0.75)', borderRadius: 5, borderSkipped: false },
             ],
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: { labels: { color: textColor, font: { size: 12 }, boxWidth: 12, boxHeight: 12 } },
                 tooltip: { callbacks: { label: ctx => ' Rs. ' + ctx.parsed.y.toLocaleString() } },
