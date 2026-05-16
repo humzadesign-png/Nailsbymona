@@ -26,35 +26,6 @@
     />
 @endsection
 
-@push('head')
-<style>
-  /* Hero card — dark editorial glass.
-     A light translucent card over a saturated photo turns hot-pink/magenta
-     from the colour bleed; saturating it amplifies the problem. So we
-     invert: deep ink-tinted glass + cream typography, reading like a
-     film-poster credit block or fine-art placard. Sits INTO the photo
-     rather than fighting it. */
-  .hero-glass {
-    background-color: rgba(28, 23, 39, 0.55);     /* ink at 55% */
-    backdrop-filter: blur(20px) saturate(105%);   /* gentle blur, no saturation pump */
-    -webkit-backdrop-filter: blur(20px) saturate(105%);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.14),    /* glass meniscus */
-      0 24px 60px -20px rgba(0, 0, 0, 0.55),
-      0 8px 24px -6px rgba(0, 0, 0, 0.30);
-  }
-  /* Fallback for older browsers without backdrop-filter — bump opacity
-     so text contrast stays WCAG AA. */
-  @supports not ((backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px))) {
-    .hero-glass { background-color: rgba(28, 23, 39, 0.86); }
-  }
-  /* Secondary text link inside the dark card — cream at low opacity, brightens on hover. */
-  .hero-glass-link { color: rgba(244, 239, 232, 0.62); transition: color 0.2s ease; }
-  .hero-glass-link:hover { color: rgba(244, 239, 232, 0.95); }
-</style>
-@endpush
-
 @section('content')
 
 {{-- ═══════════════════════════════════════════
@@ -85,53 +56,45 @@
                 onerror="this.parentElement.remove()"
                 width="1920" height="1080">
         </picture>
-        {{-- Subtle vignette — keeps the brand mood without dulling the photo behind the glass card --}}
+        <div class="absolute inset-0 bg-gradient-to-r from-ink/35 via-ink/15 to-transparent"></div>
         <div class="absolute inset-0 bg-gradient-to-t from-ink/15 via-transparent to-transparent"></div>
     </div>
 
-    {{-- Editorial dark-glass card — embraces the photo's mood instead of fighting it.
-         One eyebrow, two-line H1, tight proof copy, one confident CTA + a small
-         secondary text link. Cream typography on translucent ink. --}}
-    <div class="relative z-10 max-w-7xl mx-auto px-8 lg:px-16 py-28 lg:py-32 w-full">
-        <div class="hero-glass w-full max-w-[500px] rounded-[2rem] p-10 md:p-14 lg:ml-4">
+    {{-- Frosted editorial card --}}
+    <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 py-24 w-full">
+        <div class="w-full max-w-[560px] bg-paper/82 backdrop-blur-[14px] rounded-2xl border border-white/35 shadow-2xl shadow-ink/15 p-10 md:p-14">
 
-            <p class="font-sans uppercase mb-10"
-               style="font-size:0.7rem; letter-spacing:0.24em; font-weight:500; color:rgba(244,239,232,0.75)">
-                Handmade press-on nails
-            </p>
+            <div class="flex flex-wrap gap-2 mb-6">
+                <span class="inline-flex items-center rounded-full border border-lavender/40 bg-lavender/10 px-3 py-1 font-sans font-medium text-lavender-ink"
+                      style="font-size:0.72rem;letter-spacing:0.06em">
+                    Handmade in Mirpur
+                </span>
+                <span class="inline-flex items-center rounded-full border border-lavender/40 bg-lavender/10 px-3 py-1 font-sans font-medium text-lavender-ink"
+                      style="font-size:0.72rem;letter-spacing:0.06em">
+                    Made to fit
+                </span>
+            </div>
 
-            <h1 class="font-serif mb-8"
-                style="font-size:clamp(2.4rem, 5.2vw, 3.75rem);
-                       line-height:0.98;
-                       letter-spacing:-0.022em;
-                       font-weight:300;
-                       color:#FBF8F2;
-                       font-variation-settings:'opsz' 144,'SOFT' 30">
-                Made to fit<br>your hands.
+            <h1 class="font-serif text-display-xl text-ink mb-7 max-w-[14ch]">
+                Custom-fit press-on nails,<br>made for your hands.
             </h1>
 
-            <p class="font-sans mb-11 max-w-[28ch]"
-               style="font-size:1.0625rem; line-height:1.6; color:rgba(244,239,232,0.78)">
-                Sized from two close-up photos of your fingertips.<br>
-                Wudu-friendly. Reusable three to five times.
+            <p class="font-sans text-body-lg text-graphite mb-10 max-w-[400px]">
+                Handmade gel sets, sized from two close-up photos of your fingers and thumb. Wudu-friendly. Reusable three to five times. Shipped across Pakistan.
             </p>
 
-            <a href="{{ route('shop') }}"
-               class="group inline-flex items-center gap-2.5 bg-bone hover:bg-paper text-ink font-sans rounded-full px-9 py-4 transition-colors duration-200"
-               style="font-size:0.95rem; font-weight:500; letter-spacing:0.01em">
-                Shop the collection
-                <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <line x1="40" y1="128" x2="216" y2="128"/>
-                    <polyline points="144 56 216 128 144 200"/>
-                </svg>
-            </a>
-
-            <div class="mt-8">
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="{{ route('shop') }}"
+                   class="inline-flex items-center gap-2.5 bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full px-9 py-4 transition-colors duration-200" style="font-size:1rem">
+                    Browse the collection
+                    <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="40" y1="128" x2="216" y2="128"/>
+                        <polyline points="144 56 216 128 144 200"/>
+                    </svg>
+                </a>
                 <a href="{{ route('bridal') }}"
-                   class="hero-glass-link group inline-flex items-center gap-1.5 font-sans"
-                   style="font-size:0.875rem">
-                    View the Bridal Trio
-                    <span class="transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">&rarr;</span>
+                   class="inline-flex items-center gap-2 border border-ink/70 text-ink hover:bg-ink hover:text-bone font-sans text-caption font-medium tracking-wide rounded-full px-7 py-4 transition-colors duration-200">
+                    Bridal Trio &rarr;
                 </a>
             </div>
 
