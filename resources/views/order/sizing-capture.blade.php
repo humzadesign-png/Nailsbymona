@@ -339,8 +339,8 @@
           {{-- Ring — 75px wide, center x=132, x=95-170. ~90% of middle height. --}}
           <path d="M95,870 L95,406 Q95,368 132,368 Q170,368 170,406 L170,870"
                 stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
-          {{-- Middle — 64px wide, center x=220, x=188-252. Tallest. --}}
-          <path d="M188,870 L188,344 Q188,312 220,312 Q252,312 252,344 L252,870"
+          {{-- Middle — 75px wide, center x=220, x=183-258. Tallest. --}}
+          <path d="M183,870 L183,350 Q183,312 220,312 Q258,312 258,350 L258,870"
                 stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
           {{-- Index — 75px wide, center x=308, x=271-346. ~88% of middle height. --}}
           <path d="M271,870 L271,417 Q271,379 308,379 Q346,379 346,417 L346,870"
