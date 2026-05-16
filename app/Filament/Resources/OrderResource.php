@@ -91,7 +91,8 @@ class OrderResource extends Resource
                         PaymentStatus::Refunded       => 'danger',
                         default                       => 'gray',
                     })
-                    ->formatStateUsing(fn ($state) => $state instanceof PaymentStatus ? $state->label() : $state),
+                    ->formatStateUsing(fn ($state) => $state instanceof PaymentStatus ? $state->label() : $state)
+                    ->description(fn (Order $r) => $r->payment_age_label),
 
                 Tables\Columns\TextColumn::make('payment_method')
                     ->label('Method')
@@ -120,19 +121,36 @@ class OrderResource extends Resource
             ])
             ->actions([
                 Actions\ViewAction::make(),
+
+                Actions\Action::make('whatsapp')
+                    ->label('WhatsApp')
+                    ->icon('heroicon-o-chat-bubble-oval-left-ellipsis')
+                    ->color('gray')
+                    ->visible(fn (Order $r) => filled($r->customer_phone))
+                    ->url(function (Order $r) {
+                        $digits = preg_replace('/\D+/', '', $r->customer_phone ?? '');
+                        $msg    = "Hello, this is Mona. About your order {$r->order_number} —";
+                        return "https://wa.me/{$digits}?text=" . rawurlencode($msg);
+                    })
+                    ->openUrlInNewTab(),
+
                 Actions\Action::make('confirm')
-                    ->label('Mark Confirmed')
+                    ->label('Confirm: full payment')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->visible(fn (Order $r) => $r->status === OrderStatus::New)
                     ->requiresConfirmation()
-                    ->modalHeading('Confirm payment & order')
-                    ->modalDescription('This will mark the payment as paid and confirm the order. A confirmation email will be sent to the customer.')
-                    ->modalSubmitActionLabel('Yes, confirm order')
+                    ->modalHeading('Confirm full payment')
+                    ->modalDescription(fn (Order $r) =>
+                        'This marks the full Rs. ' . number_format($r->total_pkr) .
+                        ' as paid and confirms the order. A confirmation email is sent to the customer.')
+                    ->modalSubmitActionLabel('Yes, confirm full payment')
                     ->action(function (Order $r) {
                         $r->update([
-                            'status'         => OrderStatus::Confirmed,
-                            'payment_status' => PaymentStatus::Paid,
+                            'status'           => OrderStatus::Confirmed,
+                            'payment_status'   => PaymentStatus::Paid,
+                            'advance_paid_pkr' => $r->total_pkr,
+                            'confirmed_at'     => now(),
                         ]);
                         try {
                             Mail::to($r->customer_email)->send(new PaymentVerified($r));
@@ -140,6 +158,53 @@ class OrderResource extends Resource
                             \Log::error('PaymentVerified mail failed', ['order' => $r->id, 'e' => $e->getMessage()]);
                         }
                         Notification::make()->title('Order confirmed — email sent to customer.')->success()->send();
+                    }),
+
+                Actions\Action::make('confirm_advance')
+                    ->label('Confirm: advance only')
+                    ->icon('heroicon-o-banknotes')
+                    ->color('info')
+                    ->visible(fn (Order $r) => $r->status === OrderStatus::New && $r->requires_advance)
+                    ->requiresConfirmation()
+                    ->modalHeading('Confirm advance payment')
+                    ->modalDescription(fn (Order $r) =>
+                        'The customer paid the Rs. ' . number_format($r->advanceAmountPkr()) .
+                        ' advance (of Rs. ' . number_format($r->total_pkr) . ' total). ' .
+                        'Production can start. The balance is collected before dispatch.')
+                    ->modalSubmitActionLabel('Yes, advance received')
+                    ->action(function (Order $r) {
+                        $r->update([
+                            'status'           => OrderStatus::Confirmed,
+                            'payment_status'   => PaymentStatus::PartialAdvance,
+                            'advance_paid_pkr' => $r->advanceAmountPkr(),
+                            'confirmed_at'     => now(),
+                        ]);
+                        try {
+                            Mail::to($r->customer_email)->send(new PaymentVerified($r));
+                        } catch (\Throwable $e) {
+                            \Log::error('PaymentVerified mail failed', ['order' => $r->id, 'e' => $e->getMessage()]);
+                        }
+                        Notification::make()->title('Advance recorded — email sent to customer.')->success()->send();
+                    }),
+
+                Actions\Action::make('mark_balance_paid')
+                    ->label('Balance received')
+                    ->icon('heroicon-o-currency-rupee')
+                    ->color('success')
+                    ->visible(fn (Order $r) => $r->payment_status === PaymentStatus::PartialAdvance)
+                    ->requiresConfirmation()
+                    ->modalHeading('Mark balance as paid')
+                    ->modalDescription(fn (Order $r) =>
+                        'Confirms the customer paid the remaining Rs. ' .
+                        number_format($r->total_pkr - (int) $r->advance_paid_pkr) .
+                        '. Total received: Rs. ' . number_format($r->total_pkr) . '.')
+                    ->modalSubmitActionLabel('Yes, balance received')
+                    ->action(function (Order $r) {
+                        $r->update([
+                            'payment_status'   => PaymentStatus::Paid,
+                            'advance_paid_pkr' => $r->total_pkr,
+                        ]);
+                        Notification::make()->title('Balance recorded — order is fully paid.')->success()->send();
                     }),
                 Actions\Action::make('in_production')
                     ->label('In Production')
@@ -205,6 +270,41 @@ class OrderResource extends Resource
             ])
             ->bulkActions([
                 Actions\BulkActionGroup::make([
+                    Actions\BulkAction::make('confirm_bulk')
+                        ->label('Confirm: full payment')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Confirm full payment on selected orders')
+                        ->modalDescription('Marks each selected new order as fully paid and confirmed. A confirmation email is sent for each. Orders not in "New" status are skipped.')
+                        ->modalSubmitActionLabel('Yes, confirm all')
+                        ->action(function ($records) {
+                            $confirmed = 0;
+                            $skipped   = 0;
+                            foreach ($records as $r) {
+                                if ($r->status !== OrderStatus::New) {
+                                    $skipped++;
+                                    continue;
+                                }
+                                $r->update([
+                                    'status'           => OrderStatus::Confirmed,
+                                    'payment_status'   => PaymentStatus::Paid,
+                                    'advance_paid_pkr' => $r->total_pkr,
+                                    'confirmed_at'     => now(),
+                                ]);
+                                try {
+                                    Mail::to($r->customer_email)->send(new PaymentVerified($r));
+                                } catch (\Throwable $e) {
+                                    \Log::error('PaymentVerified mail failed', ['order' => $r->id, 'e' => $e->getMessage()]);
+                                }
+                                $confirmed++;
+                            }
+                            $title = "Confirmed {$confirmed} order" . ($confirmed === 1 ? '' : 's');
+                            if ($skipped) {
+                                $title .= " · skipped {$skipped} not in New status";
+                            }
+                            Notification::make()->title($title)->success()->send();
+                        }),
                     Actions\DeleteBulkAction::make(),
                 ]),
             ]);
@@ -386,15 +486,36 @@ class OrderResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Forms\Components\Select::make('status')
-                ->options(collect(OrderStatus::cases())->mapWithKeys(fn ($e) => [$e->value => $e->label()]))
-                ->required(),
-            Forms\Components\Select::make('payment_status')
-                ->options(collect(PaymentStatus::cases())->mapWithKeys(fn ($e) => [$e->value => $e->label()]))
-                ->required(),
-            Forms\Components\TextInput::make('tracking_number'),
-            Forms\Components\Select::make('courier')
-                ->options(['tcs' => 'TCS', 'leopards' => 'Leopards', 'mp' => 'M&P', 'blueex' => 'BlueEx']),
+            \Filament\Schemas\Components\Section::make('Order status')->columns(2)->compact()->schema([
+                Forms\Components\Select::make('status')
+                    ->options(collect(OrderStatus::cases())->mapWithKeys(fn ($e) => [$e->value => $e->label()]))
+                    ->required(),
+                Forms\Components\Select::make('payment_status')
+                    ->options(collect(PaymentStatus::cases())->mapWithKeys(fn ($e) => [$e->value => $e->label()]))
+                    ->required(),
+                Forms\Components\TextInput::make('advance_paid_pkr')
+                    ->label('Advance paid (PKR)')
+                    ->numeric()->prefix('Rs.')
+                    ->helperText('Amount the customer has paid so far. Equal to total = fully paid.'),
+                Forms\Components\TextInput::make('tracking_number'),
+                Forms\Components\Select::make('courier')
+                    ->options(['tcs' => 'TCS', 'leopards' => 'Leopards', 'mp' => 'M&P', 'blueex' => 'BlueEx']),
+            ]),
+
+            \Filament\Schemas\Components\Section::make('Customer (snapshot)')
+                ->description('Editable in case the customer mistyped at checkout. Original customer record stays linked.')
+                ->columns(2)->compact()->schema([
+                    Forms\Components\TextInput::make('customer_name')->required()->maxLength(100),
+                    Forms\Components\TextInput::make('customer_phone')->required()->maxLength(30),
+                    Forms\Components\TextInput::make('customer_email')->required()->email()->maxLength(150),
+                ]),
+
+            \Filament\Schemas\Components\Section::make('Shipping address')->columns(2)->compact()->schema([
+                Forms\Components\Textarea::make('shipping_address')->required()->rows(2)->columnSpanFull(),
+                Forms\Components\TextInput::make('city')->required()->maxLength(100),
+                Forms\Components\TextInput::make('postal_code')->maxLength(20),
+                Forms\Components\Textarea::make('notes')->label('Order notes')->rows(2)->columnSpanFull(),
+            ]),
         ]);
     }
 

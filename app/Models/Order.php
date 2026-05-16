@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Order extends Model
 {
@@ -62,17 +63,49 @@ class Order extends Model
         return $this->hasMany(OrderPaymentProof::class);
     }
 
-    /** Generate the next sequential order number for the current year. */
+    /**
+     * Generate the next sequential order number for the current year.
+     *
+     * Two concurrent orders could otherwise read the same "latest" row
+     * and compute the same sequence — the second insert would then fail
+     * on the unique constraint. To prevent that:
+     *
+     *   1. Read the latest row inside a transaction with lockForUpdate(),
+     *      so a second concurrent reader blocks until we've committed.
+     *   2. If a unique-constraint violation slips through anyway (e.g. the
+     *      table is empty for the year and two readers see no row at all
+     *      so no row gets locked), retry up to 3 times.
+     */
     public static function generateOrderNumber(): string
     {
-        $year = now()->year;
-        $latest = static::where('order_number', 'like', "NBM-{$year}-%")
-            ->orderByDesc('order_number')
-            ->value('order_number');
+        $maxAttempts = 3;
+        $lastError   = null;
 
-        $seq = $latest ? ((int) substr($latest, -4)) + 1 : 1;
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            $year = now()->year;
 
-        return sprintf('NBM-%d-%04d', $year, $seq);
+            $candidate = DB::transaction(function () use ($year) {
+                $latest = static::query()
+                    ->where('order_number', 'like', "NBM-{$year}-%")
+                    ->orderByDesc('order_number')
+                    ->lockForUpdate()
+                    ->value('order_number');
+
+                $seq = $latest ? ((int) substr($latest, -4)) + 1 : 1;
+
+                return sprintf('NBM-%d-%04d', $year, $seq);
+            });
+
+            // Did anyone race us between our read and the eventual insert?
+            // If the number already exists, retry.
+            if (! static::where('order_number', $candidate)->exists()) {
+                return $candidate;
+            }
+        }
+
+        // Highly unlikely — fall back to a timestamp suffix so the order
+        // can still be placed and Mona can renumber by hand if needed.
+        return sprintf('NBM-%d-%04d', now()->year, (int) substr((string) now()->timestamp, -4));
     }
 
     /**
@@ -105,6 +138,42 @@ class Order extends Model
         return $this->status === OrderStatus::Delivered
             && $this->delivered_at
             && $this->delivered_at->diffInDays(now()) <= 7;
+    }
+
+    /**
+     * Hours since the order was placed — for SLA tracking on awaiting-payment orders.
+     * Null when the payment is no longer pending.
+     */
+    public function getPaymentAgeHoursAttribute(): ?int
+    {
+        if ($this->payment_status !== PaymentStatus::Awaiting || ! $this->created_at) {
+            return null;
+        }
+        return (int) $this->created_at->diffInHours(now());
+    }
+
+    /**
+     * Compact "🟢 2h" / "🟡 14h" / "🔴 1d 4h" label for the orders table.
+     * Color thresholds: green < 12h, amber 12-24h, red > 24h (Mona's 24h SLA).
+     */
+    public function getPaymentAgeLabelAttribute(): ?string
+    {
+        $hours = $this->payment_age_hours;
+        if ($hours === null) {
+            return null;
+        }
+
+        $emoji = $hours < 12 ? '🟢' : ($hours < 24 ? '🟡' : '🔴');
+
+        if ($hours < 24) {
+            $time = "{$hours}h";
+        } else {
+            $days = intdiv($hours, 24);
+            $rem  = $hours % 24;
+            $time = $rem > 0 ? "{$days}d {$rem}h" : "{$days}d";
+        }
+
+        return "{$emoji} awaiting payment · {$time}";
     }
 
     /** Courier tracking URL from config. */
