@@ -5,6 +5,7 @@ namespace App\Enums;
 enum ExpenseCategory: string
 {
     case Materials     = 'materials';
+    case GelPolish     = 'gel_polish';
     case Packaging     = 'packaging';
     case Courier       = 'courier';
     case Marketing     = 'marketing';
@@ -16,6 +17,7 @@ enum ExpenseCategory: string
     {
         return match($this) {
             self::Materials  => 'Materials & Supplies',
+            self::GelPolish  => 'Gel Nail Polishes',
             self::Packaging  => 'Packaging',
             self::Courier    => 'Courier & Shipping',
             self::Marketing  => 'Marketing & Ads',
@@ -29,6 +31,7 @@ enum ExpenseCategory: string
     {
         return match($this) {
             self::Materials  => '#BFA4CE',
+            self::GelPolish  => '#D4847A',
             self::Packaging  => '#B8924A',
             self::Courier    => '#5B8DB8',
             self::Marketing  => '#C96E6E',
