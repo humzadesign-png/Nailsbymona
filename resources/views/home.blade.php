@@ -26,6 +26,32 @@
     />
 @endsection
 
+@push('head')
+<style>
+  /* Hero card — Apple-style "liquid glass" effect:
+     translucent paper tint, heavy backdrop blur with saturation boost,
+     a subtle inner top highlight, and a layered shadow set. Background
+     refracts through so the photo behind stays visible while text on
+     top remains crisply readable. */
+  .liquid-glass {
+    background-color: rgba(251, 248, 242, 0.42); /* paper at 42% */
+    backdrop-filter: blur(36px) saturate(180%);
+    -webkit-backdrop-filter: blur(36px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.72),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.10),
+      0 16px 48px -12px rgba(28, 23, 39, 0.28),
+      0 6px 20px -4px rgba(28, 23, 39, 0.12);
+  }
+  /* Older Safari + browsers that don't support backdrop-filter: bump opacity
+     a notch so text contrast stays WCAG-safe without the blur. */
+  @supports not ((backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px))) {
+    .liquid-glass { background-color: rgba(251, 248, 242, 0.85); }
+  }
+</style>
+@endpush
+
 @section('content')
 
 {{-- ═══════════════════════════════════════════
@@ -56,13 +82,13 @@
                 onerror="this.parentElement.remove()"
                 width="1920" height="1080">
         </picture>
-        <div class="absolute inset-0 bg-gradient-to-r from-ink/35 via-ink/15 to-transparent"></div>
+        {{-- Subtle vignette — keeps the brand mood without dulling the photo behind the glass card --}}
         <div class="absolute inset-0 bg-gradient-to-t from-ink/15 via-transparent to-transparent"></div>
     </div>
 
-    {{-- Frosted editorial card --}}
+    {{-- Liquid-glass editorial card — translucent so the photo behind stays visible --}}
     <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 py-24 w-full">
-        <div class="w-full max-w-[560px] bg-paper/82 backdrop-blur-[14px] rounded-2xl border border-white/35 shadow-2xl shadow-ink/15 p-10 md:p-14">
+        <div class="liquid-glass w-full max-w-[560px] rounded-3xl p-10 md:p-14">
 
             <div class="flex flex-wrap gap-2 mb-6">
                 <span class="inline-flex items-center rounded-full border border-lavender/40 bg-lavender/10 px-3 py-1 font-sans font-medium text-lavender-ink"
