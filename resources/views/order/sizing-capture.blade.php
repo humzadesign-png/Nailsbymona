@@ -336,8 +336,8 @@
           {{-- Pinky — 70px wide, center x=47, x=12-82. ~75% of middle height. 13px gap to ring. --}}
           <path d="M12,870 L12,486 Q12,451 47,451 Q82,451 82,486 L82,870"
                 stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
-          {{-- Ring — 75px wide, center x=132, x=95-170. ~90% of middle height. --}}
-          <path d="M95,870 L95,406 Q95,368 132,368 Q170,368 170,406 L170,870"
+          {{-- Ring — 75px wide, center x=132, x=95-170. ~93% of middle height. --}}
+          <path d="M95,870 L95,386 Q95,348 132,348 Q170,348 170,386 L170,870"
                 stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
           {{-- Middle — 75px wide, center x=220, x=183-258. Tallest. --}}
           <path d="M183,870 L183,350 Q183,312 220,312 Q258,312 258,350 L258,870"
