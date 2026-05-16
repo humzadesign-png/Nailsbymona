@@ -104,7 +104,7 @@ class FinanceOverview extends Page
         $totalExpenses = $this->getExpenses() ?: 1;
 
         return $rows->map(function ($row) use ($totalExpenses) {
-            $cat = ExpenseCategory::from($row->category);
+            $cat = $row->category instanceof ExpenseCategory ? $row->category : ExpenseCategory::from($row->category);
             return [
                 'label'   => $cat->label(),
                 'color'   => $cat->color(),
