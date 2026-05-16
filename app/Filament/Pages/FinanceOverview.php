@@ -114,6 +114,33 @@ class FinanceOverview extends Page
         })->toArray();
     }
 
+    // ── All-periods data for JS tab switching (no round-trip) ────────────────
+
+    public function getAllPeriodsData(): array
+    {
+        $original = $this->period;
+        $result   = [];
+        foreach ([1, 3, 6, 12] as $months) {
+            $this->period = $months;
+            $revenue      = $this->getRevenue();
+            $expenses     = $this->getExpenses();
+            $net          = $revenue - $expenses;
+            $orderCount   = $this->getOrderCount();
+            $result[$months] = [
+                'revenue'    => $revenue,
+                'expenses'   => $expenses,
+                'net'        => $net,
+                'orderCount' => $orderCount,
+                'profitable' => $net >= 0,
+                'margin'     => $revenue > 0 ? round(($net / $revenue) * 100) : null,
+                'avgOrder'   => $orderCount > 0 ? intdiv($revenue, $orderCount) : null,
+                'breakdown'  => $this->getCategoryBreakdown(),
+            ];
+        }
+        $this->period = $original;
+        return $result;
+    }
+
     // ── Recent expenses ───────────────────────────────────────────────────────
 
     public function getRecentExpenses(): \Illuminate\Support\Collection

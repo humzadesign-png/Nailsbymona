@@ -21,7 +21,7 @@ class NewOrderNotification extends Notification
 
     public function toWebPush(object $notifiable, object $notification): WebPushMessage
     {
-        return WebPushMessage::create()
+        return (new WebPushMessage())
             ->title('New order — ' . $this->order->order_number)
             ->body('Rs. ' . number_format($this->order->total_pkr) . ' · ' . $this->order->customer_name)
             ->icon('/icon-192.png')

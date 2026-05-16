@@ -21,7 +21,7 @@ class NewMessageNotification extends Notification
 
     public function toWebPush(object $notifiable, object $notification): WebPushMessage
     {
-        return WebPushMessage::create()
+        return (new WebPushMessage())
             ->title('New message from ' . $this->message->name)
             ->body(str($this->message->message)->limit(80))
             ->icon('/icon-192.png')
