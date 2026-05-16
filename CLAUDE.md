@@ -2,7 +2,7 @@
 
 > Press-on gel nails e-commerce website + brand strategy for Mona's business, currently run via Instagram DMs. Surprise gift from Humza (in Germany) for his wife (in Mirpur, Azad Kashmir). Mona does not know we're building this.
 >
-> **Status:** Phases 0–3 complete and live at nailsbymona.pk. Phase 4 (Blog + SEO) is next.
+> **Status:** Phases 0–4 complete and live at nailsbymona.pk. Phase 5 (Polish & handoff) is next.
 >
 > This file is the source of truth for future Claude sessions. If anything here conflicts with memory or training data, trust this file.
 
@@ -506,8 +506,8 @@ Multi-step order form (sizing → details → payment, each a separate URL), **l
 ### Phase 3 — Filament admin (days 7–8) ✅ COMPLETE (2026-05-13)
 All 7 resources (Orders, Products, UgcPhotos, Customers, BlogPosts, FAQs, ContactMessages), Settings page, 2 dashboard widgets (OrderStats, RecentOrders), admin seeder, 9 demo products seeded. Filament v4 API patterns documented in §32 session history (2026-05-13 entry).
 
-### Phase 4 — Blog + SEO infrastructure (days 9–10)
-Blog index + post template with FAQ schema. Sitemap generator. RSS feed. Schema.org Product, BreadcrumbList, Organization, FAQPage. First 4 cornerstone posts written/published.
+### Phase 4 — Blog + SEO infrastructure ✅ COMPLETE (2026-05-16)
+Blog index + post template with FAQ schema. Sitemap generator (`/sitemap.xml`). RSS feed (`/feed.xml`). Schema.org Article + FAQPage + BreadcrumbList on all post pages. All 5 cornerstone posts seeded and live: wudu/Muslim women (priority) · press-on vs acrylics · bridal trends 2026 · how to apply · how to remove. BlogPostSeeder + FaqSeeder run on production. Category filter (client-side jQuery), email subscribe strip, reading-time calculation, related-posts, and view-count tracking all working.
 
 ### Phase 5 — Polish & handoff (day 11)
 Real logo + photography swap-in. SEO meta audit. Open Graph images. Favicon. 8–12 demo products seeded. `docs/mona-admin-guide.md` walkthrough.
@@ -1827,6 +1827,40 @@ return view('product', compact('product', 'related'));
 
 ---
 
+### 2026-05-16 (later) — Phase 4 Blog + SEO complete
+
+**Phase 4 complete.** All blog infrastructure was already in place from Phases 1–3. This session added the 5th and final cornerstone post, seeded all 5 posts to production, and confirmed everything live.
+
+**What was already built (Phases 1–3):**
+- `BlogController` (`index`, `show`, `subscribe`) with view-count increment, reading-time calc, related-posts (same category), FAQ fallback to general.
+- `blog.blade.php` — hero, sticky category filter bar (client-side jQuery, all posts loaded in DOM), featured-post hero card, post grid, subscribe strip, navigation tiles.
+- `blog-post.blade.php` — breadcrumb, cover image, article body, FAQ accordion, share strip, related products (via `blog_post_products` pivot), author block, related posts.
+- `/sitemap.xml` — dynamic, includes all published blog posts with `priority=0.75` and `lastmod`.
+- `/feed.xml` — RSS 2.0, 20 most recent posts, Atom self-link for autodiscovery.
+- SEO: `<x-seo>` component has canonical, robots, OG, Twitter Card, hreflang. Blog-post schema: Article + FAQPage + BreadcrumbList. Blog index schema: Blog + BreadcrumbList.
+- `BlogPostSeeder` + `FaqSeeder` — idempotent (`firstOrCreate`), called from `DatabaseSeeder`.
+
+**Added this session:**
+- 5th cornerstone post: **"Bridal Nail Trends in Pakistan for 2026"** — `BlogCategory::Bridal`, target keyword `bridal nail trends Pakistan 2026`, published 3 days ago. Covers glazed porcelain (Valima), geometric gold (Mehendi), jewel tones (Baraat), 3D accent nails, and the three-night palette approach. Links to `/bridal` and `/shop`.
+- `BlogPostSeeder` updated with the 5th post (`bridal-nail-trends-pakistan-2026`).
+- Deployed to production and ran both seeders (`BlogPostSeeder` + `FaqSeeder`).
+
+**All 5 cornerstone posts live at nailsbymona.pk/blog:**
+
+| Slug | Category | Target keyword |
+|---|---|---|
+| `muslim-women-press-on-nails-wudu` | Tutorials | `press on nails wudu Muslim women` |
+| `press-on-nails-vs-acrylics-pakistan-brides` | Bridal | `press on nails vs acrylics Pakistani brides` |
+| `bridal-nail-trends-pakistan-2026` | Bridal | `bridal nail trends Pakistan 2026` |
+| `how-to-apply-press-on-nails` | Tutorials | `how to apply press on nails` |
+| `how-to-remove-press-on-nails` | Care | `how to remove press on nails without damage` |
+
+All 5 appear in `/sitemap.xml`. RSS feed at `/feed.xml` autodiscoverable from blog `<head>`.
+
+**Note on pagination:** BlogController uses `.get()` (all posts at once). This works because the category filter is client-side jQuery — all posts must be in the DOM for filtering. Pagination should be added server-side only when post count grows past ~30 and the category filter is converted to URL params.
+
+---
+
 ## 33. Pointers for Future Claude Sessions
 
 - **Read this file first.** Overrides anything you think you remember.
@@ -1860,7 +1894,8 @@ return view('product', compact('product', 'related'));
 - **Homepage file is `html/home.html`** (renamed from `html/index.html` on 2026-05-09). All internal links updated. When building Blade templates, the route `/` maps to the `home` view, not `index`.
 - **All 13 static HTML mockups are complete** (2026-05-09): `home.html` · `shop.html` · `product.html` · `bridal.html` · `size-guide.html` · `about.html` · `contact.html` · `blog.html` · `blog-post.html` · `order-form.html` · `sizing-capture.html` · `order-confirmation.html` · `order-tracking.html`. The `html/` directory is the full visual reference for every public route.
 - **Phase 0 + Phase 1 are complete** (2026-05-10). All 9 marketing Blade views + 4 order-flow stubs live.
-- **Phase 3 Filament admin is complete** (2026-05-13). All 7 resources, Settings page, 2 widgets, seeder. Next work is Phase 2 — implement the 4 order-flow views from their HTML mockups.
+- **Phases 0–4 are all complete.** Phase 5 (Polish & handoff) is next — real photography swap-in, favicon, SEO audit, `docs/mona-admin-guide.md`.
+- **Blog infrastructure (Phase 4):** `BlogController` + `blog.blade.php` + `blog-post.blade.php` + sitemap + RSS + 5 seeded posts all live. `BlogPostSeeder` uses `firstOrCreate(['slug' => ...])` — safe to re-run. Category filter is client-side jQuery (all posts loaded in DOM). Do not add server-side pagination until post count > ~30 and filter is converted to URL params.
 - **Filament v4 API (Phase 3 learnings — critical for Phase 2 Blade/Filament work):** `form()` and `infolist()` take `Schema $schema` (not `Form`/`Infolist`), return `Schema`. Use `use Filament\Schemas\Schema`. `$navigationIcon` and `$navigationGroup` need union types not `?string`. `$view` must be non-static. Full patterns in §32 session history (2026-05-13).
 - **Sizing overlay SVGs** (created 2026-05-13): `public/icons/sizing-fingers.svg` + `public/icons/sizing-thumb.svg`. Use these as the visual reference for the Blade `<x-order.camera-capture>` component and the `resources/js/camera-capture.js` SVG overlay. Both are lavender `#BFA4CE` dashed U-shapes + coin circle. ViewBox: fingers = `0 0 400 480`, thumb = `0 0 300 480`.
 - **Blade directive rules (learned in Phase 1 — do not repeat these bugs):**
