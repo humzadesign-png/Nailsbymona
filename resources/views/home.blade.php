@@ -92,15 +92,15 @@
     {{-- Editorial dark-glass card — embraces the photo's mood instead of fighting it.
          One eyebrow, two-line H1, tight proof copy, one confident CTA + a small
          secondary text link. Cream typography on translucent ink. --}}
-    <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 py-24 w-full">
-        <div class="hero-glass w-full max-w-[480px] rounded-3xl p-9 md:p-12">
+    <div class="relative z-10 max-w-7xl mx-auto px-8 lg:px-16 py-28 lg:py-32 w-full">
+        <div class="hero-glass w-full max-w-[500px] rounded-[2rem] p-10 md:p-14 lg:ml-4">
 
-            <p class="font-sans uppercase mb-7"
+            <p class="font-sans uppercase mb-10"
                style="font-size:0.7rem; letter-spacing:0.24em; font-weight:500; color:rgba(244,239,232,0.75)">
                 Handmade press-on nails
             </p>
 
-            <h1 class="font-serif mb-6"
+            <h1 class="font-serif mb-8"
                 style="font-size:clamp(2.4rem, 5.2vw, 3.75rem);
                        line-height:0.98;
                        letter-spacing:-0.022em;
@@ -110,14 +110,14 @@
                 Made to fit<br>your hands.
             </h1>
 
-            <p class="font-sans mb-9 max-w-[28ch]"
-               style="font-size:1.0625rem; line-height:1.55; color:rgba(244,239,232,0.78)">
+            <p class="font-sans mb-11 max-w-[28ch]"
+               style="font-size:1.0625rem; line-height:1.6; color:rgba(244,239,232,0.78)">
                 Sized from two close-up photos of your fingertips.<br>
                 Wudu-friendly. Reusable three to five times.
             </p>
 
             <a href="{{ route('shop') }}"
-               class="group inline-flex items-center gap-2.5 bg-bone hover:bg-paper text-ink font-sans rounded-full px-8 py-3.5 transition-colors duration-200"
+               class="group inline-flex items-center gap-2.5 bg-bone hover:bg-paper text-ink font-sans rounded-full px-9 py-4 transition-colors duration-200"
                style="font-size:0.95rem; font-weight:500; letter-spacing:0.01em">
                 Shop the collection
                 <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -126,7 +126,7 @@
                 </svg>
             </a>
 
-            <div class="mt-6">
+            <div class="mt-8">
                 <a href="{{ route('bridal') }}"
                    class="hero-glass-link group inline-flex items-center gap-1.5 font-sans"
                    style="font-size:0.875rem">
