@@ -28,27 +28,30 @@
 
 @push('head')
 <style>
-  /* Hero card — Apple-style "liquid glass" effect:
-     translucent paper tint, heavy backdrop blur with saturation boost,
-     a subtle inner top highlight, and a layered shadow set. Background
-     refracts through so the photo behind stays visible while text on
-     top remains crisply readable. */
-  .liquid-glass {
-    background-color: rgba(251, 248, 242, 0.42); /* paper at 42% */
-    backdrop-filter: blur(36px) saturate(180%);
-    -webkit-backdrop-filter: blur(36px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.42);
+  /* Hero card — dark editorial glass.
+     A light translucent card over a saturated photo turns hot-pink/magenta
+     from the colour bleed; saturating it amplifies the problem. So we
+     invert: deep ink-tinted glass + cream typography, reading like a
+     film-poster credit block or fine-art placard. Sits INTO the photo
+     rather than fighting it. */
+  .hero-glass {
+    background-color: rgba(28, 23, 39, 0.55);     /* ink at 55% */
+    backdrop-filter: blur(20px) saturate(105%);   /* gentle blur, no saturation pump */
+    -webkit-backdrop-filter: blur(20px) saturate(105%);
+    border: 1px solid rgba(255, 255, 255, 0.10);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.72),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.10),
-      0 16px 48px -12px rgba(28, 23, 39, 0.28),
-      0 6px 20px -4px rgba(28, 23, 39, 0.12);
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),    /* glass meniscus */
+      0 24px 60px -20px rgba(0, 0, 0, 0.55),
+      0 8px 24px -6px rgba(0, 0, 0, 0.30);
   }
-  /* Older Safari + browsers that don't support backdrop-filter: bump opacity
-     a notch so text contrast stays WCAG-safe without the blur. */
+  /* Fallback for older browsers without backdrop-filter — bump opacity
+     so text contrast stays WCAG AA. */
   @supports not ((backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px))) {
-    .liquid-glass { background-color: rgba(251, 248, 242, 0.85); }
+    .hero-glass { background-color: rgba(28, 23, 39, 0.86); }
   }
+  /* Secondary text link inside the dark card — cream at low opacity, brightens on hover. */
+  .hero-glass-link { color: rgba(244, 239, 232, 0.62); transition: color 0.2s ease; }
+  .hero-glass-link:hover { color: rgba(244, 239, 232, 0.95); }
 </style>
 @endpush
 
@@ -86,33 +89,35 @@
         <div class="absolute inset-0 bg-gradient-to-t from-ink/15 via-transparent to-transparent"></div>
     </div>
 
-    {{-- Liquid-glass editorial card — Apple-restrained: single eyebrow, two-line H1,
-         tight proof copy, one confident CTA + a small secondary text link --}}
+    {{-- Editorial dark-glass card — embraces the photo's mood instead of fighting it.
+         One eyebrow, two-line H1, tight proof copy, one confident CTA + a small
+         secondary text link. Cream typography on translucent ink. --}}
     <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 py-24 w-full">
-        <div class="liquid-glass w-full max-w-[480px] rounded-3xl p-9 md:p-12">
+        <div class="hero-glass w-full max-w-[480px] rounded-3xl p-9 md:p-12">
 
-            <p class="font-sans uppercase text-lavender-ink mb-7"
-               style="font-size:0.7rem; letter-spacing:0.22em; font-weight:500">
+            <p class="font-sans uppercase mb-7"
+               style="font-size:0.7rem; letter-spacing:0.24em; font-weight:500; color:rgba(244,239,232,0.75)">
                 Handmade press-on nails
             </p>
 
-            <h1 class="font-serif text-ink mb-6"
-                style="font-size:clamp(2.6rem, 5.4vw, 4rem);
+            <h1 class="font-serif mb-6"
+                style="font-size:clamp(2.4rem, 5.2vw, 3.75rem);
                        line-height:0.98;
                        letter-spacing:-0.022em;
                        font-weight:300;
+                       color:#FBF8F2;
                        font-variation-settings:'opsz' 144,'SOFT' 30">
                 Made to fit<br>your hands.
             </h1>
 
-            <p class="font-sans text-graphite mb-9 max-w-[28ch]"
-               style="font-size:1.0625rem; line-height:1.55">
+            <p class="font-sans mb-9 max-w-[28ch]"
+               style="font-size:1.0625rem; line-height:1.55; color:rgba(244,239,232,0.78)">
                 Sized from two close-up photos of your fingertips.<br>
                 Wudu-friendly. Reusable three to five times.
             </p>
 
             <a href="{{ route('shop') }}"
-               class="group inline-flex items-center gap-2.5 bg-ink hover:bg-graphite text-bone font-sans rounded-full px-8 py-3.5 transition-colors duration-200"
+               class="group inline-flex items-center gap-2.5 bg-bone hover:bg-paper text-ink font-sans rounded-full px-8 py-3.5 transition-colors duration-200"
                style="font-size:0.95rem; font-weight:500; letter-spacing:0.01em">
                 Shop the collection
                 <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -123,7 +128,7 @@
 
             <div class="mt-6">
                 <a href="{{ route('bridal') }}"
-                   class="group inline-flex items-center gap-1.5 font-sans text-graphite hover:text-ink transition-colors duration-200"
+                   class="hero-glass-link group inline-flex items-center gap-1.5 font-sans"
                    style="font-size:0.875rem">
                     View the Bridal Trio
                     <span class="transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">&rarr;</span>
