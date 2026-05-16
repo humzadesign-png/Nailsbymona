@@ -333,8 +333,8 @@
           <text x="220" y="263" text-anchor="middle" font-size="17" fill="rgba(255,255,255,0.9)" font-family="DM Sans, sans-serif">₨</text>
           <text x="220" y="308" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.5)" font-family="DM Sans, sans-serif" letter-spacing="1.5">COIN ABOVE NAILS</text>
 
-          {{-- Pinky — 70px wide, center x=53, x=18-88. ~75% of middle height. --}}
-          <path d="M18,870 L18,486 Q18,451 53,451 Q88,451 88,486 L88,870"
+          {{-- Pinky — 70px wide, center x=47, x=12-82. ~75% of middle height. 13px gap to ring. --}}
+          <path d="M12,870 L12,486 Q12,451 47,451 Q82,451 82,486 L82,870"
                 stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
           {{-- Ring — 75px wide, center x=132, x=95-170. ~90% of middle height. --}}
           <path d="M95,870 L95,406 Q95,368 132,368 Q170,368 170,406 L170,870"
