@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Order;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Order\OrderController;
 use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,21 +32,27 @@ class OrderTrackingController extends Controller
     /**
      * GET /order/{order}/track
      *
-     * If the customer is arriving from the session (just placed order),
-     * skip the lookup form and show tracking directly.
-     * Otherwise, show the lookup form.
+     * Customer must have authorized this order in the current session
+     * (either by placing it or by passing the lookup challenge).
+     * Anyone else is bounced to the lookup form — order details are
+     * never rendered to an unauthenticated visitor.
      */
-    public function show(Request $request, string $orderId): View
+    public function show(Request $request, string $orderId): View|RedirectResponse
     {
-        $order = Order::with(['items', 'sizingPhotos', 'paymentProofs'])->findOrFail($orderId);
+        if (! OrderController::sessionMayViewOrder($orderId)) {
+            return redirect()->route('track')
+                ->withErrors(['lookup' => 'Please look up your order using the form below.']);
+        }
 
-        // Was this order just placed by the current session? If so, skip lookup.
-        $fromSession = session('order_form.last_order_id') === $orderId;
+        $order = Order::with(['items', 'sizingPhotos', 'paymentProofs'])->findOrFail($orderId);
 
         // Build timeline data.
         $timeline = $this->buildTimeline($order);
 
         $whatsappMsg = urlencode("Hello Nails by Mona, I have a question about order {$order->order_number}.");
+
+        // Visitor is authorized — render the tracking view directly.
+        $fromSession = true;
 
         return view('order.track', compact('order', 'timeline', 'fromSession', 'whatsappMsg'));
     }
@@ -70,18 +77,27 @@ class OrderTrackingController extends Controller
             return $this->lookupFailed($request);
         }
 
-        // Verify the contact matches (email or phone).
-        $contact = trim($request->input('contact'));
-        $matched = $order->customer_email === $contact
-            || $order->customer_phone === $contact
-            || str_replace(['-', ' '], '', $order->customer_phone) === str_replace(['-', ' '], '', $contact);
+        // Verify the contact matches (email or phone) with normalization.
+        // Email: case-insensitive. Phone: strip every non-digit, then compare suffixes
+        // so +923001234567 / 03001234567 / 923001234567 all match.
+        $rawContact   = trim($request->input('contact'));
+        $emailContact = strtolower($rawContact);
+        $digitContact = preg_replace('/\D+/', '', $rawContact);
+        $orderEmail   = strtolower($order->customer_email);
+        $orderDigits  = preg_replace('/\D+/', '', $order->customer_phone ?? '');
 
-        if (! $matched) {
+        $emailMatch = $orderEmail !== '' && $orderEmail === $emailContact;
+        $phoneMatch = $digitContact !== ''
+            && $orderDigits !== ''
+            && (str_ends_with($orderDigits, $digitContact)
+                || str_ends_with($digitContact, $orderDigits));
+
+        if (! ($emailMatch || $phoneMatch)) {
             return $this->lookupFailed($request);
         }
 
-        // Store in session so the tracking page can skip the form.
-        session(['order_form.last_order_id' => $order->id]);
+        // Authorize this session to view the order's tracking + confirmation pages.
+        OrderController::authorizeOrderForSession($order->id);
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'redirect' => route('order.track', $order->id)]);

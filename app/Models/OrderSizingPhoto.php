@@ -23,4 +23,17 @@ class OrderSizingPhoto extends Model
     {
         return $this->belongsTo(Order::class);
     }
+
+    /** Admin-only signed URL — files live on the private disk. */
+    public function getViewerUrlAttribute(): ?string
+    {
+        if (! $this->path) {
+            return null;
+        }
+        return route('admin.private-file', [
+            'category' => 'sizing',
+            'order'    => $this->order_id,
+            'filename' => basename($this->path),
+        ]);
+    }
 }

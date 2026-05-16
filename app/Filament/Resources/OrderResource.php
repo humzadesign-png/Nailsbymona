@@ -14,7 +14,6 @@ use App\Models\Customer;
 use App\Models\CustomerSizingProfile;
 use App\Models\Order;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 use Filament\Forms;
 use Filament\Infolists;
 use Filament\Schemas\Components\Section as InfoSection;
@@ -300,7 +299,7 @@ class OrderResource extends Resource
                 ]),
 
             InfoSection::make('Sizing Photos')
-                ->description('Photos uploaded by the customer for nail sizing.')
+                ->description('Photos uploaded by the customer for nail sizing. Served from the private disk — only logged-in admins can view.')
                 ->columnSpanFull()
                 ->compact()
                 ->schema([
@@ -313,22 +312,21 @@ class OrderResource extends Resource
                             Infolists\Components\TextEntry::make('photo_type')
                                 ->label('Type')
                                 ->formatStateUsing(fn ($state) => $state?->label() ?? $state),
-                            Infolists\Components\ImageEntry::make('path')
+                            Infolists\Components\TextEntry::make('viewer_url')
                                 ->label('Photo')
-                                ->disk('public')
-                                ->height(200)
-                                ->openUrlInNewTab(),
-                            Infolists\Components\TextEntry::make('path')
-                                ->label('')
                                 ->html()
-                                ->formatStateUsing(fn ($state) =>
-                                    '<a href="' . e(Storage::disk('public')->url($state)) . '" download
-                                        class="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-500 underline underline-offset-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
-                                        </svg>
-                                        Download photo
-                                    </a>'
+                                ->formatStateUsing(fn ($state) => $state
+                                    ? '<a href="' . e($state) . '" target="_blank" rel="noopener">
+                                          <img src="' . e($state) . '" alt="Sizing photo" style="max-height:200px;border-radius:8px;display:block">
+                                       </a>
+                                       <a href="' . e($state) . '" download
+                                          class="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-500 underline underline-offset-2">
+                                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                                          </svg>
+                                          Download
+                                       </a>'
+                                    : '—'
                                 ),
                         ])
                         ->columns(2),
@@ -336,7 +334,7 @@ class OrderResource extends Resource
                 ->collapsible(),
 
             InfoSection::make('Payment Proofs')
-                ->description('Screenshots or receipts uploaded by the customer.')
+                ->description('Screenshots or receipts uploaded by the customer. Served from the private disk — only logged-in admins can view.')
                 ->columnSpanFull()
                 ->compact()
                 ->schema([
@@ -350,25 +348,32 @@ class OrderResource extends Resource
                                 ->label('Verified')
                                 ->dateTime('d M Y, g:ia')
                                 ->placeholder('Not verified yet'),
-                            Infolists\Components\ImageEntry::make('path')
+                            Infolists\Components\TextEntry::make('viewer_url')
                                 ->label('Proof')
-                                ->disk('public')
-                                ->height(300)
-                                ->columnSpanFull()
-                                ->openUrlInNewTab(),
-                            Infolists\Components\TextEntry::make('path')
-                                ->label('')
                                 ->columnSpanFull()
                                 ->html()
-                                ->formatStateUsing(fn ($state) =>
-                                    '<a href="' . e(Storage::disk('public')->url($state)) . '" download
-                                        class="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-500 underline underline-offset-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
-                                        </svg>
-                                        Download proof
-                                    </a>'
-                                ),
+                                ->formatStateUsing(function ($state, $record) {
+                                    if (! $state) {
+                                        return '—';
+                                    }
+                                    $isPdf = ($record->mime_type ?? '') === 'application/pdf';
+                                    if ($isPdf) {
+                                        return '<a href="' . e($state) . '" target="_blank" rel="noopener"
+                                                   class="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-500 underline underline-offset-2">
+                                                   Open PDF receipt
+                                                </a>';
+                                    }
+                                    return '<a href="' . e($state) . '" target="_blank" rel="noopener">
+                                              <img src="' . e($state) . '" alt="Payment proof" style="max-height:300px;border-radius:8px;display:block">
+                                            </a>
+                                            <a href="' . e($state) . '" download
+                                               class="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-500 underline underline-offset-2">
+                                              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                                              </svg>
+                                              Download
+                                            </a>';
+                                }),
                         ])
                         ->columns(2),
                 ])

@@ -155,9 +155,19 @@ Route::get('/feed.xml', function () {
 // ── Tracking — standalone lookup page (nav search icon links here)
 Route::get('/track',                     [OrderTrackingController::class, 'index'])->name('track');
 Route::get('/order/{order}/track',       [OrderTrackingController::class, 'show'])->name('order.track');
-Route::post('/order/track/lookup',       [OrderTrackingController::class, 'lookup'])->name('order.track.lookup')->middleware('throttle:10,1');
+Route::post('/order/track/lookup',       [OrderTrackingController::class, 'lookup'])->name('order.track.lookup')->middleware('throttle:5,1');
 
 // ── PWA push subscription (admin only) ───────────────────────────────────────
 Route::post('/admin/push-subscription', [PushSubscriptionController::class, 'store'])
     ->middleware(['web', 'auth'])
     ->name('push.subscription.store');
+
+// ── Private file serving (admin only — sizing photos, payment proofs) ────────
+// Files live on the `local` (private) disk and are NEVER web-accessible.
+// This route is the only way to read them, gated by the admin auth middleware.
+Route::get('/admin/files/{category}/{order}/{filename}',
+        [\App\Http\Controllers\Admin\PrivateFileController::class, 'show'])
+    ->where('category', 'sizing|payment-proofs')
+    ->where('filename', '[A-Za-z0-9._-]+')
+    ->middleware(['web', 'auth'])
+    ->name('admin.private-file');

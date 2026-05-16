@@ -51,18 +51,19 @@ class OrderSizingPhotoController extends Controller
             $filename = Str::ulid() . '.jpg';
             $dir      = "sizing/temp/{$sessionId}";
 
-            // Ensure directory exists before saving.
-            Storage::disk('public')->makeDirectory($dir);
+            // Ensure directory exists before saving on the PRIVATE disk.
+            Storage::disk('local')->makeDirectory($dir);
 
             // Strip EXIF + convert HEIC → JPEG using Intervention Image.
-            $image = $manager->read($file)->toJpeg(92);
-            $image->save(storage_path("app/public/{$dir}/{$filename}"));
+            $image    = $manager->read($file->getRealPath())->toJpeg(92);
+            $fullPath = storage_path("app/private/{$dir}/{$filename}");
+            $image->save($fullPath);
 
             $storedPaths[] = [
                 'path'       => "{$dir}/{$filename}",
                 'photo_type' => $type,
                 'mime_type'  => 'image/jpeg',
-                'file_size'  => filesize(storage_path("app/public/{$dir}/{$filename}")),
+                'file_size'  => filesize($fullPath) ?: null,
             ];
         }
 
@@ -82,14 +83,13 @@ class OrderSizingPhotoController extends Controller
         $photos = session('order_form.sizing_photos', []);
 
         foreach ($photos as $photo) {
-            // Move from temp dir to permanent order dir.
-            $sessionId = session('order_form.sizing_session_id');
-            $filename  = basename($photo['path']);
-            $newPath   = "sizing/{$order->id}/{$filename}";
+            // Move from temp dir to permanent order dir on the PRIVATE disk.
+            $filename = basename($photo['path']);
+            $newPath  = "sizing/{$order->id}/{$filename}";
 
-            if (file_exists(storage_path("app/public/{$photo['path']}"))) {
-                Storage::disk('public')->makeDirectory("sizing/{$order->id}");
-                Storage::disk('public')->move($photo['path'], $newPath);
+            if (Storage::disk('local')->exists($photo['path'])) {
+                Storage::disk('local')->makeDirectory("sizing/{$order->id}");
+                Storage::disk('local')->move($photo['path'], $newPath);
             }
 
             OrderSizingPhoto::create([

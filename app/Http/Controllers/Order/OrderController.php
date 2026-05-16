@@ -15,8 +15,10 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Notifications\NewOrderNotification;
 use App\Models\OrderItem;
+use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -147,15 +149,16 @@ class OrderController extends Controller
             $filename = Str::ulid() . '.jpg';
             $dir      = "sizing/temp/{$sessionId}";
 
-            Storage::disk('public')->makeDirectory($dir);
-            $image = $manager->read($file)->toJpeg(92);
-            $image->save(storage_path("app/public/{$dir}/{$filename}"));
+            Storage::disk('local')->makeDirectory($dir);
+            $image    = $manager->read($file->getRealPath())->toJpeg(92);
+            $fullPath = storage_path("app/private/{$dir}/{$filename}");
+            $image->save($fullPath);
 
             $storedPaths[] = [
                 'path'       => "{$dir}/{$filename}",
                 'photo_type' => $type,
                 'mime_type'  => 'image/jpeg',
-                'file_size'  => filesize(storage_path("app/public/{$dir}/{$filename}")),
+                'file_size'  => filesize($fullPath) ?: null,
             ];
         }
 
@@ -286,80 +289,93 @@ class OrderController extends Controller
             return redirect()->route('order.start');
         }
 
-        $bag         = session('order_form.bag', []);
+        // Re-verify the bag against the database BEFORE pricing anything.
+        // Customers control localStorage; treating any submitted price as authoritative is unsafe.
+        $verifiedBag = $this->verifyBag(session('order_form.bag', []));
+        if (empty($verifiedBag)) {
+            return redirect()->route('shop')->withErrors(['bag' => 'Your bag is empty or contains items that are no longer available.']);
+        }
+
         $isReturning = session('order_form.is_returning', false);
         $customer    = session('order_form.customer');
-        $totals      = $this->calculateTotals($bag, $isReturning);
+        $totals      = $this->calculateTotals($verifiedBag, $isReturning);
         $method      = PaymentMethod::from($request->input('payment_method'));
         $sizingMethod = SizingCaptureMethod::tryFrom(session('order_form.sizing_method', 'whatsapp_pending'));
 
-        // Find or create customer record.
-        $customerId = session('order_form.customer_id');
-        $customerRecord = $customerId
-            ? Customer::find($customerId)
-            : Customer::firstOrCreate(
-                ['email' => $customer['email']],
-                [
-                    'name'    => $customer['name'],
-                    'phone'   => $customer['phone'],
-                    'whatsapp'=> $customer['phone'],
-                    'city'    => $customer['city'],
-                    'default_shipping_address' => $customer['address'],
-                    'postal_code' => $customer['postal'] ?? null,
-                ]
-            );
+        $order = DB::transaction(function () use ($verifiedBag, $isReturning, $customer, $totals, $method, $sizingMethod) {
+            // Find or create customer record.
+            $customerId = session('order_form.customer_id');
+            $customerRecord = $customerId
+                ? Customer::find($customerId)
+                : Customer::firstOrCreate(
+                    ['email' => $customer['email']],
+                    [
+                        'name'    => $customer['name'],
+                        'phone'   => $customer['phone'],
+                        'whatsapp'=> $customer['phone'],
+                        'city'    => $customer['city'],
+                        'default_shipping_address' => $customer['address'],
+                        'postal_code' => $customer['postal'] ?? null,
+                    ]
+                );
 
-        // Create the order.
-        $order = Order::create([
-            'order_number'         => Order::generateOrderNumber(),
-            'customer_id'          => $customerRecord->id,
-            'customer_name'        => $customer['name'],
-            'customer_email'       => $customer['email'],
-            'customer_phone'       => $customer['phone'],
-            'shipping_address'     => $customer['address'],
-            'city'                 => $customer['city'],
-            'postal_code'          => $customer['postal'] ?? null,
-            'notes'                => $customer['notes'] ?? null,
-            'subtotal_pkr'         => $totals['subtotal'],
-            'reorder_discount_pkr' => $totals['discount'],
-            'shipping_pkr'         => $totals['shipping'],
-            'total_pkr'            => $totals['total'],
-            'requires_advance'     => $totals['requires_advance'],
-            'is_returning_customer'=> $isReturning,
-            'payment_method'       => $method->value,
-            'payment_status'       => PaymentStatus::Awaiting->value,
-            'status'               => OrderStatus::New->value,
-            'sizing_capture_method'=> $sizingMethod?->value,
-        ]);
-
-        // Create order items.
-        foreach ($bag as $item) {
-            OrderItem::create([
-                'order_id'                => $order->id,
-                'product_name_snapshot'   => $item['name'] ?? 'Custom Press-On Set',
-                'product_tier_snapshot'   => $item['tier'] ?? null,
-                'product_slug_snapshot'   => $item['slug'] ?? null,
-                'unit_price_pkr'          => (int) ($item['price_pkr'] ?? 0),
-                'qty'                     => (int) ($item['qty'] ?? 1),
+            // Create the order with server-verified totals.
+            $order = Order::create([
+                'order_number'         => Order::generateOrderNumber(),
+                'customer_id'          => $customerRecord->id,
+                'customer_name'        => $customer['name'],
+                'customer_email'       => $customer['email'],
+                'customer_phone'       => $customer['phone'],
+                'shipping_address'     => $customer['address'],
+                'city'                 => $customer['city'],
+                'postal_code'          => $customer['postal'] ?? null,
+                'notes'                => $customer['notes'] ?? null,
+                'subtotal_pkr'         => $totals['subtotal'],
+                'reorder_discount_pkr' => $totals['discount'],
+                'shipping_pkr'         => $totals['shipping'],
+                'total_pkr'            => $totals['total'],
+                'requires_advance'     => $totals['requires_advance'],
+                'is_returning_customer'=> $isReturning,
+                'payment_method'       => $method->value,
+                'payment_status'       => PaymentStatus::Awaiting->value,
+                'status'               => OrderStatus::New->value,
+                'sizing_capture_method'=> $sizingMethod?->value,
             ]);
-        }
 
-        // Update customer stats.
-        $customerRecord->increment('total_orders');
-        $customerRecord->increment('lifetime_value_pkr', $totals['total']);
-        $customerRecord->update(['last_ordered_at' => now()]);
+            // Create order items from the verified bag (server-side prices).
+            // We intentionally don't write product_id — that column is typed
+            // unsignedBigInteger but products use ULID PKs. We track the
+            // product via product_slug_snapshot instead. (Cleanup pending.)
+            foreach ($verifiedBag as $item) {
+                OrderItem::create([
+                    'order_id'                => $order->id,
+                    'product_name_snapshot'   => $item['name'],
+                    'product_tier_snapshot'   => $item['tier'],
+                    'product_slug_snapshot'   => $item['slug'],
+                    'unit_price_pkr'          => $item['price_pkr'],
+                    'qty'                     => $item['qty'],
+                ]);
+            }
+
+            // Update customer stats.
+            $customerRecord->increment('total_orders');
+            $customerRecord->increment('lifetime_value_pkr', $totals['total']);
+            $customerRecord->update(['last_ordered_at' => now()]);
+
+            return $order->fresh(['items']);
+        });
 
         // Attach sizing photos from temp session storage → permanent order directory.
         OrderSizingPhotoController::attachToOrder($order);
 
         // Mark customer as having sizing on file if photos were attached.
-        if ($order->sizingPhotos()->count() > 0) {
-            $customerRecord->update(['has_sizing_on_file' => true]);
+        if ($order->sizingPhotos()->count() > 0 && $order->customer_id) {
+            Customer::where('id', $order->customer_id)->update(['has_sizing_on_file' => true]);
         }
 
         // Send order confirmation email (non-blocking).
         try {
-            Mail::to($order->customer_email)->send(new OrderPlaced($order->load('items')));
+            Mail::to($order->customer_email)->send(new OrderPlaced($order));
         } catch (\Throwable $e) {
             Log::error('OrderPlaced mail failed', ['order' => $order->id, 'error' => $e->getMessage()]);
         }
@@ -376,8 +392,8 @@ class OrderController extends Controller
         SendPaymentReminderJob::dispatch($order->id, 2)->delay(now()->addHours(48));
         AutoCancelOrderJob::dispatch($order->id)->delay(now()->addHours(72));
 
-        // Store order UUID in session for the confirmation page.
-        session(['order_form.last_order_id' => $order->id]);
+        // Authorize this session to view the confirmation + tracking + proof upload for this order.
+        $this->authorizeOrderForSession($order->id);
 
         // Clear the order form session data but keep the last order reference.
         session()->forget(['order_form.bag', 'order_form.customer', 'order_form.sizing_method',
@@ -386,13 +402,97 @@ class OrderController extends Controller
         return redirect()->route('order.confirm', $order->id);
     }
 
+    /**
+     * Re-fetch products from the database and rebuild the bag with verified
+     * server-side prices, names, and tiers. Items without a slug or with an
+     * inactive/unknown product are dropped — never trust client bag pricing.
+     */
+    private function verifyBag(array $bag): array
+    {
+        $slugs = collect($bag)
+            ->pluck('slug')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($slugs)) {
+            return [];
+        }
+
+        $products = Product::whereIn('slug', $slugs)
+            ->where('is_active', true)
+            ->get()
+            ->keyBy('slug');
+
+        $verified = [];
+        foreach ($bag as $item) {
+            $slug    = $item['slug']    ?? null;
+            $product = $slug ? $products->get($slug) : null;
+            if (! $product) {
+                continue;
+            }
+
+            $qty = max(1, min(10, (int) ($item['qty'] ?? 1))); // hard-cap qty 1-10 per line
+
+            $verified[] = [
+                'product_id' => $product->id,
+                'slug'       => $product->slug,
+                'name'       => $product->name,
+                'tier'       => is_string($product->tier) ? $product->tier : ($product->tier?->value ?? null),
+                'price_pkr'  => (int) $product->price_pkr,
+                'qty'        => $qty,
+                'image'      => $product->cover_image
+                    ? \Illuminate\Support\Facades\Storage::disk('public')->url($product->cover_image)
+                    : null,
+            ];
+        }
+
+        return $verified;
+    }
+
+    /**
+     * Add an order UUID to the session allowlist of orders this visitor
+     * may view confirmation/tracking pages for, and upload proof to.
+     */
+    public static function authorizeOrderForSession(string $orderId): void
+    {
+        $allowed = session('order_form.authorized_orders', []);
+        if (! in_array($orderId, $allowed, true)) {
+            $allowed[] = $orderId;
+        }
+        // Keep only the most recent 10 — defensive bound for shared/public devices.
+        $allowed = array_slice($allowed, -10);
+
+        session(['order_form.authorized_orders' => $allowed]);
+        session(['order_form.last_order_id' => $orderId]);
+    }
+
+    public static function sessionMayViewOrder(string $orderId): bool
+    {
+        return in_array(
+            $orderId,
+            session('order_form.authorized_orders', []),
+            true
+        );
+    }
+
     // ── Confirmation ──────────────────────────────────────────────────────────
 
     /**
      * GET /order/confirm/{order}
+     *
+     * Only the session that placed (or successfully looked up) this order
+     * may view the confirmation page. Anyone else is bounced to the
+     * tracking lookup form so they can authenticate via order# + contact.
      */
-    public function confirm(Request $request, string $orderId): View
+    public function confirm(Request $request, string $orderId): View|RedirectResponse
     {
+        if (! self::sessionMayViewOrder($orderId)) {
+            return redirect()->route('track')
+                ->withErrors(['lookup' => 'Please look up your order using the form below.']);
+        }
+
         $order = Order::with(['items', 'paymentProofs'])->findOrFail($orderId);
 
         $isBridalTrio  = $order->items->contains(fn ($i) => $i->product_tier_snapshot === 'bridal_trio');
