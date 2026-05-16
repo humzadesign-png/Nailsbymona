@@ -221,15 +221,21 @@
     }
     const edgeRatio = edgeCount / totalPixels;
 
+    // Thumb has one wide nail rather than four — fewer edges in frame,
+    // so use a lower threshold to avoid the green state never triggering.
+    const isThumb = currentState === 'thumb' || currentState === 'thumb_other';
+    const greenThreshold = isThumb ? 0.06 : 0.12;
+    const amberThreshold = isThumb ? 0.03 : 0.06;
+
     // Determine signal quality
     let quality;
     if (avgBrightness < 40) {
       quality = 'red';   // Too dark
     } else if (avgBrightness > 240) {
       quality = 'amber'; // Overexposed
-    } else if (edgeRatio > 0.12) {
+    } else if (edgeRatio > greenThreshold) {
       quality = 'green'; // Good contrast — likely a hand in frame
-    } else if (edgeRatio > 0.06) {
+    } else if (edgeRatio > amberThreshold) {
       quality = 'amber'; // Borderline
     } else {
       quality = 'red';   // Flat / hand missing

@@ -24,12 +24,12 @@
     {{-- Returning customer lookup --}}
     <div id="returning-card" class="mb-8 bg-lavender-wash border border-hairline rounded-xl p-5">
       <p class="font-sans font-semibold text-ink text-sm mb-3">Ordered from me before?</p>
-      <div class="flex gap-2">
+      <div class="flex gap-2 items-center">
         <input id="lookup-input" type="text"
                placeholder="Phone number or email"
-               class="flex-1 font-sans text-body text-ink bg-paper border border-hairline rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender transition">
+               class="flex-1 min-w-0 font-sans text-body text-ink bg-paper border border-hairline rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-lavender/30 focus:border-lavender transition">
         <button id="lookup-btn"
-                class="bg-ink text-bone font-sans text-caption font-medium rounded-full px-5 py-2.5 hover:opacity-80 transition">
+                class="shrink-0 whitespace-nowrap bg-ink text-bone font-sans text-sm font-medium rounded-xl px-4 py-2.5 hover:opacity-80 transition">
           Find my profile
         </button>
       </div>

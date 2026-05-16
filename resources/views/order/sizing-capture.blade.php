@@ -328,22 +328,22 @@
 
         {{-- Fingers overlay (photo 1 and 3) --}}
         <g id="overlay-fingers">
-          {{-- Coin above middle finger, large enough to represent a PKR 5 coin --}}
+          {{-- Coin above middle finger --}}
           <circle cx="220" cy="255" r="38" stroke="rgba(255,255,255,0.8)" stroke-width="1.5" stroke-dasharray="5 4"/>
           <text x="220" y="263" text-anchor="middle" font-size="17" fill="rgba(255,255,255,0.9)" font-family="DM Sans, sans-serif">₨</text>
           <text x="220" y="308" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.5)" font-family="DM Sans, sans-serif" letter-spacing="1.5">COIN ABOVE NAILS</text>
 
-          {{-- Pinky — 56px wide, center x=68, x=40-96. Shortest ~55% of middle. Arch r=28. --}}
-          <path d="M40,870 L40,576 Q40,548 68,548 Q96,548 96,576 L96,870"
+          {{-- Pinky — 70px wide, center x=53, x=18-88. ~75% of middle height. --}}
+          <path d="M18,870 L18,486 Q18,451 53,451 Q88,451 88,486 L88,870"
                 stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
-          {{-- Ring — 60px wide, center x=140, x=110-170. ~82% of middle. Arch r=30. --}}
-          <path d="M110,870 L110,436 Q110,406 140,406 Q170,406 170,436 L170,870"
+          {{-- Ring — 75px wide, center x=132, x=95-170. ~90% of middle height. --}}
+          <path d="M95,870 L95,406 Q95,368 132,368 Q170,368 170,406 L170,870"
                 stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
-          {{-- Middle — 64px wide, center x=220, x=188-252. Tallest. Arch r=32. --}}
+          {{-- Middle — 64px wide, center x=220, x=188-252. Tallest. --}}
           <path d="M188,870 L188,344 Q188,312 220,312 Q252,312 252,344 L252,870"
                 stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
-          {{-- Index — 60px wide, center x=300, x=270-330. ~79% of middle. Arch r=30. --}}
-          <path d="M270,870 L270,451 Q270,421 300,421 Q330,421 330,451 L330,870"
+          {{-- Index — 75px wide, center x=308, x=271-346. ~88% of middle height. --}}
+          <path d="M271,870 L271,417 Q271,379 308,379 Q346,379 346,417 L346,870"
                 stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-dasharray="7 5" stroke-linecap="round"/>
         </g>
 

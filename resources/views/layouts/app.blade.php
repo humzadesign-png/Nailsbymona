@@ -83,8 +83,8 @@
             {{-- Bag toggle --}}
             <button id="bag-toggle" aria-label="Open bag"
                     class="relative p-0.5 text-stone hover:text-ink transition-colors duration-200">
-                <svg class="w-[22px] h-[22px]" viewBox="0 0 256 256" fill="none" stroke="currentColor"
-                     stroke-width="16" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg class="w-5 h-5" viewBox="0 0 256 256" fill="none" stroke="currentColor"
+                     stroke-width="14" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     {{-- Bag body: clean rectangle --}}
                     <rect x="32" y="104" width="192" height="120" rx="8"/>
                     {{-- Handle: arches above the bag opening (sweep=0 = counter-clockwise = up) --}}
