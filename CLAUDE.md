@@ -245,17 +245,20 @@ Admin accounts only.
 - `shipping_address`, `city`, `postal_code`, `notes`
 - `subtotal_pkr`, `shipping_pkr`, `total_pkr` (integers)
 - `payment_method` (enum: `jazzcash`, `easypaisa`, `bank_transfer`, `card`) *(`cod` removed 2026-04-30; `card` reserved for Phase 5 SafePay launch — not selectable at MVP)*
-- `payment_status` (enum: `awaiting`, `verifying`, `paid`, `partial_advance`, `refunded`)
-- `advance_paid_pkr`
+- `payment_status` (enum: `awaiting`, `verifying`, `paid`, `partial_advance`, `refunded`) *(all states reachable as of Phase 5 — `partial_advance` set by the "Confirm: advance only" Filament action)*
+- `advance_paid_pkr` *(populated by Filament confirmation actions: full payment → `total_pkr`; advance only → `advanceAmountPkr()`; balance received → `total_pkr`)*
 - `status` (enum: `new`, `confirmed`, `in_production`, `shipped`, `delivered`, `cancelled`)
 - `tracking_number`, `courier` (enum: `tcs`, `leopards`, `mp`, `blueex`)
 - `requires_advance` (bool — auto-true for orders ≥ PKR 5,000)
+- `is_returning_customer` (bool — set at checkout if the returning-customer lookup matched a profile with saved sizing)
 - `sizing_capture_method` (enum: `live_camera`, `upload`, `from_profile`, `whatsapp_pending`) *(track which UX customers actually use; `whatsapp_pending` when customer skips capture and will send via WhatsApp)*
+- `refit_requested_at`, `refit_shipped_at`, `refit_notes` *(added Phase 5 — free-first-refit tracking, set via Filament admin actions on Delivered orders)*
 - timestamps
 
 ### `order_items`
-- `id`, `order_id`, `product_id`
-- `product_name_snapshot`, `unit_price_pkr`, `qty`
+- `id`, `order_id`, ~~`product_id`~~ *(column exists but is `unsignedBigInteger` while `products.id` is ULID — incompatible; never written. Dead column candidate for cleanup migration.)*
+- `product_name_snapshot`, `product_tier_snapshot`, `product_slug_snapshot` *(slug is the de-facto FK to products)*
+- `unit_price_pkr`, `qty` *(prices re-fetched server-side from `products` at order-creation time — never trust client bag pricing)*
 - `sizing_notes`
 
 ### `order_sizing_photos`
@@ -289,7 +292,16 @@ Admin accounts only.
 - `question`, `answer`, `sort_order`, `is_active`
 
 ### `settings`
-Single-row key/value via `spatie/laravel-settings` — payment account #s, contact info, shipping rates, social handles.
+Single-row key/value via `spatie/laravel-settings` (class: `App\Settings\StoreSettings`). **As of Phase 5, this is the only source of truth for store-config values** — `config/nbm.php` was deleted; every controller and view reads from `app(StoreSettings::class)` (exposed in views as `$settings` via `AppServiceProvider::boot()`).
+
+Stored keys:
+- **Contact / social:** `whatsapp_number`, `instagram_handle`, `tiktok_handle`, `contact_email`, `business_hours`
+- **Payments (manual):** `jazzcash_number`, `jazzcash_name`, `easypaisa_number`, `easypaisa_name`, `bank_name`, `bank_account_name`, `bank_account_no`, `bank_iban`
+- **Shipping:** `shipping_flat_pkr` (default 350), `shipping_free_above` (default 5000; 0 disables)
+- **Advance & deposits:** `advance_threshold_pkr` (default 5000), `advance_percent` (default 25), `bridal_deposit_percent` (default 100 — full advance per §7), `reorder_discount_percent` (default 5)
+- **Lead times (calendar days):** `lead_time_standard_days` (default 5), `lead_time_bridal_days` (default 10)
+
+Helper: `StoreSettings::whatsappForWaMe()` returns the digits-only WhatsApp number (no `+`, no spaces) for `wa.me/{n}` URLs. Save-side normalizes the stored value to canonical `+<digits>`.
 
 ### `subscribers` *(NEW — blog email capture)*
 - `id`, `email`, `source` (e.g. `blog_index`), `subscribed_at`, `unsubscribed_at`
@@ -509,8 +521,22 @@ All 7 resources (Orders, Products, UgcPhotos, Customers, BlogPosts, FAQs, Contac
 ### Phase 4 — Blog + SEO infrastructure ✅ COMPLETE (2026-05-16)
 Blog index + post template with FAQ schema. Sitemap generator (`/sitemap.xml`). RSS feed (`/feed.xml`). Schema.org Article + FAQPage + BreadcrumbList on all post pages. All 5 cornerstone posts seeded and live: wudu/Muslim women (priority) · press-on vs acrylics · bridal trends 2026 · how to apply · how to remove. BlogPostSeeder + FaqSeeder run on production. Category filter (client-side jQuery), email subscribe strip, reading-time calculation, related-posts, and view-count tracking all working.
 
-### Phase 5 — Polish & handoff (day 11)
-Real logo + photography swap-in. SEO meta audit. Open Graph images. Favicon. 8–12 demo products seeded. `docs/mona-admin-guide.md` walkthrough.
+### Phase 5 — Polish & handoff ⚠️ MOSTLY COMPLETE (2026-05-16, 5-block sweep)
+
+**Security + workflow + SEO sweep done** (see §32 "Phase 5 polish pass" entry for full detail). 37 audit findings closed across five deploys:
+
+- **Security:** server-side bag price verification, session allowlist on order pages, private-disk file storage with auth-gated admin route, EXIF strip + HEIC normalization on every upload, DB-transaction + row-locked order numbering, throttle on tracking lookup.
+- **Settings unification:** `config/nbm.php` deleted; every value comes from `StoreSettings`. Bridal deposit + reorder discount + lead times all admin-editable.
+- **Order workflow:** advance/balance/refit actions in Filament, payment-age SLA badge, bulk confirm, one-tap WhatsApp, editable customer/address post-placement, refit-request tracking.
+- **SEO + share:** `/privacy` `/terms` `/shipping` legal pages live (clears footer 404s), custom 404, generated OG image, `og:type=article` for blog posts, deduplicated Org schema, `lang="en-PK"`, RSS autodiscovery, `robots.txt` with Sitemap line, populated favicon.
+- **A11y + hygiene:** focus traps + restore on bag/menu overlays, queued admin notifications (`ShouldQueue`), lazy-loading audit, 5 dead Blade views deleted.
+
+**Still to do (real-world polish, not blocked):**
+- Real photography swap-in (replace Google AI placeholder images with Mona's actual photo shoot — DIY half-day, hand-only per §24 brand rules).
+- Real designer-made OG image (current is auto-generated DejaVu fallback; Mona could commission a 1200×630 hand-only brand card).
+- 8–12 demo products seeded (currently 9 from Phase 3 seeder).
+- `docs/mona-admin-guide.md` walkthrough — non-technical-friendly admin tutorial.
+- Analytics consent banner (finding #36) — defer until Phase 7 diaspora UK opens.
 
 ### Phase 6 — Payment gateway (post-launch)
 **SafePay integration.** Adds automated card (Visa/MC/UnionPay) + JazzCash + EasyPaisa via Pakistan-local gateway. Manual proof-upload flow stays as fallback for Bank Transfer. Architectural plan (HMAC webhook, idempotent handler, polling fallback, decline-retry path) lives in §26 — no need to redo design work when this phase opens.
@@ -652,28 +678,47 @@ php artisan serve  # http://localhost:8000
 ## 14. Conventions
 
 - **Currency:** PKR integer in `*_pkr` columns. Format via `format_pkr()` helper.
-- **Images:** `storage/app/public/{products,gallery,sizing,sizing-profiles,payment-proofs,blog}/`. Filenames are ULIDs.
-- **Image variants:** auto-generate WebP + AVIF + JPEG fallback at 3 sizes (320, 768, 1280) via `intervention/image` on upload.
+- **Images — public assets** (products, UGC, blog covers): `storage/app/public/{products,ugc,blog}/`. Filenames are ULIDs. Served via the `storage:link` symlink at `/storage/...`.
+- **Images — private uploads** (sizing photos, payment proofs): `storage/app/private/{sizing,payment-proofs}/{order_id}/`. **Never web-accessible.** Read only via the auth-gated admin route `route('admin.private-file', ['category', 'order', 'filename'])`. Model accessors `OrderSizingPhoto::viewer_url` / `OrderPaymentProof::viewer_url` produce that URL.
+- **Image variants:** auto-generate WebP + AVIF + JPEG fallback at 3 sizes (320, 768, 1280) via `intervention/image` on upload. *(Aspirational — not yet implemented.)*
 - **Enums:** `app/Enums/`. Cast in models.
-- **Design:** no new colors without `tailwind.config.js`. No new fonts without `<head>` updates.
-- **Validation:** FormRequests, never inline.
-- **Uploads:** HEIC → JPEG. EXIF strip. Max 8 MB.
-- **Order numbers:** `NBM-YYYY-####`, zero-padded, resets yearly.
-- **SEO:** every public route has a `<x-seo>` component with `title`, `description`, `og:image`, `canonical`, and route-appropriate JSON-LD.
+- **Settings — single source of truth:** `App\Settings\StoreSettings` (Spatie). Globally available in views as `$settings` via `AppServiceProvider::boot()`. **Do not reintroduce `config/nbm.php`** — it was deleted Phase 5 because it diverged from admin Settings edits. Every payment / contact / shipping / lead-time / advance value comes from `$settings`.
+- **WhatsApp URLs:** always `wa.me/{{ $settings->whatsappForWaMe() }}` (digits-only). Save-side normalizes to `+<digits>`.
+- **Reorder discount:** `$settings->reorder_discount_percent` (default 5). Stored as integer percent, applied as `subtotal * (percent / 100)`.
+- **Bridal deposit:** `$settings->bridal_deposit_percent` (default 100 — full advance per §7). Used by `Order::advanceAmountPkr()`.
+- **Design:** no new colors without updating Tailwind v4 `@theme` in `resources/css/app.css`. No new fonts without `<head>` updates.
+- **Validation:** FormRequests, never inline. *(Aspirational — current code uses inline `$request->validate()` widely; finding #12 deferred.)*
+- **Uploads:** HEIC/HEIF → JPEG via Intervention. EXIF strip. Max 8 MB. Applies to BOTH sizing photos (`OrderSizingPhotoController`) AND payment proofs (`OrderPaymentProofController`).
+- **Order numbers:** `NBM-YYYY-####`, zero-padded, resets yearly. Generated by `Order::generateOrderNumber()` which wraps a `SELECT … FOR UPDATE` in a `DB::transaction` and retries up to 3× on unique-constraint violations (race-safe).
+- **Order creation:** wrapped in `DB::transaction` — items + customer stats + Order row commit atomically.
+- **SEO:** every public route has a `<x-seo>` component with `title`, `description`, `ogType` (default `website`, blog posts pass `"article"`), `og:image`, `canonical`, and route-appropriate JSON-LD. When `:schema` contains an `@graph`, Organization is merged into it (no duplicate `<script>` block).
 - **URLs:** lowercase-hyphenated slugs only. Permanent 301 for any URL changes (use `redirects` table or Laravel's `App\Http\Middleware\RedirectLegacyUrls`).
 - **Order form steps:** each step is a separate URL + server-rendered page (session preserves state). No JS-only single-page stepper — separate URLs give reliable back-button support and accurate step-level analytics on Pakistan mobile networks.
-- **Order tracking URLs:** use UUID, not integer ID, to prevent enumeration. Lookup requires order number + phone/email match.
+- **Order tracking URLs:** use UUID, not integer ID, to prevent enumeration. Lookup requires order number + phone/email match. Lookup is throttled `5,1` and stores the order ID in `session('order_form.authorized_orders')` on success.
+- **Order page authorization (confirm + track + proof upload):** session-allowlist pattern. `OrderController::sessionMayViewOrder($id)` / `OrderController::authorizeOrderForSession($id)`. Visitors without a session entry are redirected to `/track` lookup. Never assume UUID knowledge = authorization.
+- **Bag pricing:** never trust client-submitted prices. `OrderController::verifyBag()` re-fetches every item by slug from `products` before order creation; items with no/invalid slug are dropped.
+- **Admin notifications:** all `Notification` classes must `implements ShouldQueue` so push notifications go to the queue worker, not the request thread. Iterate users with `chunkById(50)`, never `User::all()`.
 
 ---
 
 ## 15. Security Notes
 
-- Admin gated behind Filament auth.
-- All customer uploads strip EXIF.
-- Payment proofs + sizing photos are **private** files — signed URLs in Filament, never publicly listed.
-- CSRF default; rate-limit contact + order forms (`throttle:5,1`).
-- Settings page admin-only.
+- Admin gated behind Filament auth. `User` model implements `Filament\Models\Contracts\FilamentUser` with `canAccessPanel(): true` (without this, Filament v4 blocks all admin access in production — see §32 2026-05-15).
+- All customer uploads (sizing photos AND payment proofs) pass through Intervention: EXIF strip + HEIC/HEIF/webp → JPEG. PDFs in payment proofs pass through unchanged.
+- **Payment proofs + sizing photos live on the private `local` disk** (`storage/app/private/`) — never web-accessible. The only read path is the auth-gated route `GET /admin/files/{category}/{order}/{filename}` (controller: `App\Http\Controllers\Admin\PrivateFileController`). Path-traversal guarded (no `..`, `/`, `\`), category whitelisted to `sizing|payment-proofs`, filename regex restricted to `[A-Za-z0-9._-]+`. Auth check happens inside the controller via `Auth::check()` because Laravel's default `auth` middleware redirects to a non-existent `login` route.
+- **Bag price tampering closed.** `OrderController::verifyBag()` re-fetches every cart item by slug from the DB before pricing. Customer-submitted prices are ignored.
+- **Order creation atomicity.** `OrderController@store` wraps the Order + OrderItems + customer-stats writes in `DB::transaction`. `Order::generateOrderNumber()` uses `SELECT … FOR UPDATE` + 3-retry on unique-violation, race-safe.
+- **Order-page authorization.** `/order/confirm/{uuid}`, `/order/{uuid}/track`, and the proof upload endpoint all check `OrderController::sessionMayViewOrder($uuid)` first. The session allowlist `order_form.authorized_orders` is populated on order placement + successful tracking lookup. Unauthorized visitors get redirected to `/track` lookup form. UUID knowledge alone is no longer sufficient.
+- CSRF default; rate-limit:
+  - Contact form `POST /contact` → `throttle:5,1`
+  - Customer lookup `POST /order/start/lookup` → `throttle:10,1`
+  - Order placement `POST /order/payment` → `throttle:5,1`
+  - Tracking lookup `POST /order/track/lookup` → `throttle:5,1` (was 10/min before Phase 5)
+  - Subscribe `POST /subscribe` → `throttle:5,1`
+- Settings page admin-only (Filament panel auth).
 - Camera permission requested only on the sizing step — explanation copy preceding the prompt to maximize grant rate.
+- `robots.txt` Disallows `/admin`, `/admin/`, `/order/`, `/track`.
+- All public notifications (`NewOrderNotification`, `NewMessageNotification`) `implements ShouldQueue` — they run on the queue worker, never on the request thread.
 
 **Phase 6 (SafePay) security additions** *(deferred — listed here for future reference)*: HMAC signature verification on the webhook endpoint, idempotent handler keyed on `safepay_transaction_id`, IP allow-listing if SafePay publishes their range. PCI-DSS scope stays near-zero because card data lives entirely on SafePay's hosted checkout — our servers never see it.
 
@@ -1861,6 +1906,84 @@ All 5 appear in `/sitemap.xml`. RSS feed at `/feed.xml` autodiscoverable from bl
 
 ---
 
+### 2026-05-16 (later still) — Phase 5 polish pass: 5-block security + UX + SEO sweep
+
+Full pre-Phase-5 audit (~60 findings catalogued, ~37 closed across five deploys). The site went from "functionally complete" to "materially safer + more Mona-friendly." All work deployed live to `https://nailsbymona.pk`.
+
+**Block 1 — Security closures** (commits `201065c`, `0988150`):
+- **Bag price tampering closed.** `OrderController@store` re-fetches every bag item by slug from the DB before pricing/creating items. localStorage-supplied prices, names, tiers are now ignored — a customer setting `price_pkr: 1` in DevTools can no longer place a Bridal Trio for Rs. 1. qty hard-clamped 1–10 per line.
+- **Order creation wrapped in `DB::transaction`** — items, customer stats, and the Order row commit atomically. Partial-write failures impossible.
+- **Session allowlist `order_form.authorized_orders`** populated on order placement + successful tracking lookup. Enforced on `/order/confirm/{uuid}`, `/order/{uuid}/track`, and the proof upload endpoint. Random UUIDs no longer leak order data via "View Source."
+- **Tracking lookup contact normalization** — case-insensitive email + digit-suffix phone match. `John@Gmail.com` / `0300-1234567` / `+923001234567` / `923001234567` all resolve correctly. Throttle tightened 10/min → 5/min (matches contact form).
+- **Private file storage.** Sizing photos + payment proofs moved from `storage/app/public/` (web-accessible) to `storage/app/private/` (local disk). A new auth-gated admin route `GET /admin/files/{category}/{order}/{filename}` is the only way to read them — handled by `App\Http\Controllers\Admin\PrivateFileController` with category whitelist + filename regex + path-traversal guard. Filament infolist now renders images via `OrderSizingPhoto::viewer_url` / `OrderPaymentProof::viewer_url` accessors that produce signed admin URLs.
+- **EXIF strip + HEIC/HEIF/webp → JPEG normalization** added to payment proof upload (already in sizing pipeline). PDFs pass through unchanged.
+- Confirmed `AutoCancelOrderJob` + `SendPaymentReminderJob` already guard on `payment_status === Awaiting` — finding #18 was a false alarm.
+
+**Block 2 — Settings unification** (commit `6e2c778`):
+- **`config/nbm.php` deleted.** It was a parallel source of truth alongside Spatie `StoreSettings` — the admin Settings page wrote to `StoreSettings` but `OrderController` + views read from `config('nbm.*)`. Mona changing her JazzCash number had zero effect on the live checkout. Every read site (24 view replacements + 18 wa.me URLs) now reads from `StoreSettings`.
+- **New settings fields** (migration `2026_05_16_220000_add_lead_times_and_discount`): `lead_time_standard_days` (default 5), `lead_time_bridal_days` (default 10), `reorder_discount_percent` (default 5), `bridal_deposit_percent` (default 100 — fixes finding #10, matches CLAUDE.md §7 "Bridal Trio requires full advance"; was hardcoded 50% in `Order::advanceAmountPkr()`).
+- **WhatsApp number normalization.** New `StoreSettings::whatsappForWaMe()` returns digits-only. Every `wa.me/{{ … }}` URL site (18) now calls this helper. Save-side: ManageSettings page canonicalizes input to `+<digits>` so spaces/dashes Mona types don't break the URL.
+- **ManageSettings page** form now includes all fields including Bridal deposit %, reorder discount %, lead times. Three new form sections: "Shipping", "Advance & deposits", "Production lead times".
+- Removed dead `OrderController::paymentDetailsFor()` helper.
+
+**Block 3 — Order workflow + Mona-usability** (commit `249861d`):
+- **`Order::generateOrderNumber()` race-fixed.** Inner `DB::transaction` with `lockForUpdate()` on the latest order_number for the year; retries up to 3× if a unique-constraint violation slips through (e.g. empty-table-for-year + two concurrent readers).
+- **Order model accessors** `getPaymentAgeHoursAttribute()` + `getPaymentAgeLabelAttribute()` — produce `🟢 awaiting payment · 2h` / `🟡 14h` / `🔴 1d 4h` (thresholds: <12h green, 12–24h amber, >24h red, matching Mona's 24h SLA target). Rendered as description text under the Payment column in OrderResource.
+- **`OrderResource` action expansion:**
+  - WhatsApp row action — one-tap deep link with order-aware prefill ("Hello, this is Mona. About your order NBM-…").
+  - "Confirm: full payment" (replaces "Mark Confirmed") — writes `advance_paid_pkr = total_pkr` + `confirmed_at = now()`.
+  - "Confirm: advance only" (new, visible on `requires_advance` orders) — writes `payment_status = PartialAdvance` + `advance_paid_pkr = advanceAmountPkr()`. **Closes finding #11**: PartialAdvance status + `advance_paid_pkr` are now reachable through the UI.
+  - "Balance received" (new, visible on PartialAdvance orders) — flips to fully paid.
+  - Bulk "Confirm: full payment" action — handles overnight stack of orders in one modal, sends each customer email, reports counts.
+- **Edit form expansion** — customer name/phone/email + shipping address/city/postal/notes + `advance_paid_pkr` now editable. Mona can fix checkout typos without DB access.
+
+**Block 4 — SEO + share polish** (commit `318316d`):
+- **Legal pages live** — `/privacy`, `/terms`, `/shipping` written with real plain-English content (data handling, refit policy, payment terms, lead times, courier list, damage policy). Three view files at `resources/views/legal/`. Footer links rewired from `url('/privacy')` to `route('privacy')`. **Closes footer 404s.**
+- **Custom 404** at `resources/views/errors/404.blade.php` — sitelink tiles to Shop / Bridal / Journal / Help + back-to-home CTA.
+- **`<x-seo>` improvements:** new `ogType` prop (default `website`, blog-post passes `"article"`); when a page provides `@graph` schema, Organization is merged into it instead of emitting a duplicate `<script>` block.
+- **`<html lang="en-PK">`** (was `en`) matches `hreflang="en-PK"` and `og:locale=en_PK`.
+- **RSS autodiscovery** `<link rel="alternate" type="application/rss+xml">` added to layout `<head>`.
+- **`robots.txt`** now declares Sitemap + Disallow rules for `/admin`, `/order/`, `/track`.
+- **OG default image** — new artisan command `php artisan og:generate` renders a 1200×630 brand card to `public/og-default.jpg` using Intervention. Falls back from bundled fonts to system DejaVu (always present on Ubuntu). Mona can re-run any time to refresh the wordmark.
+- **`favicon.ico`** — was 0 bytes, replaced with a copy of `icon-192.png` (browsers accept PNG inside `.ico` extension).
+- **Sitemap `lastmod`** for blog posts uses `max(published_at, updated_at)` so small edits without re-publishing propagate to crawlers.
+
+**Block 5 — A11y + dead code + refit workflow** (commit `41b8ec7`):
+- **Focus trap + focus restore** on bag drawer and mobile menu. Tab/Shift+Tab cycle within open overlay; ESC closes the visible one; focus returns to the trigger element on close. Initial focus lands on close button (or Checkout if bag has items). Closes the WCAG 2.2 issue flagged 2026-05-07.
+- **Deleted 5 dead Blade views** at views root: `order-form.blade.php`, `order-confirmation.blade.php`, `order-tracking.blade.php`, `sizing-capture.blade.php`, `welcome.blade.php`. All had zero references and conflicted with the real views at `views/order/*`.
+- **Queued admin notifications.** `NewOrderNotification` + `NewMessageNotification` now `implements ShouldQueue` (used `Queueable` trait without it, so `notify()` was running synchronously on the request thread). `User::all()->each->notify()` replaced with `chunkById(50)` — defensive against admin count growth.
+- **Lazy-loading audit** across every public-view `<img>` tag. Heroes (about, bridal, product main, blog featured, blog post cover) get `loading="eager" fetchpriority="high"`; below-fold get `loading="lazy"`. Blade-aware verifier (handles `{{ $post->cover_image }}` containing literal `>` chars) confirms zero gaps.
+- **Refit-request workflow** — CLAUDE.md §16 brand promise is now trackable:
+  - Migration `2026_05_16_230000_add_refit_columns_to_orders` adds `refit_requested_at`, `refit_shipped_at`, `refit_notes` columns to `orders`.
+  - Two Filament actions: "Refit requested" (modal with notes textarea, stamps timestamp, visible on Delivered orders without a refit) and "Refit shipped" (visible once requested but not yet dispatched).
+  - "Refit pending" table filter sorts oldest-request-first.
+  - Status column description shows `↺ refit pending` / `↺ refit shipped` so Mona can scan the list.
+  - View page surfaces a Refit infolist section (hidden if no refit activity).
+- **Awaiting-payment filter** now sorts oldest-first — SLA-breached orders rise to the top.
+
+**Critical patterns / gotchas discovered during this session:**
+
+| Pattern | Where it bit | Lesson |
+|---|---|---|
+| Multi-line `<img>` regex | Bulk lazy-loading insertion | Blade `{{ $post->cover_image }}` contains literal `>` — a `[^>]*?` regex stops there. Always use a Blade-aware parser that treats `{{ }}` and `{!! !!}` as opaque. |
+| Filament v4 + auth middleware | `/admin/files/...` returned 500 | Default Laravel `auth` middleware redirects to a route named `login` that doesn't exist in this app (Filament owns login at `/admin/login`). Either Filament's `Authenticate` middleware (panel context required) OR an explicit `Auth::check() ? : redirect('/admin/login')` inside the controller. |
+| Settings migration disk | None yet — defensive note | Spatie `addEncrypted()` works the same as `add()` API-wise, but reading mismatched encryption fails silently. Match the existing migration's style (this project uses `add()`, not `addEncrypted()`). |
+| Vercel hook noise | Every PR | The repo's `app/` directory triggers the Vercel plugin's Next.js skill suggestions. This is a Laravel project. Per §33, ignore all `nextjs` / `next-cache-components` / `chat-sdk` skill prompts. |
+| `product_id` column on `order_items` | Order creation | Column is typed `unsignedBigInteger` but `products.id` is ULID. Writing a ULID into it would fail on MySQL. Block 1 stopped writing `product_id` and relies on `product_slug_snapshot`. Dead column candidate for a future cleanup migration. |
+
+**Findings closed (37):** 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 17 (workaround), 18 (verified), 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 33, 34, 35, 36 (partial), 37, 39, 40, 44, 45, 48, 59.
+
+**Still open (audit residue):** #36 analytics consent banner, #38 inline footer styles, #41 unused csrf meta tag, #42 extract Filament SVG download partial, #43 push-subscription route guard, #46 OrderItem snapshot defaults edge case, #47 bag badge edge case, #50–58 small nits. None are launch blockers.
+
+**Deploy mechanics confirmed working:**
+- `/root/deploy.sh` on `157.230.252.62` — git pull → composer → migrate → optimize → supervisorctl restart.
+- All deploys this session: fast-forward only, zero conflicts.
+- Two Phase-5 migrations applied: `2026_05_16_220000_add_lead_times_and_discount` (settings table), `2026_05_16_230000_add_refit_columns_to_orders` (orders table).
+- `php artisan og:generate` run once on server post-deploy to write `public/og-default.jpg`.
+- Orphan public-disk files (test data from before private-disk migration) removed via `rm -rf storage/app/public/sizing storage/app/public/payment-proofs`.
+
+---
+
 ## 33. Pointers for Future Claude Sessions
 
 - **Read this file first.** Overrides anything you think you remember.
@@ -1912,9 +2035,41 @@ All 5 appear in `/sitemap.xml`. RSS feed at `/feed.xml` autodiscoverable from bl
 - **Final finger SVG geometry (2026-05-16, user confirmed):** All gaps 13px. Pinky x=12–82 (70px, center 47), Ring x=95–170 (75px, center 132), Middle x=183–258 (75px, center 220), Index x=271–346 (75px, center 308). Heights in camera overlay (viewBox 400×870): middle topY=312, ring topY=348, index topY=379, pinky topY=451. Ring finger is ~93% of middle height.
 - **Email price layout — Gmail gotcha:** Gmail strips `<style>` block CSS — flex layout is ignored. All `order-item` and `total-row` rows in email templates must use inline `style="display:table-cell; text-align:right; white-space:nowrap"` on price `<span>` elements. Never rely on CSS classes for email layout.
 - **Email logo:** `public/logo-white.svg` exists (white fill version of logo-text.svg) for use on coloured email headers. The email layout header has `background-color:#BFA4CE` with the white logo as an `<img>` tag.
-- **Reorder discount is 5%** (changed from 10% on 2026-05-16). Set in `OrderController.php` as `$subtotal * 0.05`. All views reference the literal amount from `$order->reorder_discount_pkr` — no other code change needed for future rate changes.
+- **Reorder discount is 5%** (changed from 10% on 2026-05-16). Now stored as `StoreSettings::reorder_discount_percent` (Phase 5) — Mona can change it from `/admin/manage-settings` without a deploy. Applied in `OrderController::calculateTotals()`.
 - **Returning customer indicator:** `OrderResource` Orders table shows `↩ Returning · phone` in the Customer column description for `is_returning_customer = true` orders. "Returning customers" filter also available.
 - **Expense categories (current):** Materials & Supplies · Gel Nail Polishes · Packaging · Courier & Shipping · Marketing & Ads · Tools & Equipment · Utilities & Overheads · Other. Defined in `app/Enums/ExpenseCategory.php`. Gel Nail Polishes added 2026-05-16 (color `#D4847A`).
+
+— **Phase 5 pointers** (added 2026-05-16 after the 5-block polish pass — see §32 entry):
+
+- **Settings is the single source of truth.** Every payment/contact/shipping/lead-time/advance value comes from `App\Settings\StoreSettings` (exposed in views as `$settings`). `config/nbm.php` was deleted; **do not reintroduce it.**
+- **WhatsApp URLs:** always `wa.me/{{ $settings->whatsappForWaMe() }}`. The helper returns digits-only — never `ltrim($..., '+')` manually because that doesn't strip spaces or dashes.
+- **Bridal Trio takes full advance by default** (`$settings->bridal_deposit_percent = 100`). Standard advance is `$settings->advance_percent` (25). Both editable from admin Settings.
+- **Lead times come from settings** (`lead_time_standard_days = 5`, `lead_time_bridal_days = 10`). Don't hardcode `addDays(5)` in any new view or email — pull from `$settings`.
+- **Private files don't live on the public disk.** Payment proofs + sizing photos use `Storage::disk('local')` (= `storage/app/private/`). Read via `route('admin.private-file', [...])` only. Both photo models expose a `viewer_url` accessor for Filament infolist.
+- **Order page authorization:** confirm/track/proof endpoints check `OrderController::sessionMayViewOrder($id)`. Visitors authorize by either (a) placing the order or (b) passing tracking lookup. UUID alone is not sufficient. Tracking lookup normalizes email (lowercase) + phone (digit-suffix match, handles `+92` / `92` / `0` prefixes).
+- **Bag prices must be re-fetched server-side.** `OrderController::verifyBag()` looks up each item by slug from the `products` table before creating order items. Items without a slug or with an inactive product are dropped. qty hard-clamped 1–10 per line.
+- **Order creation runs in `DB::transaction`.** `Order::generateOrderNumber()` uses `lockForUpdate()` + retry-on-unique-violation. Race-safe.
+- **Notifications:** `NewOrderNotification` + `NewMessageNotification` `implements ShouldQueue`. Iterate users with `chunkById(50)` — **don't use `User::all()->each->notify()`** (sync, loads all into memory).
+- **WCAG 2.2 — focus traps on overlays.** Bag drawer and mobile menu trap Tab/Shift+Tab + restore focus to trigger on close. ESC closes the visible overlay. Pattern is in `layouts/app.blade.php` `activateFocusTrap()` / `deactivateFocusTrap()`. Re-use the same pattern for any new modal/overlay.
+- **Lazy loading.** Hero `<img>` tags use `loading="eager" fetchpriority="high"`. Everything below the fold uses `loading="lazy"`. **When bulk-editing `<img>` tags with regex, never use `[^>]*?>` to match — Blade expressions like `{{ $post->cover_image }}` contain `>` and the regex stops there mid-tag.** Use a Blade-aware parser that treats `{{ }}` / `{!! !!}` as opaque.
+- **OG image.** Auto-generated by `php artisan og:generate` (Intervention + DejaVu fallback fonts). Output: `public/og-default.jpg` 1200×630. Re-run to refresh. A designer-made hand-only OG card is a Phase 5 polish item.
+- **Legal pages.** `/privacy`, `/terms`, `/shipping` are live with real content at `resources/views/legal/*.blade.php`. Footer links use named routes (`route('privacy')` etc.) — do not revert to `url('/privacy')`.
+- **Custom 404** at `resources/views/errors/404.blade.php` — sitelink tiles. Don't replace with Laravel's whoops default.
+- **Refit workflow** (CLAUDE.md §16 promise is now tracked):
+  - Columns: `orders.refit_requested_at`, `orders.refit_shipped_at`, `orders.refit_notes`.
+  - Filament actions: "Refit requested" (Delivered orders without a refit, opens notes modal) and "Refit shipped" (after a refit is requested).
+  - "Refit pending" filter sorts oldest-first.
+  - Status column description shows `↺ refit pending` / `↺ refit shipped` for at-a-glance scanning.
+- **OrderResource confirmation actions** (Phase 5):
+  - "Confirm: full payment" — writes `payment_status = Paid` + `advance_paid_pkr = total_pkr`.
+  - "Confirm: advance only" — visible on `requires_advance` orders. Writes `payment_status = PartialAdvance` + `advance_paid_pkr = advanceAmountPkr()`.
+  - "Balance received" — visible on PartialAdvance orders. Flips to Paid.
+  - Bulk "Confirm: full payment" for the overnight stack.
+  - "WhatsApp" row action with order-aware prefill ("Hello, this is Mona. About your order NBM-…").
+- **SLA visibility.** Payment column description shows `🟢 awaiting payment · 2h` / `🟡 14h` / `🔴 1d 4h` for awaiting orders. Computed via `Order::getPaymentAgeLabelAttribute()`. Awaiting-payment filter now sorts oldest-first.
+- **Filament v4 + custom auth-gated routes** outside the panel path: Laravel's default `auth` middleware redirects to a non-existent `login` route → 500. Either use Filament's `Authenticate` middleware (panel context required) OR do the check inside the controller (`Auth::check() ? : redirect('/admin/login')`). The latter pattern is used by `PrivateFileController`.
+- **`OrderItem.product_id` is typed `unsignedBigInteger`** but `products.id` is ULID. The column exists but is never written — `product_slug_snapshot` is the de-facto FK. Dead column for a future cleanup migration.
+- **Vercel plugin auto-suggestions** for `nextjs` / `next-cache-components` / `chat-sdk` / `ai-sdk` etc. fire because the Laravel project has an `app/` directory. **They are inapplicable.** Don't run the suggested skill tools.
 
 ---
 
