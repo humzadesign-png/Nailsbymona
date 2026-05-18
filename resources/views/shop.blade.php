@@ -124,7 +124,7 @@
           <button class="add-to-bag w-full bg-lavender hover:bg-lavender-dark text-white font-sans text-caption font-medium tracking-wide rounded-full py-2.5 transition-colors duration-200"
             data-name="{{ e($product->name) }}"
             data-price="{{ $product->price_pkr }}"
-            data-tier="{{ $tierLabel }}"
+            data-tier="{{ $tierValue }}"
             data-slug="{{ $product->slug }}"
             data-image="{{ $imgSrc }}">
             Add to bag
@@ -191,7 +191,7 @@
           </svg>
         </span>
         <div>
-          <p class="font-sans font-semibold text-ink mb-1" style="font-size:0.875rem">Ships 5&ndash;9 working days</p>
+          <p class="font-sans font-semibold text-ink mb-1" style="font-size:0.875rem">Ships in {{ $settings->lead_time_standard_days }} days</p>
           <p class="font-sans text-caption text-stone">Handmade in Mirpur, shipped nationwide.</p>
         </div>
       </div>
@@ -291,21 +291,28 @@ $(function () {
   });
 
   // ── Add to bag ───────────────────────────────────
+  // Delegated through window.NbmBag.add so dedupe-by-slug, badge update,
+  // and drawer open all match the rest of the site. The server's
+  // verifyBag() drops any item without a slug, so the slug MUST be set.
   $(document).on('click', '.add-to-bag', function (e) {
     e.preventDefault();
-    const $btn  = $(this);
-    const name  = $btn.data('name');
-    const price = +$btn.data('price');
-    const image = $btn.data('image') || '';
+    const $btn = $(this);
+    const slug = $btn.data('slug');
 
-    const items = window.NbmBag.get();
-    const existing = items.find(i => i.name === name);
-    if (existing) {
-      existing.qty++;
-    } else {
-      items.push({ name, price_pkr: price, qty: 1, image });
+    if (! slug) {
+      // Defensive: a product card without a slug shouldn't render, but if
+      // somehow it does, surface it instead of silently corrupting the bag.
+      console.warn('Add to bag: missing slug on', $btn[0]);
+      return;
     }
-    window.NbmBag.save(items);
+
+    window.NbmBag.add({
+      slug:      slug,
+      name:      $btn.data('name'),
+      price_pkr: +$btn.data('price'),
+      tier:     ($btn.data('tier') || '') + '',
+      image:     $btn.data('image') || '',
+    });
 
     // Visual feedback
     const originalText = $btn.text();
@@ -313,8 +320,6 @@ $(function () {
     setTimeout(function () {
       $btn.text(originalText).prop('disabled', false);
     }, 1400);
-
-    window.NbmBag.open();
   });
 
 });

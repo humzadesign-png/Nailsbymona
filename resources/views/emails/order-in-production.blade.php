@@ -22,7 +22,7 @@
 
 <div class="divider"></div>
 
-<p>Estimated dispatch: <strong>{{ now()->addDays(4)->format('D, d M Y') }}</strong>.</p>
+<p>Estimated dispatch: <strong>{{ $order->estimatedDispatchAt(fromNow: true)->format('D, d M Y') }}</strong>.</p>
 <p style="font-size:14px;color:#7A6E65">Once your set is packed and handed to the courier, you'll receive a shipping confirmation with your tracking number.</p>
 
 <div class="cta-wrap">

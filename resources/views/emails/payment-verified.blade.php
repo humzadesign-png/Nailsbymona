@@ -30,7 +30,7 @@
 
 <div class="divider"></div>
 
-<p>Your set will now go into production. Estimated dispatch: <strong>{{ now()->addDays(5)->format('D, d M Y') }}</strong>.</p>
+<p>Your set will now go into production. Estimated dispatch: <strong>{{ $order->estimatedDispatchAt(fromNow: true)->format('D, d M Y') }}</strong>.</p>
 <p style="font-size:14px;color:#7A6E65">I'll send another update when your order is being made, and again when it ships with your tracking number.</p>
 
 <div class="cta-wrap">

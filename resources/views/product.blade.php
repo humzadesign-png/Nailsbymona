@@ -22,9 +22,14 @@
         default         => 'https://schema.org/InStock',
     };
     $waText     = urlencode('Hello Nails by Mona, I\'m interested in ' . $product->name . '.');
-    $leadTime   = $product->lead_time_days ?? 9;
-    $leadMin    = max(5, $leadTime - 2);
-    $stockLabel = $product->stock_status?->label() ?? 'Made to Order';
+    // Per-product lead time wins; fall back to the standard setting. The "min"
+    // is a 2-day fuzzy window for the public copy (e.g. "5–7 days") with the
+    // standard lead time as the floor so we never quote something faster than
+    // the studio actually delivers.
+    $leadTime    = $product->lead_time_days ?? (int) $settings->lead_time_standard_days;
+    $leadMin     = max((int) $settings->lead_time_standard_days, $leadTime - 2);
+    $bridalLead  = (int) $settings->lead_time_bridal_days;
+    $stockLabel  = $product->stock_status?->label() ?? 'Made to Order';
 @endphp
 
 @push('head')
@@ -42,7 +47,7 @@
 @section('seo')
     <x-seo
         :title="($product->meta_title ?: $product->name . ' — Custom-Fit Press-On Nails Pakistan | Nails by Mona')"
-        :description="($product->meta_description ?: 'Handmade ' . strtolower($product->name) . ' press-on gel nails, custom-sized to your measurements. ' . $tierLabel . ' tier. Ships in ' . $leadMin . '–' . $leadTime . ' working days across Pakistan. Free first refit.')"
+        :description="($product->meta_description ?: 'Handmade ' . strtolower($product->name) . ' press-on gel nails, custom-sized to your measurements. ' . $tierLabel . ' tier. Ships in ' . $leadMin . '–' . $leadTime . ' days across Pakistan. Free first refit.')"
         :schema="json_encode([
             '@context'    => 'https://schema.org',
             '@type'       => 'Product',
@@ -117,7 +122,7 @@
         <!-- Price + stock -->
         <div class="flex items-center gap-4 mb-5">
           <span class="font-sans font-semibold text-lavender tabular-nums" style="font-size:1.5rem">{{ $product->formattedPrice() }}</span>
-          <span class="font-sans text-caption text-stone">{{ $stockLabel }} &middot; Ships in {{ $leadMin }}&ndash;{{ $leadTime }} working days</span>
+          <span class="font-sans text-caption text-stone">{{ $stockLabel }} &middot; Ships in {{ $leadMin }}&ndash;{{ $leadTime }} days</span>
         </div>
 
         <!-- Short description -->
@@ -132,6 +137,7 @@
           data-name="{{ $product->name }}"
           data-price="{{ $product->price_pkr }}"
           data-slug="{{ $product->slug }}"
+          data-tier="{{ $tierValue }}"
           data-image="{{ $imgSrc }}">
           Add to bag
           <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M40,72H216a8,8,0,0,1,8,8.83l-12.43,112a8,8,0,0,1-8,7.17H52.4a8,8,0,0,1-8-7.17L32,80.83A8,8,0,0,1,40,72Z"/><path d="M88,104V72a40,40,0,0,1,80,0v32"/></svg>
@@ -193,7 +199,7 @@
         </p>
         <div class="bg-shell rounded-xl p-5">
           <p class="font-sans text-caption text-stone font-medium mb-1">Ships in</p>
-          <p class="font-sans text-body text-graphite">{{ $leadMin }}&ndash;{{ $leadTime }} working days from sizing confirmation</p>
+          <p class="font-sans text-body text-graphite">{{ $leadMin }}&ndash;{{ $leadTime }} days from sizing confirmation</p>
         </div>
       </div>
 
@@ -290,7 +296,7 @@
             <svg class="faq-icon w-4 h-4 text-stone shrink-0 transition-transform duration-200" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round"><line x1="40" y1="128" x2="216" y2="128"/><line class="faq-plus-vertical" x1="128" y1="40" x2="128" y2="216"/></svg>
           </button>
           <div class="faq-answer pb-5">
-            <p class="font-sans text-body text-graphite">Custom sets take {{ $leadMin }}&ndash;{{ $leadTime }} working days from the day I confirm your sizing. Bridal sets take 10&ndash;14 days. I'll confirm your exact timeline over WhatsApp before I start.</p>
+            <p class="font-sans text-body text-graphite">Custom sets take {{ $leadMin }}&ndash;{{ $leadTime }} days from the day I confirm your sizing. Bridal sets take around {{ $bridalLead }} days. I'll confirm your exact timeline over WhatsApp before I start.</p>
           </div>
         </div>
 
@@ -399,16 +405,20 @@
 $(function () {
 
   // ── Add to bag ───────────────────────────────────
+  // Includes `tier` (enum value, e.g. "bridal_trio") so the payment page's
+  // isBridalTrio detection works before verifyBag() runs server-side. The
+  // server always re-verifies tier from the products table at order placement.
   $('#add-to-bag-btn').on('click', function () {
     const btn  = $(this);
     const slug = btn.data('slug');
-    const items = window.NbmBag.get();
-    const existing = items.find(i => i.slug === slug);
-    if (existing) { existing.qty++; } else {
-      items.push({ slug: slug, name: btn.data('name'), price_pkr: +btn.data('price'), qty: 1, image: btn.data('image') || '' });
-    }
-    window.NbmBag.save(items);
-    window.NbmBag.open();
+    if (! slug) return;
+    window.NbmBag.add({
+      slug:      slug,
+      name:      btn.data('name'),
+      price_pkr: +btn.data('price'),
+      tier:     (btn.data('tier') || '') + '',
+      image:     btn.data('image') || '',
+    });
   });
 
   // ── Image gallery thumbnails + swipe ─────────────

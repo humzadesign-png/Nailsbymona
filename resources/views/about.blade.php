@@ -224,7 +224,7 @@
         </div>
         <div class="pt-1.5 pb-4">
           <h3 class="font-sans font-medium text-ink mb-2" style="font-size:1rem">I build your set</h3>
-          <p class="font-sans text-body text-stone">Each nail individually on a form. Gel base, colour layers, any hand-painting or charm work, topcoat &mdash; cured between each stage. Custom orders: 5&ndash;9 working days. Bridal Trio: 10&ndash;14.</p>
+          <p class="font-sans text-body text-stone">Each nail individually on a form. Gel base, colour layers, any hand-painting or charm work, topcoat &mdash; cured between each stage. Custom orders: {{ $settings->lead_time_standard_days }} days. Bridal Trio: {{ $settings->lead_time_bridal_days }} days.</p>
         </div>
       </div>
 

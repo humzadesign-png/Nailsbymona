@@ -249,6 +249,9 @@ $(function () {
   });
 
   // Returning-customer lookup
+  // On match: the server has already set sizing_method=from_profile + is_returning
+  // in the session, so we auto-redirect to step 2. The customer never has to
+  // pick a sizing option or click Continue.
   $('#lookup-btn').on('click', function () {
     const contact = $('#lookup-input').val().trim();
     if (! contact) return;
@@ -261,27 +264,30 @@ $(function () {
     })
     .done(function (data) {
       if (data.found) {
+        // Confirm the match, freeze the page, then send them to step 2.
         $('#lookup-result').removeClass('hidden').html(
           '<div class="bg-green-50 border border-green-200 rounded-lg px-4 py-3 font-sans text-caption text-green-800">' +
           '✓ Welcome back, ' + $('<div>').text(data.name).html() + '! ' +
           (data.last_order ? 'Last order: ' + data.last_order + '. ' : '') +
-          'Your sizing is on file — you can skip straight to your details.' +
+          'Your sizing is on file — taking you to your details…' +
           '</div>'
         );
-        // Hide sizing options — not needed for returning customers
-        $('#sizing-form .grid').addClass('opacity-40 pointer-events-none');
+        $('#sizing-form .grid, #continue-btn').addClass('opacity-40 pointer-events-none');
+        // Brief pause so the success message is readable, then redirect.
+        setTimeout(function () {
+          window.location.href = '{{ route('order.details') }}';
+        }, 900);
       } else {
         $('#lookup-result').removeClass('hidden').html(
           '<p class="font-sans text-caption text-stone">No saved profile found — please choose a sizing option below.</p>'
         );
+        $('#lookup-btn').text('Find my profile').prop('disabled', false);
       }
     })
     .fail(function () {
       $('#lookup-result').removeClass('hidden').html(
         '<p class="font-sans text-caption text-stone">Could not check right now — please choose a sizing option below.</p>'
       );
-    })
-    .always(function () {
       $('#lookup-btn').text('Find my profile').prop('disabled', false);
     });
   });

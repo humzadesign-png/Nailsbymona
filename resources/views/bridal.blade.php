@@ -394,7 +394,7 @@
           <span class="font-serif text-lavender leading-none" style="font-size:1.125rem; font-variation-settings:'opsz' 144,'SOFT' 30">03</span>
         </div>
         <h3 class="font-sans font-semibold text-ink mb-1" style="font-size:0.875rem">Made by Mona</h3>
-        <p class="font-sans text-caption text-stone">10&ndash;14 working days</p>
+        <p class="font-sans text-caption text-stone">{{ $settings->lead_time_bridal_days }} days</p>
       </div>
 
       <div class="text-center relative">
@@ -444,7 +444,7 @@
         </div>
         <div class="pt-2">
           <h3 class="font-sans font-semibold text-ink mb-1" style="font-size:0.9375rem">Made by Mona</h3>
-          <p class="font-sans text-caption text-stone">10&ndash;14 working days</p>
+          <p class="font-sans text-caption text-stone">{{ $settings->lead_time_bridal_days }} days</p>
         </div>
       </div>
 

@@ -81,11 +81,15 @@ class OrderController extends Controller
     /**
      * POST /order/start/sizing
      * Save the selected sizing method and redirect accordingly.
+     *
+     * `from_profile` is set server-side by customerLookup() when a returning
+     * customer is matched, and is also accepted here as a posted value for the
+     * non-AJAX fallback path. Returning customers skip the camera entirely.
      */
     public function storeSizing(Request $request): RedirectResponse
     {
         $rules = [
-            'sizing_method' => ['required', 'in:live_camera,upload,whatsapp_pending'],
+            'sizing_method' => ['required', 'in:live_camera,upload,whatsapp_pending,from_profile'],
         ];
 
         if ($request->input('sizing_method') === 'upload') {
@@ -96,27 +100,37 @@ class OrderController extends Controller
         $request->validate($rules);
 
         $method = $request->input('sizing_method');
+
+        // Defensive: if the form posts `live_camera` but the session is already
+        // flagged as a returning customer with a saved profile, prefer the saved
+        // profile. This protects against the lookup-then-Continue-clicked race
+        // where the default radio (live_camera) gets submitted instead of the
+        // returning-customer redirect.
+        if (session('order_form.is_returning') && session('order_form.customer_id')) {
+            $method = SizingCaptureMethod::FromProfile->value;
+        }
+
         session(['order_form.sizing_method' => $method]);
 
-        // Seed a demo bag if none exists (allows testing the full flow without
-        // going through the shop first). Replaced by real bag data in production
-        // when the customer arrives via the shop → bag drawer → checkout path.
-        if (! session('order_form.bag')) {
+        // Seed a demo bag only in non-production environments so dev-time
+        // testing of the order flow without going through /shop still works.
+        // Production must always have a real bag from the checkout drawer.
+        if (! session('order_form.bag') && app()->environment() !== 'production') {
             session(['order_form.bag' => [
                 ['name' => 'Custom Set', 'price_pkr' => 2800, 'qty' => 1, 'tier' => 'signature'],
             ]]);
         }
 
-        if ($method === 'live_camera') {
+        if ($method === SizingCaptureMethod::LiveCamera->value) {
             return redirect()->route('order.camera');
         }
 
         // Process uploaded photos when the customer chose "upload" on the start page.
-        if ($method === 'upload') {
+        if ($method === SizingCaptureMethod::Upload->value) {
             $this->processSizingUploads($request);
         }
 
-        // Upload / WhatsApp: move to step 2.
+        // upload / whatsapp_pending / from_profile → skip camera, go to step 2.
         return redirect()->route('order.details');
     }
 
@@ -303,7 +317,17 @@ class OrderController extends Controller
         $method      = PaymentMethod::from($request->input('payment_method'));
         $sizingMethod = SizingCaptureMethod::tryFrom(session('order_form.sizing_method', 'whatsapp_pending'));
 
-        $order = DB::transaction(function () use ($verifiedBag, $isReturning, $customer, $totals, $method, $sizingMethod) {
+        // Pin estimated dispatch on the row at placement time so customer-facing
+        // pages don't shift the date forward on every reload. Bridal Trio orders
+        // use the bridal lead time; everything else uses standard. Both are
+        // settings-driven so Mona can tune them from the admin panel.
+        $settings           = app(StoreSettings::class);
+        $leadTimeDays       = $totals['isBridalTrio']
+            ? (int) $settings->lead_time_bridal_days
+            : (int) $settings->lead_time_standard_days;
+        $estimatedDispatch  = now()->addDays($leadTimeDays);
+
+        $order = DB::transaction(function () use ($verifiedBag, $isReturning, $customer, $totals, $method, $sizingMethod, $estimatedDispatch) {
             // Find or create customer record.
             $customerId = session('order_form.customer_id');
             $customerRecord = $customerId
@@ -322,25 +346,26 @@ class OrderController extends Controller
 
             // Create the order with server-verified totals.
             $order = Order::create([
-                'order_number'         => Order::generateOrderNumber(),
-                'customer_id'          => $customerRecord->id,
-                'customer_name'        => $customer['name'],
-                'customer_email'       => $customer['email'],
-                'customer_phone'       => $customer['phone'],
-                'shipping_address'     => $customer['address'],
-                'city'                 => $customer['city'],
-                'postal_code'          => $customer['postal'] ?? null,
-                'notes'                => $customer['notes'] ?? null,
-                'subtotal_pkr'         => $totals['subtotal'],
-                'reorder_discount_pkr' => $totals['discount'],
-                'shipping_pkr'         => $totals['shipping'],
-                'total_pkr'            => $totals['total'],
-                'requires_advance'     => $totals['requires_advance'],
-                'is_returning_customer'=> $isReturning,
-                'payment_method'       => $method->value,
-                'payment_status'       => PaymentStatus::Awaiting->value,
-                'status'               => OrderStatus::New->value,
-                'sizing_capture_method'=> $sizingMethod?->value,
+                'order_number'          => Order::generateOrderNumber(),
+                'customer_id'           => $customerRecord->id,
+                'customer_name'         => $customer['name'],
+                'customer_email'        => $customer['email'],
+                'customer_phone'        => $customer['phone'],
+                'shipping_address'      => $customer['address'],
+                'city'                  => $customer['city'],
+                'postal_code'           => $customer['postal'] ?? null,
+                'notes'                 => $customer['notes'] ?? null,
+                'subtotal_pkr'          => $totals['subtotal'],
+                'reorder_discount_pkr'  => $totals['discount'],
+                'shipping_pkr'          => $totals['shipping'],
+                'total_pkr'             => $totals['total'],
+                'requires_advance'      => $totals['requires_advance'],
+                'is_returning_customer' => $isReturning,
+                'payment_method'        => $method->value,
+                'payment_status'        => PaymentStatus::Awaiting->value,
+                'status'                => OrderStatus::New->value,
+                'sizing_capture_method' => $sizingMethod?->value,
+                'estimated_dispatch_at' => $estimatedDispatch,
             ]);
 
             // Create order items from the verified bag (server-side prices).
@@ -502,11 +527,10 @@ class OrderController extends Controller
 
         $order = Order::with(['items', 'paymentProofs'])->findOrFail($orderId);
 
-        $settings      = app(StoreSettings::class);
-        $isBridalTrio  = $order->items->contains(fn ($i) => $i->product_tier_snapshot === 'bridal_trio');
-        $leadTimeDays  = $isBridalTrio
-            ? $settings->lead_time_bridal_days
-            : $settings->lead_time_standard_days;
+        // Lead-time helpers come off the Order model now (Block 2). The view
+        // reads $order->estimatedDispatchAt() so dates are stable across reloads.
+        $isBridalTrio = $order->isBridalTrio();
+        $leadTimeDays = $order->leadTimeDays();
 
         return view('order.confirm', compact('order', 'isBridalTrio', 'leadTimeDays'));
     }

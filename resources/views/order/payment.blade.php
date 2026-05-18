@@ -31,17 +31,30 @@
         <div class="h-0.5 w-10 bg-lavender mb-2"></div>
         <p class="font-sans text-caption text-stone mb-8">All payments are processed before your order goes into production. No Cash on Delivery.</p>
 
-        {{-- Advance payment notice --}}
+        {{-- Advance payment notice — all values pulled from StoreSettings so the
+             admin Settings page is the single source of truth. --}}
+        @php
+            $bridalPct       = max(0, min(100, (int) $settings->bridal_deposit_percent));
+            $advancePct      = max(0, min(100, (int) $settings->advance_percent));
+            $advanceFloor    = (int) $settings->advance_threshold_pkr;
+            $bridalDepositRs = (int) round($totals['total'] * $bridalPct / 100);
+            $advanceRs       = (int) round($totals['total'] * $advancePct / 100);
+        @endphp
+
         @if ($totals['isBridalTrio'])
         <div class="mb-6 bg-lavender-wash border-l-4 border-lavender rounded-r-xl px-5 py-4">
           <p class="font-sans text-body text-lavender-ink leading-relaxed">
-            <strong>Bridal Trio orders</strong> are paid in two stages: 50% deposit on confirmation to reserve your production slot, and 50% before dispatch. I'll send the deposit amount and payment details via WhatsApp.
+            @if ($bridalPct >= 100)
+              <strong>Bridal Trio orders are paid in full up-front</strong> to reserve your production slot and lock in your dates. Total: Rs.&nbsp;{{ number_format($totals['total']) }}. I'll send payment details on the next page.
+            @else
+              <strong>Bridal Trio orders</strong> are paid in two stages: a <strong>{{ $bridalPct }}% deposit</strong> (Rs.&nbsp;{{ number_format($bridalDepositRs) }}) on confirmation to reserve your production slot, and the balance before dispatch. I'll send the deposit amount and payment details on the next page.
+            @endif
           </p>
         </div>
         @elseif ($totals['requires_advance'])
         <div class="mb-6 bg-lavender-wash border-l-4 border-lavender rounded-r-xl px-5 py-4">
           <p class="font-sans text-body text-lavender-ink leading-relaxed">
-            Orders over Rs. 5,000 require a <strong>30% advance payment</strong>. After you place your order, I'll send the exact advance amount via WhatsApp — you'll pay the advance first, and the balance when I dispatch.
+            Orders over Rs.&nbsp;{{ number_format($advanceFloor) }} require a <strong>{{ $advancePct }}% advance payment</strong> (Rs.&nbsp;{{ number_format($advanceRs) }}). After you place your order, I'll WhatsApp you to confirm — you'll pay the advance first, and the balance before dispatch.
           </p>
         </div>
         @endif

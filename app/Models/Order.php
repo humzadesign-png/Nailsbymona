@@ -26,6 +26,7 @@ class Order extends Model
         'payment_method', 'payment_status', 'status', 'sizing_capture_method',
         'tracking_number', 'courier',
         'confirmed_at', 'production_started_at', 'shipped_at', 'delivered_at', 'cancelled_at',
+        'estimated_dispatch_at',
         'refit_requested_at', 'refit_shipped_at', 'refit_notes',
     ];
 
@@ -42,6 +43,7 @@ class Order extends Model
         'shipped_at'            => 'datetime',
         'delivered_at'          => 'datetime',
         'cancelled_at'          => 'datetime',
+        'estimated_dispatch_at' => 'datetime',
         'refit_requested_at'    => 'datetime',
         'refit_shipped_at'      => 'datetime',
     ];
@@ -133,6 +135,57 @@ class Order extends Model
         }
 
         return $this->total_pkr;
+    }
+
+    /**
+     * Whether this order contains a Bridal Trio line item.
+     * Used to switch lead-time + deposit logic.
+     *
+     * Resilient to unloaded relations: prefers the in-memory collection if
+     * `items` was eager-loaded, otherwise falls back to a single COUNT query.
+     * Either way, no N+1.
+     */
+    public function isBridalTrio(): bool
+    {
+        if ($this->relationLoaded('items')) {
+            return $this->items->contains(fn ($i) => $i->product_tier_snapshot === 'bridal_trio');
+        }
+        return $this->items()->where('product_tier_snapshot', 'bridal_trio')->exists();
+    }
+
+    /**
+     * Lead time in calendar days for this order, pulled from StoreSettings.
+     * Bridal Trio orders use the bridal lead time; everything else uses standard.
+     */
+    public function leadTimeDays(): int
+    {
+        $settings = app(\App\Settings\StoreSettings::class);
+        return $this->isBridalTrio()
+            ? (int) $settings->lead_time_bridal_days
+            : (int) $settings->lead_time_standard_days;
+    }
+
+    /**
+     * Date the customer should expect dispatch.
+     *
+     * Preference order:
+     *  1. `estimated_dispatch_at` column (pinned at order placement) — stable across reloads.
+     *  2. `created_at + leadTimeDays` (fallback for orders predating the column).
+     *
+     * Pass `$fromNow = true` to recompute from `now()` instead — used in the
+     * payment-verified and in-production emails where the customer wants to
+     * see a fresh estimate based on when production actually starts.
+     */
+    public function estimatedDispatchAt(bool $fromNow = false): \Illuminate\Support\Carbon
+    {
+        if ($fromNow) {
+            return now()->addDays($this->leadTimeDays());
+        }
+        if ($this->estimated_dispatch_at) {
+            return $this->estimated_dispatch_at;
+        }
+        $anchor = $this->created_at ?? now();
+        return $anchor->copy()->addDays($this->leadTimeDays());
     }
 
     /** Whether this order is awaiting proof upload and beyond deadline. */

@@ -61,18 +61,24 @@
         </div>
         @endforeach
 
-        {{-- Totals --}}
+        {{-- Totals — read the stored reorder_discount_pkr directly. The previous
+             algebraic derivation (subtotal + 2*shipping - total) was wrong by
+             exactly the shipping amount and inflated the displayed discount. --}}
         <div class="border-t border-hairline pt-3 space-y-1.5 mt-3">
+          <div class="flex justify-between">
+            <span class="font-sans text-caption text-stone">Subtotal</span>
+            <span class="font-sans text-caption text-graphite">Rs.&nbsp;{{ number_format($order->subtotal_pkr) }}</span>
+          </div>
+          @if ((int) $order->reorder_discount_pkr > 0)
+          <div class="flex justify-between">
+            <span class="font-sans text-caption text-stone">Reorder discount</span>
+            <span class="font-sans text-caption text-lavender-ink">–Rs.&nbsp;{{ number_format($order->reorder_discount_pkr) }}</span>
+          </div>
+          @endif
           <div class="flex justify-between">
             <span class="font-sans text-caption text-stone">Shipping</span>
             <span class="font-sans text-caption text-graphite">Rs.&nbsp;{{ number_format($order->shipping_pkr) }}</span>
           </div>
-          @if ($order->subtotal_pkr !== $order->total_pkr - $order->shipping_pkr)
-          <div class="flex justify-between">
-            <span class="font-sans text-caption text-stone">Reorder discount</span>
-            <span class="font-sans text-caption text-lavender-ink">–Rs.&nbsp;{{ number_format(($order->subtotal_pkr + $order->shipping_pkr) - $order->total_pkr + $order->shipping_pkr) }}</span>
-          </div>
-          @endif
           <div class="flex justify-between pt-1 border-t border-hairline">
             <span class="font-sans font-semibold text-ink">Total</span>
             <span class="font-sans font-semibold text-lavender">Rs.&nbsp;{{ number_format($order->total_pkr) }}</span>
@@ -91,7 +97,7 @@
             <div>
               <p class="font-sans text-caption text-stone font-medium mb-0.5">Estimated dispatch</p>
               <p class="font-sans text-caption text-graphite">
-                {{ now()->addWeekdays($leadTimeDays)->format('D, d M Y') }}
+                {{ $order->estimatedDispatchAt()->format('D, d M Y') }}
               </p>
               <p class="font-sans text-caption text-stone mt-2 font-medium">Sizing</p>
               <p class="font-sans text-caption text-graphite">
@@ -273,7 +279,7 @@
           </div>
           <div class="pb-5">
             <p class="font-sans font-semibold text-ink text-sm mb-0.5">In production</p>
-            <p class="font-sans text-caption text-stone">I'll start making your set by hand. Typical lead time is {{ $leadTimeDays }} working days.</p>
+            <p class="font-sans text-caption text-stone">I'll start making your set by hand. Typical lead time is {{ $leadTimeDays }} days.</p>
           </div>
         </div>
         {{-- Step 3 --}}

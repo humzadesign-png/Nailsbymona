@@ -521,7 +521,7 @@
                         <span class="font-serif text-lavender leading-none" style="font-size:1.25rem">03</span>
                     </div>
                     <h3 class="font-sans font-semibold text-ink mb-2" style="font-size:0.9375rem">We make &amp; ship</h3>
-                    <p class="font-sans text-caption text-stone leading-relaxed">Hand-painted in Mirpur. 5&ndash;9 working days to your door.</p>
+                    <p class="font-sans text-caption text-stone leading-relaxed">Hand-painted in Mirpur. {{ $settings->lead_time_standard_days }} days to your door.</p>
                 </div>
 
                 <div class="flex flex-col items-center text-center">

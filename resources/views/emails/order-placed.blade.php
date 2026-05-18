@@ -39,24 +39,33 @@
 
 <div class="divider"></div>
 
-{{-- Payment instructions --}}
+{{-- Payment instructions — percentages and rupee amounts read from
+     StoreSettings via the Order::advanceAmountPkr() helper. --}}
 @php
-  $isBridalTrio = $order->items->contains(fn($i) => $i->product_tier_snapshot === 'bridal_trio');
+  $settings    = app(\App\Settings\StoreSettings::class);
+  $isBridalTrio = $order->isBridalTrio();
+  $bridalPct   = max(0, min(100, (int) $settings->bridal_deposit_percent));
+  $advancePct  = max(0, min(100, (int) $settings->advance_percent));
+  $advanceRs   = $order->advanceAmountPkr();
 @endphp
 
 @if($isBridalTrio)
 <div class="notice">
-  <p><strong>Bridal Trio</strong> — A 50% deposit of <strong>Rs.&nbsp;{{ number_format((int)($order->total_pkr * 0.50)) }}</strong> is required to reserve your production slot. I'll send the payment details on WhatsApp shortly.</p>
+  @if($bridalPct >= 100)
+    <p><strong>Bridal Trio</strong> — Paid in full up-front to reserve your production slot and lock in your event dates. Total: <strong>Rs.&nbsp;{{ number_format($order->total_pkr) }}</strong>. Payment details are on your confirmation page.</p>
+  @else
+    <p><strong>Bridal Trio</strong> — A {{ $bridalPct }}% deposit of <strong>Rs.&nbsp;{{ number_format($advanceRs) }}</strong> is required to reserve your production slot. I'll send the payment details on WhatsApp shortly.</p>
+  @endif
 </div>
 @elseif($order->requires_advance)
 <div class="notice">
-  <p>A <strong>30% advance of Rs.&nbsp;{{ number_format((int)($order->total_pkr * 0.30)) }}</strong> is required before production begins. I'll reach out on WhatsApp with details.</p>
+  <p>A <strong>{{ $advancePct }}% advance of Rs.&nbsp;{{ number_format($advanceRs) }}</strong> is required before production begins. I'll reach out on WhatsApp with details.</p>
 </div>
 @else
 <p>To confirm your order, please send <strong>Rs.&nbsp;{{ number_format($order->total_pkr) }}</strong> using the method you selected. Payment details are on your confirmation page.</p>
 @endif
 
-<p style="font-size:14px;color:#7A6E65">Your order goes into production once I verify your payment — usually within 24 hours. Estimated dispatch: <strong>{{ now()->addDays(6)->format('D, d M Y') }}</strong>.</p>
+<p style="font-size:14px;color:#7A6E65">Your order goes into production once I verify your payment — usually within 24 hours. Estimated dispatch: <strong>{{ $order->estimatedDispatchAt()->format('D, d M Y') }}</strong>.</p>
 
 <div class="cta-wrap">
   <a href="{{ route('order.confirm', $order->id) }}" class="cta">View order &amp; upload payment proof</a>
