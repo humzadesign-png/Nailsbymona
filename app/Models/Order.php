@@ -126,6 +126,15 @@ class Order extends Model
     /**
      * Generate the next sequential order number for the current year.
      *
+     * IMPORTANT — must use withTrashed() everywhere. The orders table has
+     * a UNIQUE constraint on `order_number` that ignores deleted_at, but
+     * Eloquent's default query scope filters soft-deleted rows out. If a
+     * soft-deleted order with the candidate number exists, the default
+     * Eloquent check returns "free" but the INSERT immediately fails with
+     * a duplicate-key violation. Block 5 added SoftDeletes to Order and
+     * exposed this race (a soft-deleted NBM-2026-0001 in prod was blocking
+     * every new order). The fix is to count soft-deleted rows as taken.
+     *
      * Race conditions to defend against:
      *
      *   • Two concurrent placements read the same "latest" row and compute
@@ -137,6 +146,11 @@ class Order extends Model
      *     two concurrent first-of-year placements would both compute "0001".
      *     The unique constraint on order_number prevents both inserts
      *     succeeding — only one wins. The loser retries.
+     *
+     *   • Soft-deleted row collision: any number ever issued — even to a
+     *     row that was later deleted — stays reserved (the DB's unique
+     *     index ignores soft-delete state). withTrashed() makes this
+     *     visible to the generator so we always skip past taken numbers.
      *
      * Retry budget: 5 attempts with jittered backoff. After that, fall back
      * to a timestamp-suffixed number so the order still places (Mona can
@@ -151,6 +165,7 @@ class Order extends Model
 
             $candidate = DB::transaction(function () use ($year) {
                 $latest = static::query()
+                    ->withTrashed() // include soft-deleted rows in the sequence
                     ->where('order_number', 'like', "NBM-{$year}-%")
                     ->orderByDesc('order_number')
                     ->lockForUpdate()
@@ -162,8 +177,9 @@ class Order extends Model
             });
 
             // TOCTOU check: between our compute and the eventual INSERT, did
-            // another writer claim this number? If so, back off and retry.
-            if (! static::where('order_number', $candidate)->exists()) {
+            // another writer claim this number? withTrashed() is mandatory
+            // here for the same reason as the SELECT above.
+            if (! static::withTrashed()->where('order_number', $candidate)->exists()) {
                 return $candidate;
             }
 
