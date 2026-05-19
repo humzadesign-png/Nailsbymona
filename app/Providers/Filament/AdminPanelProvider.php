@@ -66,6 +66,14 @@ class AdminPanelProvider extends PanelProvider
                 'panels::head.end',
                 fn () => view('filament.pwa-head'),
             )
+            ->renderHook(
+                // Mobile-friendly reorder defaults for every drag-sort table
+                // (Products, UGC Photos, FAQs). Adds a long-press delay so
+                // the page stays scrollable on phones. See the partial for
+                // the SortableJS config it injects.
+                'panels::body.end',
+                fn () => view('filament.sortable-mobile-tuning'),
+            )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
