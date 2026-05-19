@@ -17,6 +17,60 @@ class Order extends Model
 {
     use HasUuids;
 
+    /**
+     * Customer-stat rollback rules:
+     *
+     *   • When an order is deleted, decrement `total_orders` and
+     *     `lifetime_value_pkr` on the linked customer.
+     *   • When an order transitions to Cancelled (from any non-cancelled
+     *     status), do the same — once per transition.
+     *
+     * Counters are clamped at zero so a re-cancel or stat drift never
+     * leaves a negative value visible in the admin panel.
+     */
+    protected static function booted(): void
+    {
+        static::updating(function (self $order) {
+            if (! $order->isDirty('status') || ! $order->customer_id) {
+                return;
+            }
+            $newStatus = $order->status instanceof OrderStatus
+                ? $order->status
+                : OrderStatus::tryFrom((string) $order->status);
+            $oldRaw    = $order->getOriginal('status');
+            $oldStatus = $oldRaw instanceof OrderStatus
+                ? $oldRaw
+                : OrderStatus::tryFrom((string) $oldRaw);
+
+            if ($newStatus === OrderStatus::Cancelled
+                && $oldStatus !== OrderStatus::Cancelled) {
+                self::rollbackCustomerStats($order);
+            }
+        });
+
+        static::deleting(function (self $order) {
+            // Skip if this row was already cancelled — the cancel hook
+            // already decremented and we don't want to double-count.
+            if ($order->status === OrderStatus::Cancelled || ! $order->customer_id) {
+                return;
+            }
+            self::rollbackCustomerStats($order);
+        });
+    }
+
+    /** Decrement the linked customer's running totals by this order's contribution. */
+    private static function rollbackCustomerStats(self $order): void
+    {
+        $customer = Customer::find($order->customer_id);
+        if (! $customer) {
+            return;
+        }
+        $customer->forceFill([
+            'total_orders'       => max(0, (int) $customer->total_orders - 1),
+            'lifetime_value_pkr' => max(0, (int) $customer->lifetime_value_pkr - (int) $order->total_pkr),
+        ])->save();
+    }
+
     protected $fillable = [
         'order_number', 'customer_id',
         'customer_name', 'customer_email', 'customer_phone',

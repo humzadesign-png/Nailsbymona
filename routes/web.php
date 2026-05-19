@@ -20,10 +20,11 @@ use Spatie\Sitemap\Tags\Url;
 
 // ── Public marketing pages ────────────────────────────────────────────────────
 Route::get('/', function () {
+    // ->published() enforces is_published=true AND face_visible=false.
+    // CLAUDE.md §24: face-visible photos must never reach a public view.
     $ugcPhotos = UgcPhoto::with('product')
+        ->published()
         ->where('placement', UgcPlacement::HomeGrid)
-        ->where('is_published', true)
-        ->where('face_visible', false)
         ->orderBy('sort_order')
         ->get();
 

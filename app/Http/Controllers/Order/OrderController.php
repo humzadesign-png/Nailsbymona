@@ -390,9 +390,10 @@ class OrderController extends Controller
             ]);
 
             // Create order items from the verified bag (server-side prices).
-            // We intentionally don't write product_id — that column is typed
-            // unsignedBigInteger but products use ULID PKs. We track the
-            // product via product_slug_snapshot instead. (Cleanup pending.)
+            // The product is identified by product_slug_snapshot (string FK
+            // to products.slug). The legacy `product_id` column was dropped
+            // in 2026_05_19_020000_drop_product_id_from_order_items because
+            // it was unsignedBigInteger while products use ULID.
             foreach ($verifiedBag as $item) {
                 OrderItem::create([
                     'order_id'                => $order->id,
@@ -488,8 +489,9 @@ class OrderController extends Controller
 
             $qty = max(1, min(10, (int) ($item['qty'] ?? 1))); // hard-cap qty 1-10 per line
 
+            // Slug is the de-facto FK; we no longer pass product_id through
+            // since the OrderItem column was dropped (Block 4).
             $verified[] = [
-                'product_id' => $product->id,
                 'slug'       => $product->slug,
                 'name'       => $product->name,
                 'tier'       => is_string($product->tier) ? $product->tier : ($product->tier?->value ?? null),

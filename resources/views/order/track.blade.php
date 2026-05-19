@@ -2,6 +2,18 @@
 
 @section('title', 'Track Your Order — Nails by Mona')
 
+@section('seo')
+    {{-- noindex so individual tracking URLs (or the lookup form itself) are
+         never indexed. CLAUDE.md §34 marks all order-flow pages noindex. The
+         other 5 order views inherit this via layouts.order; track.blade.php
+         uses layouts.app for the full site nav, so we set it explicitly here. --}}
+    <x-seo
+        title="Track Your Order — Nails by Mona"
+        description="Look up the status of your Nails by Mona order."
+        :noindex="true"
+    />
+@endsection
+
 @section('content')
 <div class="bg-bone py-12 md:py-16">
   <div class="max-w-2xl mx-auto px-6">
