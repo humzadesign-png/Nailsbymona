@@ -354,12 +354,12 @@
         </div>
       </div>
 
-      <!-- Bad 2 — Coin too far / scale unclear -->
+      <!-- Bad 2 — Shot from too far + coin far from the nail -->
       <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[2/3]">
         <picture>
           <source srcset="{{ asset('images/sizing/bad-thumb-too-far.webp') }}" type="image/webp">
           <img src="{{ asset('images/sizing/bad-thumb-too-far.jpg') }}"
-               alt="Thumb cropped at base with coin too far from the nail — scale reference broken"
+               alt="Hand shot from too far away with the coin sitting well away from the thumb — nail and coin both too small to measure"
                class="w-full h-full object-cover object-top" loading="lazy" onerror="this.remove()"
                width="800" height="800">
         </picture>
@@ -368,7 +368,7 @@
           Avoid
         </span>
         <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-ink/85 via-ink/40 to-transparent p-4 pt-10">
-          <p class="font-sans text-white" style="font-size:0.75rem">Coin too far from the nail &mdash; harder to read the scale. Keep the coin close, in the same focal plane as the nail.</p>
+          <p class="font-sans text-white" style="font-size:0.75rem">Too far away &mdash; both the nail and the coin should fill most of the frame. Move the camera closer, and keep the coin right next to the nail so they share the same focal plane.</p>
         </div>
       </div>
 
