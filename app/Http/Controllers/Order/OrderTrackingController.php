@@ -78,19 +78,21 @@ class OrderTrackingController extends Controller
         }
 
         // Verify the contact matches (email or phone) with normalization.
-        // Email: case-insensitive. Phone: strip every non-digit, then compare suffixes
-        // so +923001234567 / 03001234567 / 923001234567 all match.
+        //
+        // Email: exact case-insensitive.
+        // Phone: tail-normalized via Customer::normalizePhoneTail so that all
+        //        Pakistani prefix forms (+923..., 923..., 0300..., 0300-...)
+        //        resolve to the same 10-digit identifier. Requires ≥7 useful
+        //        digits so short inputs like "300" can't fan-match.
         $rawContact   = trim($request->input('contact'));
         $emailContact = strtolower($rawContact);
-        $digitContact = preg_replace('/\D+/', '', $rawContact);
         $orderEmail   = strtolower($order->customer_email);
-        $orderDigits  = preg_replace('/\D+/', '', $order->customer_phone ?? '');
 
         $emailMatch = $orderEmail !== '' && $orderEmail === $emailContact;
-        $phoneMatch = $digitContact !== ''
-            && $orderDigits !== ''
-            && (str_ends_with($orderDigits, $digitContact)
-                || str_ends_with($digitContact, $orderDigits));
+
+        $contactTail = \App\Models\Customer::normalizePhoneTail($rawContact);
+        $orderTail   = \App\Models\Customer::normalizePhoneTail($order->customer_phone);
+        $phoneMatch  = $contactTail !== '' && $contactTail === $orderTail;
 
         if (! ($emailMatch || $phoneMatch)) {
             return $this->lookupFailed($request);

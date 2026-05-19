@@ -275,6 +275,17 @@ class OrderController extends Controller
 
     /**
      * GET /order/payment
+     *
+     * Re-verify the session bag against the products table before showing
+     * the totals. Without this, the customer can see (and be quoted) prices
+     * from localStorage that don't match reality. The same verifyBag() runs
+     * again on POST as a defence in depth, so a tampered bag never reaches
+     * the database — but showing the wrong totals on step 3 would still be
+     * a confusing UX, so we sanitize here too.
+     *
+     * If verifyBag drops every item (slug renamed, product deactivated)
+     * we bounce to /shop with an explanation rather than rendering an
+     * empty totals block.
      */
     public function payment(Request $request): View|RedirectResponse
     {
@@ -282,10 +293,20 @@ class OrderController extends Controller
             return redirect()->route('order.start');
         }
 
-        $bag         = session('order_form.bag', []);
-        $isReturning = session('order_form.is_returning', false);
-        $customer    = session('order_form.customer');
-        $totals      = $this->calculateTotals($bag, $isReturning);
+        $verifiedBag = $this->verifyBag(session('order_form.bag', []));
+        if (empty($verifiedBag)) {
+            return redirect()->route('shop')
+                ->withErrors(['bag' => 'Your bag is empty or contains items that are no longer available.']);
+        }
+
+        // Replace the session bag with the verified version so it stays
+        // in sync if the user reloads or hops back to step 2.
+        session(['order_form.bag' => $verifiedBag]);
+
+        $bag          = $verifiedBag;
+        $isReturning  = session('order_form.is_returning', false);
+        $customer     = session('order_form.customer');
+        $totals       = $this->calculateTotals($bag, $isReturning);
         $sizingMethod = session('order_form.sizing_method', 'whatsapp_pending');
 
         return view('order.payment', compact('bag', 'isReturning', 'customer', 'totals', 'sizingMethod'));

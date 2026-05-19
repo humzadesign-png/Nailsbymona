@@ -71,20 +71,25 @@ class Order extends Model
     /**
      * Generate the next sequential order number for the current year.
      *
-     * Two concurrent orders could otherwise read the same "latest" row
-     * and compute the same sequence — the second insert would then fail
-     * on the unique constraint. To prevent that:
+     * Race conditions to defend against:
      *
-     *   1. Read the latest row inside a transaction with lockForUpdate(),
-     *      so a second concurrent reader blocks until we've committed.
-     *   2. If a unique-constraint violation slips through anyway (e.g. the
-     *      table is empty for the year and two readers see no row at all
-     *      so no row gets locked), retry up to 3 times.
+     *   • Two concurrent placements read the same "latest" row and compute
+     *     the same sequence. lockForUpdate() inside a transaction protects
+     *     this — the second reader blocks until the first commits.
+     *
+     *   • Empty-year case (e.g. first order on Jan 1). lockForUpdate() locks
+     *     the rows it reads; with zero rows, there's nothing to lock, and
+     *     two concurrent first-of-year placements would both compute "0001".
+     *     The unique constraint on order_number prevents both inserts
+     *     succeeding — only one wins. The loser retries.
+     *
+     * Retry budget: 5 attempts with jittered backoff. After that, fall back
+     * to a timestamp-suffixed number so the order still places (Mona can
+     * spot the irregular number and re-issue if she wants).
      */
     public static function generateOrderNumber(): string
     {
-        $maxAttempts = 3;
-        $lastError   = null;
+        $maxAttempts = 5;
 
         for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
             $year = now()->year;
@@ -101,16 +106,21 @@ class Order extends Model
                 return sprintf('NBM-%d-%04d', $year, $seq);
             });
 
-            // Did anyone race us between our read and the eventual insert?
-            // If the number already exists, retry.
+            // TOCTOU check: between our compute and the eventual INSERT, did
+            // another writer claim this number? If so, back off and retry.
             if (! static::where('order_number', $candidate)->exists()) {
                 return $candidate;
             }
+
+            // Jittered backoff (10-50ms × attempt) to avoid two retriers
+            // synchronizing forever.
+            usleep(random_int(10_000, 50_000) * $attempt);
         }
 
-        // Highly unlikely — fall back to a timestamp suffix so the order
-        // can still be placed and Mona can renumber by hand if needed.
-        return sprintf('NBM-%d-%04d', now()->year, (int) substr((string) now()->timestamp, -4));
+        // Fallback: timestamp-suffixed number so the placement still
+        // succeeds. Mona can re-issue a clean number in admin if she
+        // catches it.
+        return sprintf('NBM-%d-T%04d', now()->year, (int) substr((string) now()->timestamp, -4));
     }
 
     /**

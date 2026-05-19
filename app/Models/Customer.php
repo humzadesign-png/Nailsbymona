@@ -30,12 +30,77 @@ class Customer extends Model
         return $this->hasOne(CustomerSizingProfile::class)->latestOfMany();
     }
 
-    /** Look up a customer by phone or email (for returning-customer check). */
+    /**
+     * Normalize a Pakistani-style phone number to its last 10 significant
+     * digits (the unique identifier of the line) so that all of these match:
+     *
+     *   +92 300 1234567   → 3001234567
+     *   923001234567      → 3001234567
+     *   03001234567       → 3001234567
+     *   0300-1234567      → 3001234567
+     *   (0300) 1234567    → 3001234567
+     *
+     * Returns '' for inputs that don't yield at least 7 useful digits.
+     */
+    public static function normalizePhoneTail(?string $raw): string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $raw) ?? '';
+        if (strlen($digits) < 7) {
+            return '';
+        }
+        // Strip the canonical PK prefixes (`92` country code or leading `0`).
+        if (str_starts_with($digits, '92')) {
+            $digits = substr($digits, 2);
+        } elseif (str_starts_with($digits, '0')) {
+            $digits = ltrim($digits, '0');
+        }
+        // Keep only the last 10 digits — the unique mobile-line identifier
+        // regardless of prefix form.
+        return substr($digits, -10);
+    }
+
+    /**
+     * Look up a customer by email (case-insensitive) or phone (Pakistani
+     * tail-normalized so all common prefix forms match).
+     *
+     * Pulls candidate rows via an indexable LIKE prefilter (last 6 digits as
+     * a substring), then does the precise final match in PHP. Inexpensive
+     * at MVP volume; if Mona's customer list grows past ~10k, add a stored
+     * `phone_digits` column with an index instead.
+     */
     public static function findByContact(string $contact): ?self
     {
-        return static::where('email', $contact)
-            ->orWhere('phone', $contact)
-            ->orWhere('whatsapp', $contact)
-            ->first();
+        $raw = trim($contact);
+        if ($raw === '') {
+            return null;
+        }
+
+        // Email branch — exact case-insensitive.
+        if (str_contains($raw, '@')) {
+            return static::whereRaw('LOWER(email) = ?', [strtolower($raw)])->first();
+        }
+
+        // Phone branch — tail normalization.
+        $tail = self::normalizePhoneTail($raw);
+        if ($tail === '') {
+            return null;
+        }
+
+        // Coarse SQL prefilter: any phone/whatsapp containing the last 6
+        // digits anywhere. Tight enough to skip most rows; sloppy enough
+        // to handle prefix variation.
+        $needle = '%' . substr($tail, -6) . '%';
+
+        $candidates = static::query()
+            ->where(function ($q) use ($needle) {
+                $q->where('phone',    'like', $needle)
+                  ->orWhere('whatsapp', 'like', $needle);
+            })
+            ->get();
+
+        return $candidates->first(function ($cust) use ($tail) {
+            return self::normalizePhoneTail($cust->phone)    === $tail
+                || self::normalizePhoneTail($cust->whatsapp) === $tail;
+        });
     }
 }

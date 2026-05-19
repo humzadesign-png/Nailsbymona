@@ -120,8 +120,15 @@ class OrderResource extends Resource
                 Tables\Filters\Filter::make('awaiting_payment')
                     ->label('Awaiting payment')
                     // Surface oldest-first so the SLA-breached orders rise to the top.
+                    // Includes "Verifying" (customer uploaded proof, Mona hasn't
+                    // reviewed yet) so the queue surfaces both states together.
                     ->query(fn ($query) => $query
-                        ->where('payment_status', PaymentStatus::Awaiting)
+                        ->whereIn('payment_status', [PaymentStatus::Awaiting, PaymentStatus::Verifying])
+                        ->reorder('created_at', 'asc')),
+                Tables\Filters\Filter::make('verifying')
+                    ->label('Proof uploaded — needs review')
+                    ->query(fn ($query) => $query
+                        ->where('payment_status', PaymentStatus::Verifying)
                         ->reorder('created_at', 'asc')),
                 Tables\Filters\Filter::make('returning_customers')
                     ->label('Returning customers')
@@ -166,6 +173,10 @@ class OrderResource extends Resource
                             'advance_paid_pkr' => $r->total_pkr,
                             'confirmed_at'     => now(),
                         ]);
+                        // Mark every unverified proof on this order as verified
+                        // so the order-payment-proofs admin view stops showing
+                        // "Not verified yet" and the AutoCancel job knows it.
+                        $r->paymentProofs()->whereNull('verified_at')->update(['verified_at' => now()]);
                         try {
                             Mail::to($r->customer_email)->send(new PaymentVerified($r));
                         } catch (\Throwable $e) {
@@ -193,6 +204,8 @@ class OrderResource extends Resource
                             'advance_paid_pkr' => $r->advanceAmountPkr(),
                             'confirmed_at'     => now(),
                         ]);
+                        // Stamp the proof(s) Mona just reviewed.
+                        $r->paymentProofs()->whereNull('verified_at')->update(['verified_at' => now()]);
                         try {
                             Mail::to($r->customer_email)->send(new PaymentVerified($r));
                         } catch (\Throwable $e) {
@@ -218,6 +231,8 @@ class OrderResource extends Resource
                             'payment_status'   => PaymentStatus::Paid,
                             'advance_paid_pkr' => $r->total_pkr,
                         ]);
+                        // Stamp any balance proof too.
+                        $r->paymentProofs()->whereNull('verified_at')->update(['verified_at' => now()]);
                         Notification::make()->title('Balance recorded — order is fully paid.')->success()->send();
                     }),
                 Actions\Action::make('in_production')
@@ -244,7 +259,14 @@ class OrderResource extends Resource
                     ->color('info')
                     ->visible(fn (Order $r) => $r->status === OrderStatus::InProduction)
                     ->modalHeading('Mark as Shipped')
-                    ->modalDescription('Enter the tracking details below. A shipping confirmation email with the tracking number and estimated delivery will be sent to the customer.')
+                    ->modalDescription(fn (Order $r) =>
+                        $r->payment_status === PaymentStatus::PartialAdvance
+                            ? '⚠️ This order is still on PARTIAL ADVANCE — balance Rs. '
+                              . number_format($r->total_pkr - (int) $r->advance_paid_pkr)
+                              . ' has NOT been received. Use "Balance received" first if the customer has paid in full.'
+                              . ' Enter the tracking details below if you still want to ship now.'
+                            : 'Enter the tracking details below. A shipping confirmation email with the tracking number and estimated delivery will be sent to the customer.'
+                    )
                     ->modalSubmitActionLabel('Ship & notify customer')
                     ->form([
                         Forms\Components\TextInput::make('tracking_number')
@@ -343,6 +365,7 @@ class OrderResource extends Resource
                                     'advance_paid_pkr' => $r->total_pkr,
                                     'confirmed_at'     => now(),
                                 ]);
+                                $r->paymentProofs()->whereNull('verified_at')->update(['verified_at' => now()]);
                                 try {
                                     Mail::to($r->customer_email)->send(new PaymentVerified($r));
                                 } catch (\Throwable $e) {

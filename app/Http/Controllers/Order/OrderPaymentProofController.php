@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Order;
 
+use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderPaymentProof;
@@ -69,6 +70,14 @@ class OrderPaymentProofController extends Controller
             'is_advance'  => false,
             'uploaded_at' => now(),
         ]);
+
+        // Move the order from Awaiting → Verifying once a proof is in. This
+        // gives Mona's admin queue a clear "needs review" bucket (separate
+        // from "still hasn't paid") and prevents the auto-cancel job from
+        // firing on an order that's actively under review.
+        if ($order->payment_status === PaymentStatus::Awaiting) {
+            $order->update(['payment_status' => PaymentStatus::Verifying->value]);
+        }
 
         return response()->json([
             'success' => true,
