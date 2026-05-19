@@ -134,9 +134,14 @@
       <!-- Step 1 — Get ready -->
       <div class="grid md:grid-cols-2 gap-10 items-center">
         <div class="img-wrap-fallback rounded-2xl aspect-[4/3] overflow-hidden">
-          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJ32yAAfsHl2sbXiBXZLY3IKtRwIkwWXvKcHiU-VwXu3GcBZS-OCOQtkAzs0rwKgW4Dxp9-Z2au4aru1Nu0BtdA5S-uZ-NUYxfvCRB_EPlJ78I5QkkZiWeSOyecrlfT0sA2Kwo2P3RsYdsqE_IW2xtSSrJ7oKPp3RpON2gXOphhVK9Cf3kYPdg_HLtT-hDSpv_Dk7TIiOOMCwZD8yjf2AGWErYtoydiByeD07Oucov2MbMli1OY4mgn38QBbTbMGRf_-KaN1SZYy0"
-               alt="Hand laid flat on a dark cloth, ready for sizing photos"
-               class="w-full h-full object-cover" loading="lazy" onerror="this.remove()" width="600" height="450">
+          <picture>
+            <source srcset="{{ asset('images/sizing/fingers-reference.webp') }}" type="image/webp">
+            <img src="{{ asset('images/sizing/fingers-reference.jpg') }}"
+                 alt="Hand laid flat on a dark cloth with four fingernails clearly visible and a coin placed beside them — the canonical fingers photo for sizing"
+                 class="w-full h-full object-cover"
+                 loading="lazy" onerror="this.remove()"
+                 width="1280" height="720">
+          </picture>
         </div>
         <div>
           <div class="flex items-center gap-4 mb-5">
@@ -241,9 +246,14 @@
           </ul>
         </div>
         <div class="order-1 md:order-2 img-wrap-fallback rounded-2xl aspect-[4/3] overflow-hidden">
-          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDM56k-cNLcm1pLfZWCiicUPXBqU7H3c1oUllyCdN-Y_2eBZW3kgijSB2C7n-_o7LCQxNz0JbQ0vAlhxE5yJlkgxrgWZ0Lp-oT2o6TNmjJz1siyflScqxA1nfRcVT6EFC8Wd7Nj0AqjpHfvz2EcYbv4pBdktBP3CTCY37bV33r6hJdlC0N5N0rNGjN12fD4CMBFn89YqKPnCGnJ9iVvlEGXgYG7RLMNlpuLt7Yrwp3BLLmXm2ixFGGKk"
-               alt="Pair of good sizing photos — fingers and thumb both well-framed with coin"
-               class="w-full h-full object-cover" loading="lazy" onerror="this.remove()" width="600" height="450">
+          <picture>
+            <source srcset="{{ asset('images/sizing/thumb-reference.webp') }}" type="image/webp">
+            <img src="{{ asset('images/sizing/thumb-reference.jpg') }}"
+                 alt="Thumb extended flat on a dark cloth, coin alongside, in sharp focus — the canonical thumb photo for sizing"
+                 class="w-full h-full object-cover"
+                 loading="lazy" onerror="this.remove()"
+                 width="1280" height="720">
+          </picture>
         </div>
       </div>
 
@@ -262,72 +272,111 @@
 
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
-      <!-- Good 1 -->
+      <!-- Good 1 — Fingers reference -->
       <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-square">
-        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJ32yAAfsHl2sbXiBXZLY3IKtRwIkwWXvKcHiU-VwXu3GcBZS-OCOQtkAzs0rwKgW4Dxp9-Z2au4aru1Nu0BtdA5S-uZ-NUYxfvCRB_EPlJ78I5QkkZiWeSOyecrlfT0sA2Kwo2P3RsYdsqE_IW2xtSSrJ7oKPp3RpON2gXOphhVK9Cf3kYPdg_HLtT-hDSpv_Dk7TIiOOMCwZD8yjf2AGWErYtoydiByeD07Oucov2MbMli1OY4mgn38QBbTbMGRf_-KaN1SZYy0" alt="Good overhead shot" class="w-full h-full object-cover" loading="lazy" onerror="this.remove()" width="400" height="400">
+        <picture>
+          <source srcset="{{ asset('images/sizing/fingers-reference.webp') }}" type="image/webp">
+          <img src="{{ asset('images/sizing/fingers-reference.jpg') }}"
+               alt="Four fingers flat in a row with coin above — good fingers photo"
+               class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"
+               width="800" height="800">
+        </picture>
         <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-success/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
           <svg class="w-3 h-3" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 144 96 200 224 72"/></svg>
           Good
         </span>
-        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-ink/60 to-transparent p-4">
-          <p class="font-sans text-white" style="font-size:0.75rem">Fingers photo &mdash; four nails flat in a row, coin above middle nail, dark cloth backdrop</p>
+        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-ink/85 via-ink/40 to-transparent p-4 pt-10">
+          <p class="font-sans text-white" style="font-size:0.75rem">Fingers photo &mdash; four nails flat in a row, coin clearly placed beside them, dark cloth backdrop</p>
         </div>
       </div>
 
-      <!-- Good 2 -->
+      <!-- Good 2 — Thumb reference -->
       <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-square">
-        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDM56k-cNLcm1pLfZWCiicUPXBqU7H3c1oUllyCdN-Y_2eBZW3kgijSB2C7n-_o7LCQxNz0JbQ0vAlhxE5yJlkgxrgWZ0Lp-oT2o6TNmjJz1siyflScqxA1nfRcVT6EFC8Wd7Nj0AqjpHfvz2EcYbv4pBdktBP3CTCY37bV33r6hJdlC0N5N0rNGjN12fD4CMBFn89YqKPnCGnJ9iVvlEGXgYG7RLMNlpuLt7Yrwp3BLLmXm2ixFGGKk" alt="Good window light" class="w-full h-full object-cover" loading="lazy" onerror="this.remove()" width="400" height="400">
+        <picture>
+          <source srcset="{{ asset('images/sizing/thumb-reference.webp') }}" type="image/webp">
+          <img src="{{ asset('images/sizing/thumb-reference.jpg') }}"
+               alt="Thumb extended flat with coin alongside — good thumb photo"
+               class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"
+               width="800" height="800">
+        </picture>
         <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-success/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
           <svg class="w-3 h-3" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 144 96 200 224 72"/></svg>
           Good
         </span>
-        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-ink/60 to-transparent p-4">
-          <p class="font-sans text-white" style="font-size:0.75rem">Thumb photo &mdash; thumb extended flat, coin above thumbnail, in focus</p>
+        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-ink/85 via-ink/40 to-transparent p-4 pt-10">
+          <p class="font-sans text-white" style="font-size:0.75rem">Thumb photo &mdash; thumb extended flat, coin alongside, in sharp focus</p>
         </div>
       </div>
 
-      <!-- Good 3 -->
+      <!-- Good 3 — Alternate fingers shot (slightly different angle) -->
       <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-square">
-        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJHuKIDTuXFsAXPlXB1Bl1LKYZ9Q_5UWEHiJ7l5C5SuSXoQQxC-fC7s8KSJTgXzUvJXgMR0BbcGsLqRrflFJw4fXKlBEtdnTN9bv0uVzgJU4-N1U8EqoRAezXCRNBe3NM3zGjTON0JDnLwxl8K_wvbnFJNP-0w84MUk2PMCvTInivLMZvdq0L6hpuRXjTWpPLvCYNbhrgLvpT8WFoP-rMlpBp6aVUxfB5BWCY6fNhMoZO2zIWzCmEUns" alt="In focus, full hand" class="w-full h-full object-cover" loading="lazy" onerror="this.remove()" width="400" height="400">
+        <picture>
+          <source srcset="{{ asset('images/sizing/fingers-good-alt.webp') }}" type="image/webp">
+          <img src="{{ asset('images/sizing/fingers-good-alt.jpg') }}"
+               alt="Fingers laid flat with coin above middle finger — second good example"
+               class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"
+               width="800" height="800">
+        </picture>
         <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-success/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
           <svg class="w-3 h-3" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 144 96 200 224 72"/></svg>
           Good
         </span>
-        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-ink/60 to-transparent p-4">
-          <p class="font-sans text-white" style="font-size:0.75rem">Both photos sharp &mdash; nail edges and coin clearly visible</p>
+        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-ink/85 via-ink/40 to-transparent p-4 pt-10">
+          <p class="font-sans text-white" style="font-size:0.75rem">Sharp focus &mdash; the nail-edge silhouette stands out against the cloth</p>
         </div>
       </div>
 
-      <!-- Bad 1 -->
-      <div class="relative rounded-2xl overflow-hidden aspect-square" style="background:linear-gradient(135deg,#D5D0C8,#C8C4BB)">
+      <!-- Bad 1 — Out of focus -->
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-square">
+        <picture>
+          <source srcset="{{ asset('images/sizing/bad-blurry.webp') }}" type="image/webp">
+          <img src="{{ asset('images/sizing/bad-blurry.jpg') }}"
+               alt="Blurry, out-of-focus hand photo — nail edges not readable"
+               class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"
+               width="800" height="800">
+        </picture>
         <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-danger/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
           <svg class="w-3 h-3" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round"><line x1="200" y1="56" x2="56" y2="200"/><line x1="200" y1="200" x2="56" y2="56"/></svg>
           Avoid
         </span>
-        <div class="absolute inset-0 flex items-center justify-center p-6 text-center">
-          <p class="font-sans text-stone" style="font-size:0.9rem">Too far away &mdash; fingers and coin small in frame, nail edges blurry, hard to measure</p>
+        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-ink/85 via-ink/40 to-transparent p-4 pt-10">
+          <p class="font-sans text-white" style="font-size:0.75rem">Out of focus &mdash; nail edges are blurred, can&rsquo;t measure width. Tap to focus on your nails before snapping.</p>
         </div>
       </div>
 
-      <!-- Bad 2 -->
-      <div class="relative rounded-2xl overflow-hidden aspect-square" style="background:linear-gradient(135deg,#D5D0C8,#C8C4BB)">
+      <!-- Bad 2 — Coin too far / scale unclear -->
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-square">
+        <picture>
+          <source srcset="{{ asset('images/sizing/bad-thumb-too-far.webp') }}" type="image/webp">
+          <img src="{{ asset('images/sizing/bad-thumb-too-far.jpg') }}"
+               alt="Thumb cropped at base with coin too far from the nail — scale reference broken"
+               class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"
+               width="800" height="800">
+        </picture>
         <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-danger/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
           <svg class="w-3 h-3" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round"><line x1="200" y1="56" x2="56" y2="200"/><line x1="200" y1="200" x2="56" y2="56"/></svg>
           Avoid
         </span>
-        <div class="absolute inset-0 flex items-center justify-center p-6 text-center">
-          <p class="font-sans text-stone" style="font-size:0.9rem">Coin missing or covering a nail &mdash; can&rsquo;t calculate scale, nail width hidden</p>
+        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-ink/85 via-ink/40 to-transparent p-4 pt-10">
+          <p class="font-sans text-white" style="font-size:0.75rem">Coin too far from the nail &mdash; harder to read the scale. Keep the coin close, in the same focal plane as the nail.</p>
         </div>
       </div>
 
-      <!-- Bad 3 -->
-      <div class="relative rounded-2xl overflow-hidden aspect-square" style="background:linear-gradient(135deg,#A8A4A0,#989490)">
+      <!-- Bad 3 — Busy patterned backdrop -->
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-square">
+        <picture>
+          <source srcset="{{ asset('images/sizing/bad-busy-background.webp') }}" type="image/webp">
+          <img src="{{ asset('images/sizing/bad-busy-background.jpg') }}"
+               alt="Hand on a busy patterned cushion — alignment border can't read it"
+               class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"
+               width="800" height="800">
+        </picture>
         <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-danger/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
           <svg class="w-3 h-3" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round"><line x1="200" y1="56" x2="56" y2="200"/><line x1="200" y1="200" x2="56" y2="56"/></svg>
           Avoid
         </span>
-        <div class="absolute inset-0 flex items-center justify-center p-6 text-center">
-          <p class="font-sans text-white" style="font-size:0.9rem">Busy patterned backdrop &mdash; the live-camera alignment border stays red; switch to plain dark cloth</p>
+        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-ink/85 via-ink/40 to-transparent p-4 pt-10">
+          <p class="font-sans text-white" style="font-size:0.75rem">Busy patterned backdrop &mdash; the live-camera alignment border stays red. Switch to plain dark cloth.</p>
         </div>
       </div>
 
