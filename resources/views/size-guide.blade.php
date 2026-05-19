@@ -133,14 +133,14 @@
 
       <!-- Step 1 — Get ready -->
       <div class="grid md:grid-cols-2 gap-10 items-center">
-        <div class="img-wrap-fallback rounded-2xl aspect-[4/3] overflow-hidden">
+        <div class="img-wrap-fallback rounded-2xl aspect-[3/4] overflow-hidden">
           <picture>
-            <source srcset="{{ asset('images/sizing/fingers-reference.webp') }}" type="image/webp">
-            <img src="{{ asset('images/sizing/fingers-reference.jpg') }}"
-                 alt="Hand laid flat on a dark cloth with four fingernails clearly visible and a coin placed beside them — the canonical fingers photo for sizing"
-                 class="w-full h-full object-cover"
+            <source srcset="{{ asset('images/sizing/fingers-good-alt.webp') }}" type="image/webp">
+            <img src="{{ asset('images/sizing/fingers-good-alt.jpg') }}"
+                 alt="Hand laid flat with fingers pointing up, coin placed above the middle nail — the canonical fingers shot for sizing"
+                 class="w-full h-full object-cover object-top"
                  loading="lazy" onerror="this.remove()"
-                 width="1280" height="720">
+                 width="900" height="1600">
           </picture>
         </div>
         <div>
@@ -173,21 +173,31 @@
             <p class="font-sans text-caption text-stone">The coin should sit just above your nail bed, not on top of your fingertip. Touching is fine &mdash; covering the nail isn&rsquo;t.</p>
           </div>
         </div>
-        {{-- Sizing fingers guide illustration --}}
-        <div class="order-1 md:order-2 rounded-2xl aspect-[4/3] bg-shell flex items-center justify-center p-10">
-          <img src="{{ asset('icons/sizing-fingers.svg') }}"
-               alt="Four fingers laid flat with coin above middle finger — sizing overlay guide"
-               class="w-full h-full object-contain opacity-90" width="400" height="480" loading="lazy">
+        {{-- Real fingers reference photo — what the customer's final shot should look like --}}
+        <div class="order-1 md:order-2 img-wrap-fallback rounded-2xl aspect-[3/4] overflow-hidden">
+          <picture>
+            <source srcset="{{ asset('images/sizing/fingers-reference.webp') }}" type="image/webp">
+            <img src="{{ asset('images/sizing/fingers-reference.jpg') }}"
+                 alt="Four fingers flat with coin placed above the middle nail — the canonical fingers photo for sizing"
+                 class="w-full h-full object-cover object-top"
+                 loading="lazy" onerror="this.remove()"
+                 width="900" height="1600">
+          </picture>
         </div>
       </div>
 
       <!-- Step 3 — Photo 2: Thumb -->
       <div class="grid md:grid-cols-2 gap-10 items-center">
-        {{-- Sizing thumb guide illustration --}}
-        <div class="rounded-2xl aspect-[4/3] bg-shell flex items-center justify-center p-10">
-          <img src="{{ asset('icons/sizing-thumb.svg') }}"
-               alt="Thumb extended flat with coin above thumbnail — sizing overlay guide"
-               class="w-full h-full object-contain opacity-90" width="300" height="480" loading="lazy">
+        {{-- Real thumb reference photo — what the customer's final shot should look like --}}
+        <div class="img-wrap-fallback rounded-2xl aspect-[3/4] overflow-hidden">
+          <picture>
+            <source srcset="{{ asset('images/sizing/thumb-reference.webp') }}" type="image/webp">
+            <img src="{{ asset('images/sizing/thumb-reference.jpg') }}"
+                 alt="Thumb extended flat with coin placed above the thumbnail — the canonical thumb photo for sizing"
+                 class="w-full h-full object-cover object-top"
+                 loading="lazy" onerror="this.remove()"
+                 width="900" height="1600">
+          </picture>
         </div>
         <div>
           <div class="flex items-center gap-4 mb-5">
@@ -245,14 +255,14 @@
             </li>
           </ul>
         </div>
-        <div class="order-1 md:order-2 img-wrap-fallback rounded-2xl aspect-[4/3] overflow-hidden">
+        <div class="order-1 md:order-2 img-wrap-fallback rounded-2xl aspect-[3/4] overflow-hidden">
           <picture>
             <source srcset="{{ asset('images/sizing/thumb-reference.webp') }}" type="image/webp">
             <img src="{{ asset('images/sizing/thumb-reference.jpg') }}"
-                 alt="Thumb extended flat on a dark cloth, coin alongside, in sharp focus — the canonical thumb photo for sizing"
-                 class="w-full h-full object-cover"
+                 alt="Thumb extended flat with coin above the thumbnail — a complete sizing photo"
+                 class="w-full h-full object-cover object-top"
                  loading="lazy" onerror="this.remove()"
-                 width="1280" height="720">
+                 width="900" height="1600">
           </picture>
         </div>
       </div>
@@ -273,12 +283,12 @@
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
       <!-- Good 1 — Fingers reference -->
-      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-square">
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[3/4]">
         <picture>
           <source srcset="{{ asset('images/sizing/fingers-reference.webp') }}" type="image/webp">
           <img src="{{ asset('images/sizing/fingers-reference.jpg') }}"
                alt="Four fingers flat in a row with coin above — good fingers photo"
-               class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"
+               class="w-full h-full object-cover object-top" loading="lazy" onerror="this.remove()"
                width="800" height="800">
         </picture>
         <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-success/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
@@ -291,12 +301,12 @@
       </div>
 
       <!-- Good 2 — Thumb reference -->
-      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-square">
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[3/4]">
         <picture>
           <source srcset="{{ asset('images/sizing/thumb-reference.webp') }}" type="image/webp">
           <img src="{{ asset('images/sizing/thumb-reference.jpg') }}"
                alt="Thumb extended flat with coin alongside — good thumb photo"
-               class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"
+               class="w-full h-full object-cover object-top" loading="lazy" onerror="this.remove()"
                width="800" height="800">
         </picture>
         <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-success/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
@@ -309,12 +319,12 @@
       </div>
 
       <!-- Good 3 — Alternate fingers shot (slightly different angle) -->
-      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-square">
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[3/4]">
         <picture>
           <source srcset="{{ asset('images/sizing/fingers-good-alt.webp') }}" type="image/webp">
           <img src="{{ asset('images/sizing/fingers-good-alt.jpg') }}"
                alt="Fingers laid flat with coin above middle finger — second good example"
-               class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"
+               class="w-full h-full object-cover object-top" loading="lazy" onerror="this.remove()"
                width="800" height="800">
         </picture>
         <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-success/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
@@ -327,12 +337,12 @@
       </div>
 
       <!-- Bad 1 — Out of focus -->
-      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-square">
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[3/4]">
         <picture>
           <source srcset="{{ asset('images/sizing/bad-blurry.webp') }}" type="image/webp">
           <img src="{{ asset('images/sizing/bad-blurry.jpg') }}"
                alt="Blurry, out-of-focus hand photo — nail edges not readable"
-               class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"
+               class="w-full h-full object-cover object-top" loading="lazy" onerror="this.remove()"
                width="800" height="800">
         </picture>
         <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-danger/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
@@ -345,12 +355,12 @@
       </div>
 
       <!-- Bad 2 — Coin too far / scale unclear -->
-      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-square">
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[3/4]">
         <picture>
           <source srcset="{{ asset('images/sizing/bad-thumb-too-far.webp') }}" type="image/webp">
           <img src="{{ asset('images/sizing/bad-thumb-too-far.jpg') }}"
                alt="Thumb cropped at base with coin too far from the nail — scale reference broken"
-               class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"
+               class="w-full h-full object-cover object-top" loading="lazy" onerror="this.remove()"
                width="800" height="800">
         </picture>
         <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-danger/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
@@ -363,12 +373,12 @@
       </div>
 
       <!-- Bad 3 — Busy patterned backdrop -->
-      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-square">
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[3/4]">
         <picture>
           <source srcset="{{ asset('images/sizing/bad-busy-background.webp') }}" type="image/webp">
           <img src="{{ asset('images/sizing/bad-busy-background.jpg') }}"
                alt="Hand on a busy patterned cushion — alignment border can't read it"
-               class="w-full h-full object-cover" loading="lazy" onerror="this.remove()"
+               class="w-full h-full object-cover object-top" loading="lazy" onerror="this.remove()"
                width="800" height="800">
         </picture>
         <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-danger/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
