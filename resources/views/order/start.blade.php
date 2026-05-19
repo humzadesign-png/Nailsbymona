@@ -9,7 +9,20 @@
 @push('head')
 <style>
   .sizing-option { transition: border-color 0.15s ease, background-color 0.15s ease; cursor: pointer; }
-  .sizing-option input[type="radio"] { display: none; }
+  /* Visually hidden, but kept in the layout so iOS Safari doesn't fire a
+     scroll-into-view jump when the wrapping label is tapped. `display: none`
+     here makes mobile tap jump the page to the top. */
+  .sizing-option input[type="radio"] {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
   .sizing-option.selected { border-color: #BFA4CE; background-color: #F5F0FA; }
   .sizing-option:hover { border-color: #BFA4CE; }
   .upload-preview { display: none; }
@@ -189,18 +202,14 @@ $(function () {
     }
   }
 
-  // Bind change (fires once per actual selection change)
+  // Bind change (fires once per actual selection change).
+  // The radio is visually hidden but kept in the layout (see CSS above)
+  // and the wrapping <label> natively forwards taps to it on every browser
+  // including iOS Safari — so we don't need a separate click handler. The
+  // previous handler that re-triggered change was firing twice on iOS,
+  // contributing to a scroll-jump that looked like the page "bouncing back."
   $('input[name="sizing_method"]').on('change', function () {
     selectOption($(this));
-  });
-
-  // Also handle clicks directly on the label card area so tapping the card
-  // text/icon (not just the hidden radio) still triggers selection.
-  $('.sizing-option').on('click', function (e) {
-    // Skip if the event originated from the radio itself (avoid double-fire)
-    if ($(e.target).is('input[type="radio"]')) return;
-    const $radio = $(this).find('input[type="radio"]');
-    $radio.prop('checked', true).trigger('change');
   });
 
   // ── Auto-select upload card on validation error ──────────────────────────
