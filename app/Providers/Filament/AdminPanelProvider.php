@@ -46,13 +46,17 @@ class AdminPanelProvider extends PanelProvider
                     950 => '33, 20, 50',
                 ],
             ])
+            // Group icons removed (Block 5 follow-up): Filament v4 forbids
+            // having icons on BOTH a navigation group AND its items. Each
+            // resource now owns its own $navigationIcon, so the groups
+            // act as plain labels above their item lists.
             ->navigationGroups([
-                NavigationGroup::make('Orders')->icon('heroicon-o-shopping-bag'),
-                NavigationGroup::make('Catalogue')->icon('heroicon-o-sparkles'),
-                NavigationGroup::make('Content')->icon('heroicon-o-pencil-square'),
-                NavigationGroup::make('Customers')->icon('heroicon-o-users'),
+                NavigationGroup::make('Orders'),
+                NavigationGroup::make('Catalogue'),
+                NavigationGroup::make('Content'),
+                NavigationGroup::make('Customers'),
                 NavigationGroup::make('Finance')->collapsible(false),
-                NavigationGroup::make('Settings')->icon('heroicon-o-cog-6-tooth'),
+                NavigationGroup::make('Settings'),
             ])
             ->renderHook(
                 'panels::topbar.start',
