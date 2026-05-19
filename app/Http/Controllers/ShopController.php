@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\FaqCategory;
+use App\Models\Faq;
 use App\Models\Product;
 use Illuminate\View\View;
 
@@ -30,6 +32,16 @@ class ShopController extends Controller
             ->limit(3)
             ->get();
 
-        return view('product', compact('product', 'related'));
+        // FAQs for the product page. Pull active general FAQs (5-7); Mona
+        // edits these in the FAQs admin resource. Until she fills the table,
+        // the product page falls back to a sensible default set so the
+        // section never renders empty.
+        $faqs = Faq::where('is_active', true)
+            ->where('category', FaqCategory::General->value)
+            ->orderBy('sort_order')
+            ->limit(7)
+            ->get();
+
+        return view('product', compact('product', 'related', 'faqs'));
     }
 }

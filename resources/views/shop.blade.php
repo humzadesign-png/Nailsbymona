@@ -11,11 +11,34 @@
 @endpush
 
 @php
+    // F5 — populated ItemList + BreadcrumbList. Google reads these for
+    // collection-page rich results; the previous empty ItemList gave the
+    // crawler nothing to work with.
+    $itemListElements = $products->values()->map(fn ($p, $i) => [
+        '@type'    => 'ListItem',
+        'position' => $i + 1,
+        'url'      => route('product', $p->slug),
+        'name'     => $p->name,
+    ])->all();
+
     $shopSchema = json_encode([
         '@context' => 'https://schema.org',
-        '@type'    => 'ItemList',
-        'name'     => 'Shop Press-On Nails — Nails by Mona',
-        'url'      => route('shop'),
+        '@graph'   => [
+            [
+                '@type'           => 'ItemList',
+                'name'            => 'Shop Press-On Nails — Nails by Mona',
+                'url'             => route('shop'),
+                'numberOfItems'   => count($itemListElements),
+                'itemListElement' => $itemListElements,
+            ],
+            [
+                '@type'           => 'BreadcrumbList',
+                'itemListElement' => [
+                    ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => route('home')],
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'Shop', 'item' => route('shop')],
+                ],
+            ],
+        ],
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
 

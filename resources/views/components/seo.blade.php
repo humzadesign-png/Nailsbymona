@@ -64,7 +64,12 @@
 <meta property="og:type"        content="{{ $ogType }}">
 <meta property="og:url"         content="{{ $canonical }}">
 <meta property="og:image"       content="{{ $ogImage }}">
-<meta property="og:locale"      content="en_PK">
+{{-- S7: og:locale must be a Facebook-supported locale. en_PK is NOT in
+     Facebook's accepted list and gets silently dropped, breaking the
+     locale signal entirely. en_GB is the closest accepted English variant
+     for South Asia + diaspora. hreflang below still carries en-PK as the
+     Pakistan-specific Google signal. --}}
+<meta property="og:locale"      content="en_GB">
 <meta property="og:site_name"   content="Nails by Mona">
 
 {{-- Twitter / X --}}
@@ -73,7 +78,7 @@
 <meta name="twitter:description" content="{{ $description }}">
 <meta name="twitter:image"       content="{{ $ogImage }}">
 
-{{-- hreflang --}}
+{{-- hreflang — Pakistan-specific English signal for Google. --}}
 <link rel="alternate" hreflang="en-PK" href="{{ $canonical }}">
 
 {{-- JSON-LD: combined (Organization + page schema) OR Organization alone --}}

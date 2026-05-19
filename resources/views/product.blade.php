@@ -16,9 +16,12 @@
     $firstImg = $galleryImages->first();
     $imgSrc   = $firstImg ? asset('storage/' . $firstImg->path) : ($product->cover_image ? asset('storage/' . $product->cover_image) : '');
     $imgAlt   = e($product->name) . ' — ' . $tierLabel . ' tier custom-fit press-on nails';
+    // F4 — schema.org availability: MadeToOrder is the correct vocabulary
+    // value for handmade-on-demand items. "PreOrder" implies a future
+    // release date, which isn't our model.
     $schemaAvailability = match($product->stock_status?->value ?? '') {
         'sold_out'      => 'https://schema.org/OutOfStock',
-        'made_to_order' => 'https://schema.org/PreOrder',
+        'made_to_order' => 'https://schema.org/MadeToOrder',
         default         => 'https://schema.org/InStock',
     };
     $waText     = urlencode('Hello Nails by Mona, I\'m interested in ' . $product->name . '.');
@@ -44,23 +47,61 @@
 </style>
 @endpush
 
+@php
+    // F2 + F3 — Product + BreadcrumbList + (optional) FAQPage in one @graph
+    // so they merge with the global Organization schema in <x-seo>. Adds
+    // image and sku (F3) which Google requires for Product rich results.
+    $productSchema = [
+        '@type'       => 'Product',
+        'name'        => $product->name,
+        'description' => $product->description ?? $product->name,
+        'sku'         => $product->slug,
+        'brand'       => ['@type' => 'Brand', 'name' => 'Nails by Mona'],
+        'offers'      => [
+            '@type'         => 'Offer',
+            'priceCurrency' => 'PKR',
+            'price'         => (string) $product->price_pkr,
+            'availability'  => $schemaAvailability,
+            'url'           => route('product', $product->slug),
+        ],
+    ];
+    if ($imgSrc) {
+        $productSchema['image'] = $imgSrc;
+    }
+
+    $breadcrumbSchema = [
+        '@type'           => 'BreadcrumbList',
+        'itemListElement' => [
+            ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => route('home')],
+            ['@type' => 'ListItem', 'position' => 2, 'name' => 'Shop', 'item' => route('shop')],
+            ['@type' => 'ListItem', 'position' => 3, 'name' => $product->name, 'item' => route('product', $product->slug)],
+        ],
+    ];
+
+    $graph = [$productSchema, $breadcrumbSchema];
+    if (! empty($faqs) && $faqs->count() > 0) {
+        $graph[] = [
+            '@type'      => 'FAQPage',
+            'mainEntity' => $faqs->map(fn ($f) => [
+                '@type'          => 'Question',
+                'name'           => $f->question,
+                'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f->answer],
+            ])->values()->all(),
+        ];
+    }
+
+    $productPageSchema = json_encode(
+        ['@context' => 'https://schema.org', '@graph' => $graph],
+        JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+    );
+@endphp
+
 @section('seo')
     <x-seo
         :title="($product->meta_title ?: $product->name . ' — Custom-Fit Press-On Nails Pakistan | Nails by Mona')"
         :description="($product->meta_description ?: 'Handmade ' . strtolower($product->name) . ' press-on gel nails, custom-sized to your measurements. ' . $tierLabel . ' tier. Ships in ' . $leadMin . '–' . $leadTime . ' days across Pakistan. Free first refit.')"
-        :schema="json_encode([
-            '@context'    => 'https://schema.org',
-            '@type'       => 'Product',
-            'name'        => $product->name,
-            'description' => $product->description ?? $product->name,
-            'brand'       => ['@type' => 'Brand', 'name' => 'Nails by Mona'],
-            'offers'      => [
-                '@type'         => 'Offer',
-                'priceCurrency' => 'PKR',
-                'price'         => (string) $product->price_pkr,
-                'availability'  => $schemaAvailability,
-            ],
-        ])"
+        :ogImage="$imgSrc ?: null"
+        :schema="$productPageSchema"
     />
 @endsection
 
@@ -183,17 +224,21 @@
 <section class="bg-paper py-14">
   <div class="max-w-7xl mx-auto px-6 lg:px-10">
 
-    <!-- Tab buttons -->
-    <div class="flex border-b border-hairline mb-8 overflow-x-auto">
-      <button class="tab-btn font-sans font-medium text-caption border-b-2 border-lavender text-ink pb-3 pr-8 mr-0 whitespace-nowrap" data-tab="about">About this set</button>
-      <button class="tab-btn font-sans font-medium text-caption border-b-2 border-transparent text-stone hover:text-ink pb-3 px-8 transition-colors duration-200 whitespace-nowrap" data-tab="sizing">Sizing &amp; Fit</button>
-      <button class="tab-btn font-sans font-medium text-caption border-b-2 border-transparent text-stone hover:text-ink pb-3 pl-8 transition-colors duration-200 whitespace-nowrap" data-tab="care">Care &amp; Reuse</button>
+    <!-- Tab buttons — proper WAI-ARIA tablist (F11). Screen readers
+         announce these as tabs and respect the selected/active state. -->
+    <div class="flex border-b border-hairline mb-8 overflow-x-auto" role="tablist" aria-label="Product details">
+      <button type="button" class="tab-btn font-sans font-medium text-caption border-b-2 border-lavender text-ink pb-3 pr-8 mr-0 whitespace-nowrap"
+              data-tab="about" role="tab" aria-selected="true" aria-controls="tab-about" id="tabbtn-about">About this set</button>
+      <button type="button" class="tab-btn font-sans font-medium text-caption border-b-2 border-transparent text-stone hover:text-ink pb-3 px-8 transition-colors duration-200 whitespace-nowrap"
+              data-tab="sizing" role="tab" aria-selected="false" aria-controls="tab-sizing" id="tabbtn-sizing">Sizing &amp; Fit</button>
+      <button type="button" class="tab-btn font-sans font-medium text-caption border-b-2 border-transparent text-stone hover:text-ink pb-3 pl-8 transition-colors duration-200 whitespace-nowrap"
+              data-tab="care" role="tab" aria-selected="false" aria-controls="tab-care" id="tabbtn-care">Care &amp; Reuse</button>
     </div>
 
     <!-- Tab panels -->
     <div class="max-w-2xl">
 
-      <div id="tab-about" class="tab-panel active">
+      <div id="tab-about" class="tab-panel active" role="tabpanel" aria-labelledby="tabbtn-about">
         <p class="font-sans text-body-lg text-graphite leading-relaxed mb-6">
           {!! nl2br(e($product->description)) !!}
         </p>
@@ -203,7 +248,7 @@
         </div>
       </div>
 
-      <div id="tab-sizing" class="tab-panel">
+      <div id="tab-sizing" class="tab-panel" role="tabpanel" aria-labelledby="tabbtn-sizing">
         <p class="font-sans text-body-lg text-graphite leading-relaxed mb-5">
           This set is made to fit your specific nails &mdash; not a generic size. Before I begin making your set, you'll share a quick photo of your hand using my sizing guide.
         </p>
@@ -216,7 +261,7 @@
         </div>
       </div>
 
-      <div id="tab-care" class="tab-panel">
+      <div id="tab-care" class="tab-panel" role="tabpanel" aria-labelledby="tabbtn-care">
         <ul class="space-y-4 mb-6">
           <li class="flex items-start gap-3">
             <span class="text-lavender mt-0.5 shrink-0">
@@ -259,7 +304,27 @@
 </section>
 
 
-{{-- FAQ --}}
+{{-- FAQ — DB-driven (Faq admin resource); falls back to a hardcoded set
+     so the section never renders empty while Mona's filling the table.
+     ARIA: aria-expanded/aria-controls on the trigger so screen readers
+     announce open/closed state and which panel each button toggles. --}}
+@php
+    // Fallback FAQ set (matches the original hardcoded copy). Used only
+    // when the faqs admin table has no active General-category rows.
+    $fallbackFaqs = collect([
+        (object) ['id' => 'fb1', 'question' => 'Will these nails fall off?',
+            'answer' => 'I use a brush-on nail glue that bonds firmly with proper preparation. Most customers get 7–10 days of wear. If you follow the prep steps (clean, dry nails + prep pad), they hold up well through hand-washing, showering, and daily activity.'],
+        (object) ['id' => 'fb2', 'question' => 'What if the sizing is wrong?',
+            'answer' => "That's exactly what the free first-refit guarantee is for. If your first order doesn't fit perfectly, I resize it at no charge. I'd rather take the extra time to get it right."],
+        (object) ['id' => 'fb3', 'question' => 'How long does it take?',
+            'answer' => "Custom sets take {$leadMin}–{$leadTime} days from the day I confirm your sizing. Bridal sets take around {$bridalLead} days. I'll confirm your exact timeline over WhatsApp before I start."],
+        (object) ['id' => 'fb4', 'question' => 'Can I reuse these?',
+            'answer' => 'Yes — with careful removal (soak off, never force), most customers get 3–5 wears from a set. I include care and storage instructions with every order.'],
+        (object) ['id' => 'fb5', 'question' => 'How do I pay?',
+            'answer' => "JazzCash, EasyPaisa, and bank transfer. Account details are sent automatically on your confirmation page after ordering — you upload a payment screenshot and I verify it within a few hours. No Cash on Delivery."],
+    ]);
+    $faqsToShow = ($faqs ?? null) && $faqs->count() > 0 ? $faqs : $fallbackFaqs;
+@endphp
 <section class="bg-shell py-14">
   <div class="max-w-7xl mx-auto px-6 lg:px-10">
     <div class="max-w-2xl">
@@ -269,57 +334,22 @@
       <div class="h-0.5 w-10 bg-lavender mb-10"></div>
 
       <div class="space-y-0 border-t border-hairline">
-
-        <div class="faq-item border-b border-hairline">
-          <button class="faq-trigger w-full flex items-center justify-between py-5 text-left">
-            <span class="font-sans font-medium text-ink pr-6" style="font-size:0.9375rem">Will these nails fall off?</span>
-            <svg class="faq-icon w-4 h-4 text-stone shrink-0 transition-transform duration-200" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round"><line x1="40" y1="128" x2="216" y2="128"/><line class="faq-plus-vertical" x1="128" y1="40" x2="128" y2="216"/></svg>
-          </button>
-          <div class="faq-answer pb-5">
-            <p class="font-sans text-body text-graphite">I use a brush-on nail glue that bonds firmly with proper preparation. Most customers get 7&ndash;10 days of wear. If you follow the prep steps (clean, dry nails + prep pad), they hold up well through hand-washing, showering, and daily activity.</p>
+        @foreach($faqsToShow as $faq)
+          @php $panelId = 'faq-panel-' . $faq->id; @endphp
+          <div class="faq-item border-b border-hairline">
+            <button type="button" class="faq-trigger w-full flex items-center justify-between py-5 text-left"
+                    aria-expanded="false" aria-controls="{{ $panelId }}">
+              <span class="font-sans font-medium text-ink pr-6" style="font-size:0.9375rem">{{ $faq->question }}</span>
+              <svg class="faq-icon w-4 h-4 text-stone shrink-0 transition-transform duration-200" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" aria-hidden="true">
+                <line x1="40" y1="128" x2="216" y2="128"/>
+                <line class="faq-plus-vertical" x1="128" y1="40" x2="128" y2="216"/>
+              </svg>
+            </button>
+            <div id="{{ $panelId }}" class="faq-answer pb-5" role="region">
+              <p class="font-sans text-body text-graphite">{!! nl2br(e($faq->answer)) !!}</p>
+            </div>
           </div>
-        </div>
-
-        <div class="faq-item border-b border-hairline">
-          <button class="faq-trigger w-full flex items-center justify-between py-5 text-left">
-            <span class="font-sans font-medium text-ink pr-6" style="font-size:0.9375rem">What if the sizing is wrong?</span>
-            <svg class="faq-icon w-4 h-4 text-stone shrink-0 transition-transform duration-200" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round"><line x1="40" y1="128" x2="216" y2="128"/><line class="faq-plus-vertical" x1="128" y1="40" x2="128" y2="216"/></svg>
-          </button>
-          <div class="faq-answer pb-5">
-            <p class="font-sans text-body text-graphite">That's exactly what the free first-refit guarantee is for. If your first order doesn't fit perfectly, I resize it at no charge. I'd rather take the extra time to get it right.</p>
-          </div>
-        </div>
-
-        <div class="faq-item border-b border-hairline">
-          <button class="faq-trigger w-full flex items-center justify-between py-5 text-left">
-            <span class="font-sans font-medium text-ink pr-6" style="font-size:0.9375rem">How long does it take?</span>
-            <svg class="faq-icon w-4 h-4 text-stone shrink-0 transition-transform duration-200" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round"><line x1="40" y1="128" x2="216" y2="128"/><line class="faq-plus-vertical" x1="128" y1="40" x2="128" y2="216"/></svg>
-          </button>
-          <div class="faq-answer pb-5">
-            <p class="font-sans text-body text-graphite">Custom sets take {{ $leadMin }}&ndash;{{ $leadTime }} days from the day I confirm your sizing. Bridal sets take around {{ $bridalLead }} days. I'll confirm your exact timeline over WhatsApp before I start.</p>
-          </div>
-        </div>
-
-        <div class="faq-item border-b border-hairline">
-          <button class="faq-trigger w-full flex items-center justify-between py-5 text-left">
-            <span class="font-sans font-medium text-ink pr-6" style="font-size:0.9375rem">Can I reuse these?</span>
-            <svg class="faq-icon w-4 h-4 text-stone shrink-0 transition-transform duration-200" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round"><line x1="40" y1="128" x2="216" y2="128"/><line class="faq-plus-vertical" x1="128" y1="40" x2="128" y2="216"/></svg>
-          </button>
-          <div class="faq-answer pb-5">
-            <p class="font-sans text-body text-graphite">Yes &mdash; with careful removal (soak off, never force), most customers get 3&ndash;5 wears from a set. I include care and storage instructions with every order.</p>
-          </div>
-        </div>
-
-        <div class="faq-item border-b border-hairline">
-          <button class="faq-trigger w-full flex items-center justify-between py-5 text-left">
-            <span class="font-sans font-medium text-ink pr-6" style="font-size:0.9375rem">How do I pay?</span>
-            <svg class="faq-icon w-4 h-4 text-stone shrink-0 transition-transform duration-200" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round"><line x1="40" y1="128" x2="216" y2="128"/><line class="faq-plus-vertical" x1="128" y1="40" x2="128" y2="216"/></svg>
-          </button>
-          <div class="faq-answer pb-5">
-            <p class="font-sans text-body text-graphite">JazzCash, EasyPaisa, and bank transfer. Account details are sent automatically on your confirmation page after ordering &mdash; you upload a payment screenshot and I verify it within a few hours. No Cash on Delivery.</p>
-          </div>
-        </div>
-
+        @endforeach
       </div>
     </div>
   </div>
@@ -451,24 +481,35 @@ $(function () {
   }
 
   // ── Tab switching ────────────────────────────────
+  // aria-selected mirrors visual state so screen-reader users know which
+  // tab is current (F11 from the audit).
   $('.tab-btn').on('click', function () {
     const tabId = $(this).data('tab');
-    $('.tab-btn').removeClass('border-lavender text-ink').addClass('border-transparent text-stone');
-    $(this).addClass('border-lavender text-ink').removeClass('border-transparent text-stone');
+    $('.tab-btn').removeClass('border-lavender text-ink').addClass('border-transparent text-stone')
+                 .attr('aria-selected', 'false');
+    $(this).addClass('border-lavender text-ink').removeClass('border-transparent text-stone')
+           .attr('aria-selected', 'true');
     $('.tab-panel').removeClass('active');
     $('#tab-' + tabId).addClass('active');
   });
 
   // ── FAQ accordion ────────────────────────────────
+  // aria-expanded mirrors the visual open/closed state so screen
+  // readers announce it correctly (F10 from the audit).
   $('.faq-trigger').on('click', function () {
     const $item   = $(this).closest('.faq-item');
     const $answer = $item.find('.faq-answer');
     const isOpen  = $answer.is(':visible');
+
+    // Close every panel first, both visually and for ARIA.
     $('.faq-answer').slideUp(180);
     $('.faq-icon').css('transform', '');
+    $('.faq-trigger').attr('aria-expanded', 'false');
+
     if (!isOpen) {
       $answer.slideDown(180);
       $(this).find('.faq-icon').css('transform', 'rotate(45deg)');
+      $(this).attr('aria-expanded', 'true');
     }
   });
 

@@ -7,6 +7,15 @@
 @endpush
 
 @php
+    // S1 + S2 — email and hours pulled from StoreSettings so the schema
+    // stays in sync with whatever Mona sets in the admin panel.
+    $businessHoursSchema = trim((string) ($settings->business_hours ?? ''));
+    // If Mona's settings string isn't in the parseable Schema.org form,
+    // fall back to a generic Mon-Sat default that crawlers will accept.
+    if (! preg_match('/^[A-Z][a-z]-?[A-Z][a-z]?\s+\d{2}:\d{2}-\d{2}:\d{2}$/', $businessHoursSchema)) {
+        $businessHoursSchema = 'Mo-Sa 10:00-19:00';
+    }
+
     $contactSchema = json_encode([
         '@context' => 'https://schema.org',
         '@graph'   => [
@@ -14,14 +23,14 @@
                 '@type'         => 'LocalBusiness',
                 'name'          => 'Nails by Mona',
                 'url'           => route('home'),
-                'email'         => 'hello@nailsbymona.pk',
+                'email'         => $settings->contact_email ?: 'hello@nailsbymona.pk',
                 'address'       => [
                     '@type'           => 'PostalAddress',
                     'addressLocality' => 'Mirpur',
                     'addressRegion'   => 'Azad Kashmir',
                     'addressCountry'  => 'PK',
                 ],
-                'openingHours'  => 'Mo-Sa 10:00-21:00',
+                'openingHours'  => $businessHoursSchema,
             ],
             [
                 '@type'           => 'BreadcrumbList',

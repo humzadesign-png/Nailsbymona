@@ -7,22 +7,43 @@
 </style>
 @endpush
 
+@php
+    // F2 — Bridal Trio Product + BreadcrumbList in a single @graph so
+    // they merge cleanly with the global Organization schema.
+    $bridalSchema = json_encode([
+        '@context' => 'https://schema.org',
+        '@graph'   => [
+            [
+                '@type'    => 'Product',
+                'name'     => 'Bridal Trio — Mehendi, Baraat & Valima',
+                'description' => 'Three coordinated custom-fit press-on gel nail sets for the three nights of a Pakistani wedding. One fitting, one shipment, premium magnetic keepsake packaging.',
+                'sku'      => 'bridal-trio',
+                'brand'    => ['@type' => 'Brand', 'name' => 'Nails by Mona'],
+                'image'    => asset('og-default.jpg'),
+                'offers'   => [
+                    '@type'         => 'Offer',
+                    'priceCurrency' => 'PKR',
+                    'price'         => '11000',
+                    'availability'  => 'https://schema.org/MadeToOrder',
+                    'url'           => route('bridal'),
+                ],
+            ],
+            [
+                '@type'           => 'BreadcrumbList',
+                'itemListElement' => [
+                    ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => route('home')],
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'Bridal', 'item' => route('bridal')],
+                ],
+            ],
+        ],
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+@endphp
+
 @section('seo')
     <x-seo
         title="Bridal Press-On Nails Pakistan — Mehendi, Baraat &amp; Valima Trio | Nails by Mona"
         description="The Bridal Trio — three coordinated custom-fit press-on nail sets for Mehendi, Baraat, and Valima. One fitting. One shipment. Handmade in Mirpur. From Rs. 11,000."
-        :schema="json_encode([
-            '@context' => 'https://schema.org',
-            '@type'    => 'Product',
-            'name'     => 'Bridal Trio — Mehendi, Baraat & Valima',
-            'brand'    => ['@type' => 'Brand', 'name' => 'Nails by Mona'],
-            'offers'   => [
-                '@type'         => 'Offer',
-                'priceCurrency' => 'PKR',
-                'price'         => '11000',
-                'availability'  => 'https://schema.org/InStock',
-            ],
-        ])"
+        :schema="$bridalSchema"
     />
 @endsection
 
