@@ -9,9 +9,13 @@
 @push('head')
 <style>
   .sizing-option { transition: border-color 0.15s ease, background-color 0.15s ease; cursor: pointer; }
-  /* Visually hidden, but kept in the layout so iOS Safari doesn't fire a
-     scroll-into-view jump when the wrapping label is tapped. `display: none`
-     here makes mobile tap jump the page to the top. */
+  /* Visually hidden, but kept in the layout. The standard sr-only pattern.
+     Reasons:
+     • display:none makes iOS Safari scroll-to-top when the wrapping label
+       is tapped (no layout position for the focused control to scroll to).
+     • pointer-events:none was added defensively but suppresses the
+       label→radio synthetic click on some iOS builds — removed.
+     • opacity:0 (kept) ensures no visual artifact during render.        */
   .sizing-option input[type="radio"] {
     position: absolute;
     width: 1px; height: 1px;
@@ -21,7 +25,6 @@
     white-space: nowrap;
     border: 0;
     opacity: 0;
-    pointer-events: none;
   }
   .sizing-option.selected { border-color: #BFA4CE; background-color: #F5F0FA; }
   .sizing-option:hover { border-color: #BFA4CE; }

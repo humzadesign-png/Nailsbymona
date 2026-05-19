@@ -52,6 +52,19 @@
 
 @section('content')
 
+{{-- Flash error banner — surfaces messages from the order flow when the
+     customer is bounced back here (empty bag, expired session, etc.). --}}
+@error('bag')
+<div class="bg-lavender-wash border-b border-hairline">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10 py-4 flex items-start gap-3">
+    <svg class="w-5 h-5 text-lavender-ink shrink-0 mt-0.5" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+      <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,144a12,12,0,1,1,12-12A12,12,0,0,1,128,168Zm8-56a8,8,0,0,1-16,0V80a8,8,0,0,1,16,0Z"/>
+    </svg>
+    <p class="font-sans text-caption text-lavender-ink">{{ $message }}</p>
+  </div>
+</div>
+@enderror
+
 {{-- ═══════════════════════════════════════════════
      SECTION 1 — MINIMAL HERO STRIP
      BG: shell

@@ -35,8 +35,14 @@ class OrderController extends Controller
     /**
      * GET /order/start/{slug?}
      * Show the sizing options step.
+     *
+     * Empty-bag guard: if the visitor lands here without a bag in session
+     * (typed the URL, scanned a stale QR, session expired) we redirect
+     * to /shop with an explanation rather than rendering the sizing form.
+     * Letting them pick a sizing method just sends them through a silent
+     * /order/details → /order/start redirect loop ("doesn't go forward").
      */
-    public function start(Request $request, ?string $slug = null): View
+    public function start(Request $request, ?string $slug = null): View|RedirectResponse
     {
         // If a slug was provided (coming from product page), seed the bag in session.
         if ($slug) {
@@ -48,6 +54,13 @@ class OrderController extends Controller
                 // The slug is enough to identify what the customer is ordering.
                 session(['order_form.bag' => [['slug' => $slug, 'qty' => 1]]]);
             }
+        }
+
+        // Empty-bag guard. Skip in non-production so devs can still hit the
+        // sizing page directly while testing the UI.
+        if (empty(session('order_form.bag')) && app()->environment() === 'production') {
+            return redirect()->route('shop')
+                ->withErrors(['bag' => "Your bag is empty — please add a design before checkout."]);
         }
 
         $bag        = session('order_form.bag', []);
@@ -98,6 +111,17 @@ class OrderController extends Controller
         }
 
         $request->validate($rules);
+
+        // Defensive empty-bag guard. start() blocks the visitor from ever
+        // landing here without a bag (in production), but if their session
+        // expired between rendering the sizing form and clicking Continue,
+        // we redirect them to /shop with an explanation rather than letting
+        // /order/details silently bounce them back here (the "doesn't go
+        // forward" symptom). Skip in non-prod so the dev demo bag still works.
+        if (empty(session('order_form.bag')) && app()->environment() === 'production') {
+            return redirect()->route('shop')
+                ->withErrors(['bag' => "Your bag has expired — please add your design again to continue."]);
+        }
 
         $method = $request->input('sizing_method');
 
