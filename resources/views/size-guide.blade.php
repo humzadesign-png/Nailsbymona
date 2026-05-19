@@ -133,7 +133,7 @@
 
       <!-- Step 1 — Get ready -->
       <div class="grid md:grid-cols-2 gap-10 items-center">
-        <div class="img-wrap-fallback rounded-2xl aspect-[3/4] overflow-hidden">
+        <div class="img-wrap-fallback rounded-2xl aspect-[2/3] overflow-hidden">
           <picture>
             <source srcset="{{ asset('images/sizing/fingers-good-alt.webp') }}" type="image/webp">
             <img src="{{ asset('images/sizing/fingers-good-alt.jpg') }}"
@@ -174,7 +174,7 @@
           </div>
         </div>
         {{-- Real fingers reference photo — what the customer's final shot should look like --}}
-        <div class="order-1 md:order-2 img-wrap-fallback rounded-2xl aspect-[3/4] overflow-hidden">
+        <div class="order-1 md:order-2 img-wrap-fallback rounded-2xl aspect-[2/3] overflow-hidden">
           <picture>
             <source srcset="{{ asset('images/sizing/fingers-reference.webp') }}" type="image/webp">
             <img src="{{ asset('images/sizing/fingers-reference.jpg') }}"
@@ -189,7 +189,7 @@
       <!-- Step 3 — Photo 2: Thumb -->
       <div class="grid md:grid-cols-2 gap-10 items-center">
         {{-- Real thumb reference photo — what the customer's final shot should look like --}}
-        <div class="img-wrap-fallback rounded-2xl aspect-[3/4] overflow-hidden">
+        <div class="img-wrap-fallback rounded-2xl aspect-[2/3] overflow-hidden">
           <picture>
             <source srcset="{{ asset('images/sizing/thumb-reference.webp') }}" type="image/webp">
             <img src="{{ asset('images/sizing/thumb-reference.jpg') }}"
@@ -255,7 +255,7 @@
             </li>
           </ul>
         </div>
-        <div class="order-1 md:order-2 img-wrap-fallback rounded-2xl aspect-[3/4] overflow-hidden">
+        <div class="order-1 md:order-2 img-wrap-fallback rounded-2xl aspect-[2/3] overflow-hidden">
           <picture>
             <source srcset="{{ asset('images/sizing/thumb-reference.webp') }}" type="image/webp">
             <img src="{{ asset('images/sizing/thumb-reference.jpg') }}"
@@ -283,7 +283,7 @@
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
       <!-- Good 1 — Fingers reference -->
-      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[3/4]">
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[2/3]">
         <picture>
           <source srcset="{{ asset('images/sizing/fingers-reference.webp') }}" type="image/webp">
           <img src="{{ asset('images/sizing/fingers-reference.jpg') }}"
@@ -301,7 +301,7 @@
       </div>
 
       <!-- Good 2 — Thumb reference -->
-      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[3/4]">
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[2/3]">
         <picture>
           <source srcset="{{ asset('images/sizing/thumb-reference.webp') }}" type="image/webp">
           <img src="{{ asset('images/sizing/thumb-reference.jpg') }}"
@@ -319,7 +319,7 @@
       </div>
 
       <!-- Good 3 — Alternate fingers shot (slightly different angle) -->
-      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[3/4]">
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[2/3]">
         <picture>
           <source srcset="{{ asset('images/sizing/fingers-good-alt.webp') }}" type="image/webp">
           <img src="{{ asset('images/sizing/fingers-good-alt.jpg') }}"
@@ -337,7 +337,7 @@
       </div>
 
       <!-- Bad 1 — Out of focus -->
-      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[3/4]">
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[2/3]">
         <picture>
           <source srcset="{{ asset('images/sizing/bad-blurry.webp') }}" type="image/webp">
           <img src="{{ asset('images/sizing/bad-blurry.jpg') }}"
@@ -355,7 +355,7 @@
       </div>
 
       <!-- Bad 2 — Coin too far / scale unclear -->
-      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[3/4]">
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[2/3]">
         <picture>
           <source srcset="{{ asset('images/sizing/bad-thumb-too-far.webp') }}" type="image/webp">
           <img src="{{ asset('images/sizing/bad-thumb-too-far.jpg') }}"
@@ -373,7 +373,7 @@
       </div>
 
       <!-- Bad 3 — Busy patterned backdrop -->
-      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[3/4]">
+      <div class="relative rounded-2xl overflow-hidden img-wrap-fallback aspect-[2/3]">
         <picture>
           <source srcset="{{ asset('images/sizing/bad-busy-background.webp') }}" type="image/webp">
           <img src="{{ asset('images/sizing/bad-busy-background.jpg') }}"
