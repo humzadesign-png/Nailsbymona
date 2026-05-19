@@ -1984,6 +1984,156 @@ Full pre-Phase-5 audit (~60 findings catalogued, ~37 closed across five deploys)
 
 ---
 
+### 2026-05-19 — Full audit + Blocks 1–6 shipped, plus Block 7 partial photography swap
+
+A long single-day session. Started with a deep front-end/back-end audit producing ~60 findings, then worked through six prioritized blocks of fixes, each shipped to production with verification. Toward the end Mona delivered her first batch of real sizing photos and we swapped the Google AI placeholders on `/size-guide` for them.
+
+**Block 1 — Critical money/cart bugs** (commit `0004413`)
+
+- **C1** Shop add-to-bag was pushing items with no `slug` field. `OrderController::verifyBag()` drops slug-less items, so customers checking out from the grid silently saw "your bag is empty." Fixed by adding `data-tier="{{ $tierValue }}"` to shop/product buttons and routing through `window.NbmBag.add()` consistently.
+- **C2** `/order/payment` hardcoded "50% deposit" (Bridal Trio) and "30% advance" (standard) — but `StoreSettings` had `bridal_deposit_percent = 100` and `advance_percent = 25`. Customer was being told one thing and quoted another. Now reads everything from `$settings`; bridal copy adapts when deposit % is 100 ("paid in full up-front") vs partial.
+- **C3** Returning-customer lookup was broken end-to-end. The AJAX flagged `is_returning + from_profile` in the session but the form still submitted `live_camera` (the default radio), and `storeSizing()` validator didn't accept `from_profile`. Now the validator accepts it, a defensive guard forces `from_profile` when the session is flagged returning, and on a successful match the JS auto-redirects to `/order/details` after 900 ms instead of waiting for a Continue tap.
+- **C4** Order-confirmation discount line was using a wrong formula (`subtotal + 2·shipping − total`) that overstated the discount by exactly the shipping amount. Now reads `$order->reorder_discount_pkr` directly.
+
+**Block 2 — Lead times + dispatch dates** (commit `0004413` — combined with Block 1)
+
+- New migration `2026_05_19_010000_add_estimated_dispatch_to_orders` adds `orders.estimated_dispatch_at`.
+- `OrderController::store()` pins the dispatch date at order placement (`now()->addDays($leadTimeDays)`) — was being recomputed on every render and drifting forward as the order aged.
+- New `Order` helpers: `isBridalTrio()` (resilient to unloaded relations — uses `relationLoaded('items')` check), `leadTimeDays()` (settings-driven, bridal vs standard), `estimatedDispatchAt(bool $fromNow = false)` (returns pinned date or recomputed-from-now).
+- All three transactional emails (order-placed, payment-verified, order-in-production) now read the dispatch date from the model helper. Order-placed uses the pinned date; the other two use `fromNow: true` so the date is fresh as of verification / production-start.
+- Order-placed email's bridal/advance copy aligned with the payment-page fix (same source of truth — `$settings` + `$order->advanceAmountPkr()`).
+- All hardcoded lead-time copy in public views (shop, home, about, bridal, product) replaced with `{{ $settings->lead_time_standard_days }}` / `{{ $settings->lead_time_bridal_days }}`. "Working days" qualifier dropped — settings are calendar days, copy is now just "days."
+
+**Block 3 — Order-flow data integrity & admin workflow** (commit `0d17982`)
+
+- **M3** `Customer::findByContact()` now normalizes Pakistani phone numbers via a new `normalizePhoneTail(?string)` static helper that strips country code (`92`) or leading `0` and matches on the last 10 digits. All of `+923001234567` / `923001234567` / `03001234567` / `0300-1234567` / `(0300) 1234567` resolve to the same customer row. Email comparison is case-insensitive. Requires ≥7 useful digits so short inputs can't fan-match.
+- **Sec5** `OrderTrackingController::lookup` reuses the same tail-normalization helper. Old behaviour accepted bidirectional suffix match, letting `1234567` match any order ending in those digits.
+- **M4** `OrderController::payment()` now calls `verifyBag()` before computing totals. Tampered localStorage prices are corrected at step 3 too, not only at order placement. If verification drops every item (renamed slug, deactivated product), bounce to `/shop` with an error.
+- **C6** New `PaymentStatus::Verifying` state wired up. `OrderPaymentProofController::store` transitions `Awaiting → Verifying` once a proof is uploaded. Gives Mona's triage queue a distinct "proof uploaded, needs review" bucket. The "Awaiting payment" filter on the orders table now includes both `Awaiting` and `Verifying`. A new "Proof uploaded — needs review" filter shows only `Verifying`.
+- **C7** Filament Confirm / Confirm-Advance / Balance-Received actions (plus the bulk-confirm) now stamp `verified_at = now()` on every unverified `OrderPaymentProof` for the order. The Filament infolist's "Verified" column stops showing "Not verified yet" forever.
+- **M8** `AutoCancelOrderJob` now requires an admin-verified proof to short-circuit, not just any proof row. Previously a customer uploading an empty/wrong screenshot indefinitely blocked the 72h auto-cancel.
+- **M7** "Mark Shipped" Filament action's confirmation modal now shows a balance-due warning when `payment_status === PartialAdvance`. Mona still has the override, but the easy mistake is flagged.
+- **M6** Order-number generator retry budget raised from 3 → 5 attempts with jittered backoff (10–50 ms × attempt). Fallback prefix changed from `NBM-YYYY-0000` to `NBM-YYYY-Txxxx` so admin can spot anomalies.
+
+**Block 4 — Public-facing safety nets** (commit `5435b95`)
+
+- **M2** New `UgcPhoto::scopePublished()` enforces `is_published=true AND face_visible=false` in one place. Home query refactored to use it. Future UGC queries can't accidentally leak face-visible photos.
+- **F6** `/track` now sets `<x-seo :noindex="true"/>` explicitly. The other 5 order-flow views already inherited `noindex` from `layouts.order`.
+- **Sec1** `PushSubscriptionController` now requires the user to be a `FilamentUser` (defence-in-depth for future customer-auth).
+- **M10** `Order` model hooks `updating` + `deleting` events to roll back `Customer::total_orders` and `Customer::lifetime_value_pkr` when an order transitions to Cancelled or is hard-deleted. Idempotent — a re-cancel doesn't double-decrement; deleting an already-cancelled order doesn't decrement twice. Counters clamp at zero.
+- **M1** New migration `2026_05_19_020000_drop_product_id_from_order_items` drops the `order_items.product_id` column. It was `unsignedBigInteger` but products use ULIDs — never written. Comments in `OrderController` and `OrderItem::$fillable` cleaned up too.
+
+**Block 5 — Admin/Filament polish** (commit `6a075ad`)
+
+- **A1** Renamed `TopBlogPostsWidget` → `OrdersNeedingAttentionWidget`. Class name and file name now match the actual job (surfacing `Awaiting/Verifying + New` orders).
+- **A2** `RecentOrdersWidget` payment_status badge match adds `PartialAdvance => 'info'`.
+- **A3** `ExpenseResource` badge match adds `GelPolish => 'danger'`, `Utilities`, `Other` so every category renders colored.
+- **A4** `FaqResource` switched from deprecated `->colors([...])` array shape to `->color(fn match)` pattern. Adds `Application` + `Bridal` cases.
+- **M9** `OrderStatsWidget` and `FinanceOverview` both compute revenue from `sum('advance_paid_pkr')`. Paid orders contribute full amount; PartialAdvance contributes only the deposit; Awaiting/Verifying contribute zero. The two dashboards now always agree. Bonus: 7-day sparklines moved from 7 separate sums to one `selectRaw('DATE(created_at), COUNT/SUM')->groupBy()` per metric.
+- **A8** Added `$navigationIcon` to every Filament resource + `ManageSettings` page. (Follow-up hotfix `25970e6` — see below — removed the group-level icons that collided with these item-level icons.)
+- **A14** Removed `DeleteBulkAction` from the Orders table. Added a new migration `2026_05_19_030000_add_soft_deletes_to_orders` (adds `orders.deleted_at`). Order model now uses `SoftDeletes` trait — per-row delete is reversible.
+- **A15** `ManageSettings::save()` shows a persistent warning notification if all three payment methods (JazzCash, EasyPaisa, Bank Transfer) are blank. Each payment section also got a `description()` explaining where the values render.
+- **A12** New `SubscriberResource` — read-only Filament resource for the blog subscribe list with a header CSV-export action and per-row delete (for GDPR-style removal requests).
+- **A13** `Customer.sizingPhotosFromOrders()` aggregates every sizing photo uploaded across all the customer's orders. `CustomerResource` view page now shows them in a collapsible grid (collapsed by default), newest first, using the private-disk `viewer_url`.
+
+**Block 5 hotfix — Filament v4 navigation icon collision** (commit `25970e6`)
+
+I missed a real smoke-test step in Block 5 and only checked that routes returned 302. When the user opened `/admin`, every panel page 500'd with `Navigation group [Orders] has an icon but one or more of its items also have icons. Either the group or its items can have icons, but not both.` Filament v4 enforces a UX rule about icons that the previous group-level icons in `AdminPanelProvider::panel()` violated once I'd added item-level icons in A8. Fix: stripped `->icon(...)` from the navigation groups. Resource-level icons stay.
+
+**Lesson:** every Filament-touching deploy now ends with a tinker-driven kernel render of `/admin` as a logged-in admin user, asserting status < 500 and no `Exception` markers in the response body. Added to my standard smoke-test playbook.
+
+**Block 6 — Product page wiring + Schema.org fixes** (commit `639fbc6`)
+
+- **F1** `ShopController::show()` passes `$faqs` from the active `general`-category `faqs` admin table. `product.blade.php` loops them in the FAQ section; falls back to the original 5 hardcoded questions when the table is empty so the section never renders bare. Mona's FAQ admin edits finally reach customers.
+- **F2** Added `BreadcrumbList` JSON-LD to product, shop, and bridal pages. About and contact already had it.
+- **F3** Product `Offer` schema gains `image`, `sku` (= slug), `offers.url`. Required for Google Product rich-result eligibility.
+- **F4** `made_to_order` stock status now maps to `https://schema.org/MadeToOrder` (was incorrectly `PreOrder`, which implies a future release date).
+- **F5** Shop `ItemList` schema populated with one `ListItem` per active product (was an empty container with no entries).
+- **F10** FAQ accordion gets proper ARIA — `aria-expanded` toggles on click, `aria-controls` points to a `<div role="region" id="faq-panel-{id}">` panel.
+- **F11** Tab buttons become a proper `<div role="tablist">` with `role="tab" + aria-selected + aria-controls` on each button and `role="tabpanel" + aria-labelledby` on each panel. JS maintains `aria-selected`.
+- **S1, S2** Contact page's `LocalBusiness` schema reads `email` from `$settings->contact_email` (was hardcoded `hello@nailsbymona.pk`); `openingHours` reads `$settings->business_hours` if it matches the strict Schema.org day-time regex, else a sensible fallback (`Mo-Sa 10:00-19:00`).
+- **S7** `og:locale` changed from invalid `en_PK` to Facebook-accepted `en_GB`. `hreflang="en-PK"` retained for Google's PK signal.
+
+**Various follow-up hotfixes after Block 6**
+
+- `dcb6214` — Filament drag-reorder usable on mobile. Monkey-patches `window.Sortable.create` via the `panels::body.end` render hook with `delay: 250 + delayOnTouchOnly + scroll: true + scrollSensitivity: 80`. Quick tap-and-swipe scrolls; press-and-hold enters drag mode and the page auto-scrolls when the dragged row nears a viewport edge.
+- `68d4764` — Hotfix: every checkout was 500'ing with `Duplicate entry 'NBM-2026-0001'`. Root cause: Block 5 added `SoftDeletes` to `Order`. Eloquent's default scope filters out soft-deleted rows, but the DB's UNIQUE constraint on `order_number` doesn't. A soft-deleted `NBM-2026-0001` from prior testing was invisible to `generateOrderNumber()`'s `exists()` check but still occupied the slot. Fix: `withTrashed()` on both the `lockForUpdate` SELECT and the TOCTOU `exists()` check in the generator. Comment block in `Order.php` now explains the gotcha so the next schema change doesn't reintroduce it. The orphan soft-deleted row was cleaned up via tinker `forceDelete()` on prod.
+- `e1ed349` — iOS Safari scroll-jump on the sizing-step radio cards. `display: none` on the radio inputs inside their wrapping `<label>` caused iOS to try to "scroll the focused control into view" and land at the top of the page. Fixed with the standard visually-hidden pattern (`position: absolute; w/h:1px; clip: rect(0,0,0,0); opacity: 0`). Also dropped the redundant `.sizing-option` click handler that was double-firing change events on iOS.
+- `c454aba` — Empty-bag bounce-loop on `/order/start`. Hitting the URL directly (no shop visit) → pick sizing → POST `/order/start/sizing` → 302 to `/order/details` → empty bag → 302 back to `/order/start`. Customer experienced this as "doesn't go forward." Fix: `OrderController::start()` and `storeSizing()` now redirect to `/shop` with a flash `@error('bag')` message when the session bag is empty in production. New banner at the top of `/shop` renders the error so the bounced customer immediately sees why they're back there. Also removed `pointer-events: none` from the visually-hidden radios (it suppressed label-forwarded clicks on some iOS builds).
+
+**Block 7 partial — first photography swap on `/size-guide`** (commits `5bf68e4`, `805f243`, `8d40672`, `f727d66`, `96d7089`, `d9d38c5`, `916db65`, `58523b6`, `a71a3e8`)
+
+Mona delivered 12 photos via `~/Downloads/DSC*.jpg`. Categorized them, processed 6, replaced every Google AI placeholder on the size guide. Multiple iteration rounds because each round revealed a new framing/legibility issue.
+
+Source-photo selection (after viewing all 12):
+- `fingers-reference` ← `DSC01693` (sharp fingers, coin, clean tan cloth, no ring)
+- `thumb-reference`   ← `DSC01699` (canonical thumb side-profile with coin)
+- `fingers-good-alt`  ← `DSC01692` (alternate angle, also clean)
+- `bad-blurry`        ← `DSC01706` (everything blurred — perfect counter-example)
+- `bad-thumb-too-far` ← `DSC08277` (sleeve in frame, coin far from thumb, scale unclear, hand small)
+- `bad-busy-background` ← `DSC01711` (hand on patterned cushion — the alignment heuristic's nemesis)
+
+Processing pipeline (final): `sips -r 90` (or `-r 270` for thumb shots) → `sips -Z 1600 --setProperty formatOptions 82` to resize → Python+PIL crop to true 2:3 (900×1350) top-anchored (bottom-anchored for `bad-thumb-too-far` since its subject is in the lower half) → `cwebp -q 82` to emit WebP variant. Total payload ≈ 1.1 MB across all 6 photos.
+
+Iteration log:
+1. **First pass** — landscape orientation kept, square `aspect-square` containers cropped the pinky on the right edge.
+2. **Vertical re-orientation** — rotated source to portrait; everything looked right except the coin was too close to the top edge → 3:4 container cropped the coin in half.
+3. **`aspect-[3/4]` → `aspect-[2/3]` containers** — natively matched the 2:3 photo dimensions; coin fully visible.
+4. **True 2:3 crop on the source** — cropped 900×1600 down to 900×1350 (exact 2:3) so the container fits the photo with zero cropping. Bottom (wrist) trimmed off, framing tighter.
+5. **Caption legibility** — white-on-gradient text was hard to read against busy real-photo backgrounds. Restructured each card: photo at top with the Good/Avoid corner pill, caption block underneath on `bg-paper` with dark graphite text. Photo stays uncovered.
+6. **Bad-2 caption updated** — now mentions both "too far away" and "coin not close to the nail" as the photo demonstrates both failures simultaneously.
+
+Also replaced the SVG illustration placeholders in Steps 2 & 3 of the four-step "how to take the photos" walkthrough with the canonical real-photo references. Step heroes: Step 1 = `fingers-good-alt`, Step 2 = `fingers-reference`, Step 3 = `thumb-reference`, Step 4 = `thumb-reference` (re-used in the "final checklist" slot).
+
+**Block 7 hotfix — Vite/Tailwind CSS not rebuilding on deploy** (commit `a71a3e8` + `/root/deploy.sh` update)
+
+The colored pills on the Good/Avoid cards reverted to transparent backgrounds after one of my Block 7 edits. Investigation: I had changed pill backgrounds from `bg-success/90` to `bg-success/95` for a slightly bolder opacity. Tailwind v4 generates utility classes by scanning source files at build time and emits ONLY the variants actually used. The deployed CSS bundle was built earlier when the source still said `/90`, so `bg-success/95` simply didn't exist in the served stylesheet — the pill's `background` style resolved to nothing and showed transparent.
+
+Root-root cause: `/root/deploy.sh` was running `composer install` + `migrate` + `optimize` but **never** `npm run build`. Any Tailwind-only edit (new opacity, new arbitrary aspect, new utility) silently never reached production. `public/build/` is gitignored, so committing pre-built CSS isn't an option either.
+
+Two-part fix:
+1. Immediate: reverted pill backgrounds to `/90` (which IS in the deployed bundle).
+2. Permanent: rewrote `/root/deploy.sh` on the server to run `npm ci --no-audit --no-fund --silent` and `npm run build` between `composer install` and `migrate --force`. Every future deploy now rebuilds the frontend assets.
+
+**Audit closure summary**
+
+| Block | Status | Notes |
+|---|---|---|
+| 1 — Critical money/cart | ✓ Shipped | C1 C2 C3 C4 fully closed |
+| 2 — Lead times + dispatch | ✓ Shipped | Single source of truth via `$settings` + `Order` model |
+| 3 — Order-flow data integrity | ✓ Shipped | M3 M4 M6 M7 M8 Sec5 C6 C7 |
+| 4 — Public-facing safety nets | ✓ Shipped | M1 M2 M10 F6 Sec1 |
+| 5 — Admin/Filament polish | ✓ Shipped | A1–A4 A8 A12 A13 A14 A15 M9. **A7 skipped on Humza's request** ("Record nail sizes" stays visible on every row regardless of order status — convenience for Mona). |
+| 6 — Product page + Schema | ✓ Shipped | F1–F5 F10 F11 S1 S2 S7 |
+| 7 — Photography swap | ⚠️ Partial | Size guide done. Home / About / Bridal hero photos still using `lh3.googleusercontent.com/aida-public/...` placeholders — waits on Mona's next shoot. |
+| 8 — Frontend polish sweep | ⏸ Queued | XSS-proof bag drawer, mobile nav Help link, unified desktop detect, consent banner |
+| 9 — Performance / tests / CSP | ⏸ Queued | Q3 work |
+
+---
+
+### 2026-05-20 — Size guide visual polish pass
+
+Sub-session refining the size guide gallery after Mona reviewed the deployed version.
+
+- **Caption legibility** (commit `d9d38c5`): the original white-on-gradient captions overlaid on each Good/Avoid card were hard to read against busy real-photo backgrounds. Restructured to an editorial layout — photo block (2:3, with Good/Avoid corner pill) + paper-coloured caption block underneath with dark graphite text. Each card is now an `<article>` with two stacked children. `min-h` on the caption keeps card heights uniform across the 6-tile grid.
+- **Colored label header attempt** (commit `916db65`): added a "✓ GOOD" / "✗ AVOID" header in `text-success` / `text-danger` above each caption description.
+- **Reverted the label header** (commit `58523b6`): Humza pointed out that the corner pill on the photo already conveys Good/Avoid — the caption header was redundant noise. Removed; caption block is now just the description.
+- **Pill color regression + Vite build fix** (commit `a71a3e8` + `/root/deploy.sh` rewrite): see Block 7 hotfix above. The pills had silently lost their green/red backgrounds because Tailwind utility variants from the latest edits weren't being built. Fixed both the immediate symptom and the underlying deploy-script gap.
+- **Final state of `/size-guide` gallery**: 6 cards, each with a 2:3 portrait photo (rotated + cropped from Mona's source, top-anchored so coin sits ~10% from the top), the original colored corner pill (`Good` green / `Avoid` red), and a separate paper-coloured caption block below with description only.
+- **Middle Avoid caption text** (commit `96d7089`): updated to mention both failure modes — "Too far away — both the nail and the coin should fill most of the frame. Move the camera closer, and keep the coin right next to the nail so they share the same focal plane." Previous version only mentioned coin-distance, missing the camera-distance issue that the same photo also demonstrated.
+- **Steps 2 & 3 hero swap** (commit `805f243`): replaced the SVG U-shape outline illustrations in "Photo 1 — Your fingers" and "Photo 2 — Your thumb" with the real `fingers-reference` and `thumb-reference` photos. Customers now see exactly what a "good" shot looks like at the exact step they're being asked to take it.
+
+**Files touched in this size-guide session**: `resources/views/size-guide.blade.php` heavily, `public/images/sizing/*.jpg|.webp` (regenerated multiple times), `/root/deploy.sh` on the production server.
+
+**Migrations applied this session (all on prod):**
+```
+2026_05_19_010000_add_estimated_dispatch_to_orders   (Block 2)
+2026_05_19_020000_drop_product_id_from_order_items   (Block 4)
+2026_05_19_030000_add_soft_deletes_to_orders         (Block 5)
+```
+
+---
+
 ## 33. Pointers for Future Claude Sessions
 
 - **Read this file first.** Overrides anything you think you remember.
@@ -2068,8 +2218,37 @@ Full pre-Phase-5 audit (~60 findings catalogued, ~37 closed across five deploys)
   - "WhatsApp" row action with order-aware prefill ("Hello, this is Mona. About your order NBM-…").
 - **SLA visibility.** Payment column description shows `🟢 awaiting payment · 2h` / `🟡 14h` / `🔴 1d 4h` for awaiting orders. Computed via `Order::getPaymentAgeLabelAttribute()`. Awaiting-payment filter now sorts oldest-first.
 - **Filament v4 + custom auth-gated routes** outside the panel path: Laravel's default `auth` middleware redirects to a non-existent `login` route → 500. Either use Filament's `Authenticate` middleware (panel context required) OR do the check inside the controller (`Auth::check() ? : redirect('/admin/login')`). The latter pattern is used by `PrivateFileController`.
-- **`OrderItem.product_id` is typed `unsignedBigInteger`** but `products.id` is ULID. The column exists but is never written — `product_slug_snapshot` is the de-facto FK. Dead column for a future cleanup migration.
+- **`OrderItem.product_id` is typed `unsignedBigInteger`** but `products.id` is ULID. ~~The column exists but is never written~~ **Column was dropped on 2026-05-19** in migration `2026_05_19_020000_drop_product_id_from_order_items`. `product_slug_snapshot` is the FK.
 - **Vercel plugin auto-suggestions** for `nextjs` / `next-cache-components` / `chat-sdk` / `ai-sdk` etc. fire because the Laravel project has an `app/` directory. **They are inapplicable.** Don't run the suggested skill tools.
+
+— **Block 1–7 pointers** (added 2026-05-19 / 2026-05-20 — see §32 entries):
+
+- **Deploy script now runs the frontend build.** `/root/deploy.sh` on prod includes `npm ci --no-audit --no-fund --silent && npm run build` between composer install and `migrate --force`. **Never commit `public/build/` (still gitignored).** Any Tailwind utility class change (new opacity, new arbitrary value like `aspect-[2/3]`) is rebuilt automatically on deploy. Before this change, CSS-only edits silently never reached production.
+- **Order model uses `SoftDeletes`** (Block 5 / A14). Per-row delete in Filament is reversible. Bulk delete was removed from the Orders table.
+- **`generateOrderNumber()` MUST use `withTrashed()`** on both the lookup and the uniqueness check. The DB unique constraint sees soft-deleted rows; Eloquent's default scope hides them. Without `withTrashed()` a soft-deleted order number is invisible to the generator but the next INSERT crashes with `Duplicate entry`. See the comment block in `Order::generateOrderNumber()`.
+- **`Customer::normalizePhoneTail(?string)` is the canonical phone normalizer.** Strips PK country code or leading 0, returns the last 10 digits. Used by both `Customer::findByContact` and `OrderTrackingController::lookup`. Requires ≥7 useful digits to avoid fan-matching.
+- **`PaymentStatus::Verifying` is set automatically** by `OrderPaymentProofController::store` when a customer uploads a proof on an Awaiting order. Mona's confirm/confirm-advance/balance-received actions also stamp `verified_at = now()` on every unverified proof. The AutoCancel job requires a verified proof to short-circuit, so junk uploads can't block the 72h safety net.
+- **`Order` has new helpers:** `isBridalTrio()` (resilient — uses `relationLoaded('items')` to avoid N+1), `leadTimeDays()` (reads settings), `estimatedDispatchAt(bool $fromNow)`. The `orders.estimated_dispatch_at` column is pinned at order placement; emails and confirmation page read from it (with optional recompute-from-now for emails sent later in the lifecycle).
+- **`UgcPhoto::scopePublished()` enforces `is_published=true AND face_visible=false`** in one place. Every public-facing UGC query MUST chain `->published()`. Future product/bridal carousel queries can't accidentally leak face-visible photos.
+- **Filament v4 navigation icons:** EITHER on the group OR on the items, not both. We use item-level icons on every resource (in `$navigationIcon`). Groups in `AdminPanelProvider::navigationGroups()` are plain labels — do NOT add `.icon()` back to them. Doing so 500s the entire panel.
+- **Filament deploy smoke test:** after any Filament-touching deploy, run a tinker render of `/admin` as a logged-in admin user:
+  ```php
+  \Auth::login(\App\Models\User::first());
+  $resp = app(\Illuminate\Contracts\Http\Kernel::class)
+      ->handle(\Illuminate\Http\Request::create('/admin','GET'));
+  // assert status < 500 AND no 'Exception' in body
+  ```
+  Route 302 checks are NOT enough — the panel can boot-fail in ways that only surface when the sidebar actually renders.
+- **Filament mobile drag-reorder** uses a SortableJS monkey-patch loaded via `panels::body.end` render hook (`resources/views/filament/sortable-mobile-tuning.blade.php`). Adds `delay: 250 / delayOnTouchOnly / scroll: true / scrollSensitivity: 80` defaults so phones can long-press to drag and the page auto-scrolls near edges.
+- **Order pages session guard:** `OrderController::start()` and `storeSizing()` redirect to `/shop` with a flash `@error('bag')` when the session bag is empty in production. `/shop` view renders an error banner at the top of the page. Don't undo this — without it, customers loop infinitely between `/order/start` and `/order/details` when their session bag is missing.
+- **Sizing photos on `/size-guide` are real, not Google AI placeholders any more.** Six photos live in `public/images/sizing/` as JPG + WebP pairs:
+  - `fingers-reference`, `thumb-reference`, `fingers-good-alt` (Good gallery)
+  - `bad-blurry`, `bad-thumb-too-far`, `bad-busy-background` (Avoid gallery)
+  Each is 900×1350 (true 2:3 portrait, top-anchored except bad-thumb-too-far). When Mona delivers new photos, process via `sips -r {90|270}` for rotation, Python+PIL for the 900×1350 top-anchored crop, then `cwebp -q 82` for the variant. Replace the JPG/WebP pair, run `php artisan view:cache` to refresh, deploy.
+- **The remaining Google AI placeholders** (`lh3.googleusercontent.com/aida-public/...`) live in `home.blade.php`, `about.blade.php`, `shop.blade.php` (bridal callout). These will pull from the Google AI CDN with no SLA — replace as photography becomes available.
+- **`og:locale=en_GB`, not `en_PK`.** Facebook silently drops unknown locales. `hreflang="en-PK"` carries the Pakistan signal for Google instead.
+- **Schema.org product availability:** `made_to_order` → `https://schema.org/MadeToOrder` (NOT `PreOrder` — that implies a future release date).
+- **Product page FAQs are DB-driven.** `ShopController::show()` passes `$faqs` from the `general` category. Product view loops them with `aria-expanded + aria-controls`. Falls back to a hardcoded 5-question set if the table is empty.
 
 ---
 
