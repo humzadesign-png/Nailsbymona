@@ -16,7 +16,8 @@ class FaqResource extends Resource
 {
     protected static ?string $model = Faq::class;
     protected static ?string                     $navigationLabel = 'FAQs';
-    protected static string | \UnitEnum | null   $navigationGroup = 'Content';
+    protected static string | \BackedEnum | null $navigationIcon  = 'heroicon-o-question-mark-circle';
+    protected static string | \UnitEnum   | null $navigationGroup = 'Content';
     protected static ?int                        $navigationSort  = 2;
 
     public static function table(Table $table): Table
@@ -27,14 +28,17 @@ class FaqResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('category')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => $state instanceof FaqCategory ? $state->label() : $state)
-                    ->colors([
-                        'primary' => FaqCategory::Sizing->value,
-                        'success' => FaqCategory::Payment->value,
-                        'info'    => FaqCategory::Shipping->value,
-                        'warning' => FaqCategory::Returns->value,
-                        'gray'    => FaqCategory::General->value,
-                    ]),
+                    ->formatStateUsing(fn ($state) => $state instanceof FaqCategory ? $state->label() : (string) $state)
+                    ->color(fn ($state) => match($state) {
+                        FaqCategory::Sizing      => 'primary',
+                        FaqCategory::Payment     => 'success',
+                        FaqCategory::Shipping    => 'info',
+                        FaqCategory::Returns     => 'warning',
+                        FaqCategory::Application => 'info',
+                        FaqCategory::Bridal      => 'danger',
+                        FaqCategory::General     => 'gray',
+                        default                  => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('question')
                     ->searchable()->wrap()->weight('semibold'),
                 Tables\Columns\TextColumn::make('answer')->limit(80)->wrap(),

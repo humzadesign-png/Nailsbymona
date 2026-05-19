@@ -31,6 +31,21 @@ class Customer extends Model
     }
 
     /**
+     * All sizing photos this customer has uploaded across every order.
+     * Source: order_sizing_photos (per-order uploads). The aspirational
+     * customer_sizing_photos table isn't wired up yet — this accessor lets
+     * us surface the photos on the Customer view today; once dedup logic
+     * lands the implementation switches without breaking callers.
+     */
+    public function sizingPhotosFromOrders(): \Illuminate\Database\Eloquent\Collection
+    {
+        return OrderSizingPhoto::query()
+            ->whereIn('order_id', $this->orders()->pluck('id'))
+            ->orderByDesc('uploaded_at')
+            ->get();
+    }
+
+    /**
      * Normalize a Pakistani-style phone number to its last 10 significant
      * digits (the unique identifier of the line) so that all of these match:
      *

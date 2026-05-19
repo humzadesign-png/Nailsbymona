@@ -27,7 +27,8 @@ use Filament\Tables\Table;
 class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
-    protected static string | \UnitEnum | null $navigationGroup = 'Orders';
+    protected static string | \BackedEnum | null $navigationIcon  = 'heroicon-o-clipboard-document-list';
+    protected static string | \UnitEnum   | null $navigationGroup = 'Orders';
     protected static ?int    $navigationSort  = 1;
 
     public static function getNavigationBadge(): ?string
@@ -379,7 +380,11 @@ class OrderResource extends Resource
                             }
                             Notification::make()->title($title)->success()->send();
                         }),
-                    Actions\DeleteBulkAction::make(),
+                    // Bulk delete intentionally removed (A14). Deleting an order
+                    // is irreversible with the current schema; forcing per-row
+                    // deletion with confirmation prevents a click-and-regret
+                    // wipeout. Soft-deletes are planned as a separate change
+                    // requiring a migration + model trait.
                 ]),
             ]);
     }

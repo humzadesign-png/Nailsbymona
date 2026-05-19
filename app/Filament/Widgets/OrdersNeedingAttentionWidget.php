@@ -10,7 +10,16 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 
-class TopBlogPostsWidget extends BaseWidget
+/**
+ * Dashboard widget surfacing orders that need Mona's hand:
+ *   • Status: New (not yet confirmed)
+ *   • Payment: Awaiting (no proof yet) or Verifying (proof uploaded)
+ *
+ * Renamed from TopBlogPostsWidget in Block 5 — class name and file name
+ * now match the actual job. CLAUDE.md §21 originally specified a separate
+ * top-blog-posts widget; that's a future build, not this one.
+ */
+class OrdersNeedingAttentionWidget extends BaseWidget
 {
     protected static ?int $sort = 3;
     protected int | string | array $columnSpan = 'full';
@@ -47,20 +56,27 @@ class TopBlogPostsWidget extends BaseWidget
                     ->label('Payment')
                     ->badge()
                     ->color(fn ($state) => match ($state) {
-                        PaymentStatus::Awaiting  => 'warning',
-                        PaymentStatus::Verifying => 'info',
-                        default                  => 'gray',
+                        PaymentStatus::Awaiting       => 'warning',
+                        PaymentStatus::Verifying      => 'primary',
+                        PaymentStatus::PartialAdvance => 'info',
+                        PaymentStatus::Paid           => 'success',
+                        PaymentStatus::Refunded       => 'danger',
+                        default                       => 'gray',
                     })
-                    ->formatStateUsing(fn ($state) => $state->label()),
+                    ->formatStateUsing(fn ($state) => $state instanceof PaymentStatus ? $state->label() : (string) $state),
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->color(fn ($state) => match ($state) {
-                        OrderStatus::New       => 'warning',
-                        OrderStatus::Confirmed => 'success',
-                        default                => 'gray',
+                        OrderStatus::New          => 'warning',
+                        OrderStatus::Confirmed    => 'success',
+                        OrderStatus::InProduction => 'primary',
+                        OrderStatus::Shipped      => 'info',
+                        OrderStatus::Delivered    => 'success',
+                        OrderStatus::Cancelled    => 'danger',
+                        default                   => 'gray',
                     })
-                    ->formatStateUsing(fn ($state) => $state->label()),
+                    ->formatStateUsing(fn ($state) => $state instanceof OrderStatus ? $state->label() : (string) $state),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Placed')

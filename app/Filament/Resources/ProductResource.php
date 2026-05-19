@@ -19,7 +19,8 @@ use Illuminate\Support\Str;
 class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
-    protected static string | \UnitEnum | null   $navigationGroup = 'Catalogue';
+    protected static string | \BackedEnum | null $navigationIcon  = 'heroicon-o-sparkles';
+    protected static string | \UnitEnum   | null $navigationGroup = 'Catalogue';
     protected static ?int    $navigationSort  = 1;
 
     public static function table(Table $table): Table

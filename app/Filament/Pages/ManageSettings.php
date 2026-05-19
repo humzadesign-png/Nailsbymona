@@ -13,7 +13,8 @@ use Filament\Schemas\Schema;
 class ManageSettings extends Page
 {
     protected static ?string                     $navigationLabel = 'Settings';
-    protected static string | \UnitEnum | null   $navigationGroup = 'Settings';
+    protected static string | \BackedEnum | null $navigationIcon  = 'heroicon-o-cog-6-tooth';
+    protected static string | \UnitEnum   | null $navigationGroup = 'Settings';
     protected static ?int                        $navigationSort  = 1;
 
     protected string $view = 'filament.pages.manage-settings';
@@ -71,22 +72,28 @@ class ManageSettings extends Page
                         ->placeholder('Mon–Sat, 10am–7pm (PKT)'),
                 ]),
 
-                FormSection::make('JazzCash')->columns(2)->schema([
-                    Forms\Components\TextInput::make('jazzcash_number')->label('Mobile number'),
-                    Forms\Components\TextInput::make('jazzcash_name')->label('Account name'),
-                ]),
+                FormSection::make('JazzCash')->columns(2)
+                    ->description('Customer chooses JazzCash on checkout → these details render on their order-confirmation page.')
+                    ->schema([
+                        Forms\Components\TextInput::make('jazzcash_number')->label('Mobile number'),
+                        Forms\Components\TextInput::make('jazzcash_name')->label('Account name'),
+                    ]),
 
-                FormSection::make('EasyPaisa')->columns(2)->schema([
-                    Forms\Components\TextInput::make('easypaisa_number')->label('Mobile number'),
-                    Forms\Components\TextInput::make('easypaisa_name')->label('Account name'),
-                ]),
+                FormSection::make('EasyPaisa')->columns(2)
+                    ->description('Customer chooses EasyPaisa → details render on the order-confirmation page.')
+                    ->schema([
+                        Forms\Components\TextInput::make('easypaisa_number')->label('Mobile number'),
+                        Forms\Components\TextInput::make('easypaisa_name')->label('Account name'),
+                    ]),
 
-                FormSection::make('Bank Transfer')->columns(2)->schema([
-                    Forms\Components\TextInput::make('bank_name')->label('Bank name'),
-                    Forms\Components\TextInput::make('bank_account_name')->label('Account name'),
-                    Forms\Components\TextInput::make('bank_account_no')->label('Account number'),
-                    Forms\Components\TextInput::make('bank_iban')->label('IBAN')->placeholder('PK36 SCBL 0000001123456702'),
-                ]),
+                FormSection::make('Bank Transfer')->columns(2)
+                    ->description('Customer chooses Bank Transfer → these details render on the order-confirmation page.')
+                    ->schema([
+                        Forms\Components\TextInput::make('bank_name')->label('Bank name'),
+                        Forms\Components\TextInput::make('bank_account_name')->label('Account name'),
+                        Forms\Components\TextInput::make('bank_account_no')->label('Account number'),
+                        Forms\Components\TextInput::make('bank_iban')->label('IBAN')->placeholder('PK36 SCBL 0000001123456702'),
+                    ]),
 
                 FormSection::make('Shipping')->columns(2)->schema([
                     Forms\Components\TextInput::make('shipping_flat_pkr')
@@ -143,6 +150,26 @@ class ManageSettings extends Page
         $settings->whatsapp_number = $digits !== '' ? '+' . $digits : '';
 
         $settings->save();
+
+        // Soft warning if every payment method is blank — the checkout
+        // confirmation page would render with empty "Send to:" lines and
+        // a customer wouldn't know where to send their payment. Filament
+        // still saves the form (this is a soft warning, not a hard
+        // validation error), so Mona can fix it on her next pass.
+        $jcBlank  = trim((string) $settings->jazzcash_number) === '';
+        $epBlank  = trim((string) $settings->easypaisa_number) === '';
+        $bankBlank = trim((string) $settings->bank_account_no) === ''
+                  && trim((string) $settings->bank_iban) === '';
+
+        if ($jcBlank && $epBlank && $bankBlank) {
+            Notification::make()
+                ->title('Settings saved — but no payment methods are configured.')
+                ->body('Customers selecting JazzCash / EasyPaisa / Bank Transfer at checkout will see blank account details. Please fill in at least one method.')
+                ->warning()
+                ->persistent()
+                ->send();
+            return;
+        }
 
         Notification::make()
             ->title('Settings saved.')

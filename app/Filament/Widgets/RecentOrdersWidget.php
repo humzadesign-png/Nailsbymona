@@ -53,6 +53,7 @@ class RecentOrdersWidget extends BaseWidget
                     ->color(fn ($state) => match($state) {
                         PaymentStatus::Awaiting       => 'warning',
                         PaymentStatus::Verifying      => 'primary',
+                        PaymentStatus::PartialAdvance => 'info',
                         PaymentStatus::Paid           => 'success',
                         PaymentStatus::Refunded       => 'danger',
                         default                       => 'gray',

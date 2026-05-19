@@ -3,7 +3,6 @@
 namespace App\Filament\Pages;
 
 use App\Enums\ExpenseCategory;
-use App\Enums\PaymentStatus;
 use App\Models\Expense;
 use App\Models\Order;
 use Carbon\Carbon;
@@ -38,11 +37,16 @@ class FinanceOverview extends Page
         return now()->startOfMonth()->subMonths($this->period - 1);
     }
 
+    /**
+     * Revenue = cash actually received. Sums advance_paid_pkr across all
+     * orders in the period — Paid orders contribute their full total,
+     * PartialAdvance orders contribute only the deposit, Awaiting/Verifying
+     * contribute zero. Matches OrderStatsWidget (M9 — single revenue rule).
+     */
     public function getRevenue(): int
     {
-        return (int) Order::where('payment_status', PaymentStatus::Paid)
-            ->where('created_at', '>=', $this->periodStart())
-            ->sum('total_pkr');
+        return (int) Order::where('created_at', '>=', $this->periodStart())
+            ->sum('advance_paid_pkr');
     }
 
     public function getExpenses(): int
@@ -55,10 +59,14 @@ class FinanceOverview extends Page
         return $this->getRevenue() - $this->getExpenses();
     }
 
+    /**
+     * Count of orders that have contributed cash this period (any non-zero
+     * advance_paid_pkr). Matches the revenue definition above.
+     */
     public function getOrderCount(): int
     {
-        return Order::where('payment_status', PaymentStatus::Paid)
-            ->where('created_at', '>=', $this->periodStart())
+        return Order::where('created_at', '>=', $this->periodStart())
+            ->where('advance_paid_pkr', '>', 0)
             ->count();
     }
 
@@ -78,10 +86,9 @@ class FinanceOverview extends Page
         foreach ($months as $month) {
             $labels[] = $month->format('M y');
 
-            $revenue[] = (int) Order::where('payment_status', PaymentStatus::Paid)
-                ->whereYear('created_at', $month->year)
+            $revenue[] = (int) Order::whereYear('created_at', $month->year)
                 ->whereMonth('created_at', $month->month)
-                ->sum('total_pkr');
+                ->sum('advance_paid_pkr');
 
             $expenses[] = (int) Expense::whereYear('expense_date', $month->year)
                 ->whereMonth('expense_date', $month->month)
@@ -154,10 +161,9 @@ class FinanceOverview extends Page
         for ($i = $months - 1; $i >= 0; $i--) {
             $month      = now()->startOfMonth()->subMonths($i);
             $labels[]   = $month->format('M y');
-            $revenue[]  = (int) Order::where('payment_status', PaymentStatus::Paid)
-                ->whereYear('created_at', $month->year)
+            $revenue[]  = (int) Order::whereYear('created_at', $month->year)
                 ->whereMonth('created_at', $month->month)
-                ->sum('total_pkr');
+                ->sum('advance_paid_pkr');
             $expenses[] = (int) Expense::whereYear('expense_date', $month->year)
                 ->whereMonth('expense_date', $month->month)
                 ->sum('amount_pkr');
@@ -174,11 +180,10 @@ class FinanceOverview extends Page
 
         for ($day = 1; $day <= $today; $day++) {
             $labels[]   = $day . ' ' . now()->format('M');
-            $revenue[]  = (int) Order::where('payment_status', PaymentStatus::Paid)
-                ->whereYear('created_at', now()->year)
+            $revenue[]  = (int) Order::whereYear('created_at', now()->year)
                 ->whereMonth('created_at', now()->month)
                 ->whereDay('created_at', $day)
-                ->sum('total_pkr');
+                ->sum('advance_paid_pkr');
             $expenses[] = (int) Expense::whereYear('expense_date', now()->year)
                 ->whereMonth('expense_date', now()->month)
                 ->whereDay('expense_date', $day)

@@ -74,14 +74,17 @@ class ExpenseResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('category')
-                    ->formatStateUsing(fn ($state) => $state->label())
+                    ->formatStateUsing(fn ($state) => $state instanceof ExpenseCategory ? $state->label() : (string) $state)
                     ->badge()
                     ->color(fn ($state) => match($state) {
                         ExpenseCategory::Materials  => 'primary',
+                        ExpenseCategory::GelPolish  => 'danger',     // distinct from Materials for at-a-glance scanning
                         ExpenseCategory::Packaging  => 'warning',
                         ExpenseCategory::Courier    => 'info',
                         ExpenseCategory::Marketing  => 'danger',
                         ExpenseCategory::Tools      => 'success',
+                        ExpenseCategory::Utilities  => 'gray',
+                        ExpenseCategory::Other      => 'gray',
                         default                     => 'gray',
                     }),
 

@@ -22,33 +22,43 @@ class OrderStatsWidget extends BaseWidget
     {
         $todayOrders = Order::whereDate('created_at', today())->count();
 
-        $monthRevenue = Order::whereIn('payment_status', [PaymentStatus::Paid, PaymentStatus::PartialAdvance])
-            ->where('created_at', '>=', now()->startOfMonth())
-            ->sum('total_pkr');
+        // Revenue = cash actually received (advance_paid_pkr), NOT promised
+        // totals. Paid orders contribute full amount; PartialAdvance orders
+        // contribute only their deposit; Awaiting/Verifying contribute zero.
+        // Matches FinanceOverview's calculation so the two dashboards always
+        // agree (M9 from the audit).
+        $monthRevenue = (int) Order::where('created_at', '>=', now()->startOfMonth())
+            ->sum('advance_paid_pkr');
 
-        $awaitingPayment = Order::where('payment_status', PaymentStatus::Awaiting)->count();
+        // SLA queue includes both Awaiting (no proof yet) and Verifying
+        // (proof uploaded, needs Mona's review) — the unified bucket Mona
+        // works from each morning.
+        $awaitingPayment = Order::whereIn('payment_status', [
+            PaymentStatus::Awaiting,
+            PaymentStatus::Verifying,
+        ])->count();
 
         $inProduction = Order::where('status', OrderStatus::InProduction)->count();
 
-        // 7-day sparklines
-        $dailyOrders = $this->dailyOrderCounts(7);
+        // 7-day sparklines — one grouped query each instead of 7 separate sums.
+        $dailyOrders  = $this->dailyOrderCounts(7);
         $dailyRevenue = $this->dailyRevenue(7);
 
         return [
             Stat::make('Orders today', $todayOrders)
-                ->description($this->weekTrend($dailyOrders) . ' vs last 7 days')
+                ->description($this->dayOnDayTrend($dailyOrders))
                 ->chart($dailyOrders)
                 ->icon('heroicon-o-shopping-bag')
                 ->color('primary'),
 
             Stat::make('Revenue this month', 'Rs. ' . number_format($monthRevenue))
-                ->description('Paid + advance orders')
+                ->description('Cash received (advance + full payments)')
                 ->chart($dailyRevenue)
                 ->icon('heroicon-o-banknotes')
                 ->color('success'),
 
             Stat::make('Awaiting payment', $awaitingPayment)
-                ->description($awaitingPayment > 0 ? 'Need verification in Filament' : 'All payments verified')
+                ->description($awaitingPayment > 0 ? 'Awaiting + Verifying' : 'All payments verified')
                 ->icon('heroicon-o-clock')
                 ->color($awaitingPayment > 0 ? 'warning' : 'gray'),
 
@@ -59,32 +69,56 @@ class OrderStatsWidget extends BaseWidget
         ];
     }
 
+    /** Order counts per day over the last N days (oldest → today). One SQL. */
     private function dailyOrderCounts(int $days): array
     {
-        $data = [];
-        for ($i = $days - 1; $i >= 0; $i--) {
-            $data[] = Order::whereDate('created_at', now()->subDays($i))->count();
-        }
-        return $data;
+        $start = now()->subDays($days - 1)->startOfDay();
+        $rows  = Order::query()
+            ->selectRaw('DATE(created_at) as d, COUNT(*) as c')
+            ->where('created_at', '>=', $start)
+            ->groupBy('d')
+            ->pluck('c', 'd')
+            ->all();
+        return $this->fillDailyBuckets($rows, $days);
     }
 
+    /** Cash received per day (advance_paid_pkr) over the last N days. One SQL. */
     private function dailyRevenue(int $days): array
+    {
+        $start = now()->subDays($days - 1)->startOfDay();
+        $rows  = Order::query()
+            ->selectRaw('DATE(created_at) as d, SUM(advance_paid_pkr) as v')
+            ->where('created_at', '>=', $start)
+            ->groupBy('d')
+            ->pluck('v', 'd')
+            ->all();
+        return $this->fillDailyBuckets($rows, $days);
+    }
+
+    /**
+     * Convert a [date_string => value] map into an N-element array
+     * indexed oldest-to-newest, with missing days as 0.
+     */
+    private function fillDailyBuckets(array $rows, int $days): array
     {
         $data = [];
         for ($i = $days - 1; $i >= 0; $i--) {
-            $data[] = (int) Order::whereIn('payment_status', [PaymentStatus::Paid, PaymentStatus::PartialAdvance])
-                ->whereDate('created_at', now()->subDays($i))
-                ->sum('total_pkr');
+            $key    = now()->subDays($i)->toDateString();
+            $data[] = (int) ($rows[$key] ?? 0);
         }
         return $data;
     }
 
-    private function weekTrend(array $daily): string
+    /** Today vs yesterday — short label for the stat card description. */
+    private function dayOnDayTrend(array $daily): string
     {
         $yesterday = $daily[count($daily) - 2] ?? 0;
         $today     = $daily[count($daily) - 1] ?? 0;
-        if ($yesterday === 0) return $today > 0 ? '↑' : '—';
+        if ($yesterday === 0) {
+            return $today > 0 ? '↑ from 0 yesterday' : 'No orders yesterday either';
+        }
         $diff = $today - $yesterday;
-        return $diff > 0 ? '↑' . $diff : ($diff < 0 ? '↓' . abs($diff) : '—');
+        if ($diff === 0) return 'Same as yesterday';
+        return ($diff > 0 ? '↑ ' : '↓ ') . abs($diff) . ' vs yesterday';
     }
 }

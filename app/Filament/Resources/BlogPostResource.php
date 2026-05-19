@@ -18,7 +18,8 @@ class BlogPostResource extends Resource
 {
     protected static ?string $model = BlogPost::class;
     protected static ?string                     $navigationLabel = 'Blog Posts';
-    protected static string | \UnitEnum | null   $navigationGroup = 'Content';
+    protected static string | \BackedEnum | null $navigationIcon  = 'heroicon-o-pencil-square';
+    protected static string | \UnitEnum   | null $navigationGroup = 'Content';
     protected static ?int                        $navigationSort  = 1;
 
     public static function table(Table $table): Table

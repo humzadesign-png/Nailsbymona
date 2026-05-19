@@ -71,7 +71,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 \App\Filament\Widgets\OrderStatsWidget::class,
                 \App\Filament\Widgets\RecentOrdersWidget::class,
-                \App\Filament\Widgets\TopBlogPostsWidget::class,
+                \App\Filament\Widgets\OrdersNeedingAttentionWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

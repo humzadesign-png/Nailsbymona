@@ -19,7 +19,8 @@ use Filament\Tables\Table;
 class CustomerResource extends Resource
 {
     protected static ?string $model = Customer::class;
-    protected static string | \UnitEnum | null   $navigationGroup = 'Customers';
+    protected static string | \BackedEnum | null $navigationIcon  = 'heroicon-o-users';
+    protected static string | \UnitEnum   | null $navigationGroup = 'Customers';
     protected static ?int    $navigationSort  = 1;
 
     // ── Table ─────────────────────────────────────────────────────────────────
@@ -111,6 +112,39 @@ class CustomerResource extends Resource
                         Infolists\Components\TextEntry::make('sizingProfile.verified_by_admin_at')
                             ->label('Last verified')->dateTime('d M Y, g:ia')->placeholder('Not verified'),
                     ])->columns(2),
+                ]),
+
+            InfoSection::make('Sizing Photos')
+                ->description('All sizing photos this customer has uploaded across every order, newest first. Served from the private disk — only logged-in admins can view.')
+                ->collapsible()
+                ->collapsed()
+                ->columnSpanFull()
+                ->schema([
+                    Infolists\Components\TextEntry::make('id')
+                        ->hiddenLabel()
+                        ->html()
+                        ->formatStateUsing(function (\App\Models\Customer $record) {
+                            $photos = $record->sizingPhotosFromOrders();
+                            if ($photos->isEmpty()) {
+                                return '<p class="text-sm text-gray-500 italic">No sizing photos uploaded yet.</p>';
+                            }
+                            $html = '<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:14px">';
+                            foreach ($photos as $p) {
+                                $url   = e((string) $p->viewer_url);
+                                $type  = $p->photo_type ? e($p->photo_type->label() ?? $p->photo_type->value) : 'Photo';
+                                $when  = $p->uploaded_at ? $p->uploaded_at->format('d M Y') : '—';
+                                $html .= '<div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#fff">';
+                                $html .= '<a href="' . $url . '" target="_blank" rel="noopener">';
+                                $html .= '<img src="' . $url . '" alt="Sizing photo" style="width:100%;height:180px;object-fit:cover;display:block">';
+                                $html .= '</a>';
+                                $html .= '<div style="padding:8px 10px;font-size:12px;line-height:1.3">';
+                                $html .= '<div style="font-weight:600;color:#374151">' . $type . '</div>';
+                                $html .= '<div style="color:#6b7280">' . $when . '</div>';
+                                $html .= '</div></div>';
+                            }
+                            $html .= '</div>';
+                            return $html;
+                        }),
                 ]),
         ]);
     }
