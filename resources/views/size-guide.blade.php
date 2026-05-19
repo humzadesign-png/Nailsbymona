@@ -287,6 +287,12 @@
            against the warm-neutral page surface. min-h on the caption keeps
            every card the same height even when text length varies. --}}
 
+      {{-- Each card has TWO color signals: a small pill badge on the photo
+           for at-a-glance scanning, AND a matching colored label header
+           inside the caption block. The caption header reuses the same
+           green/red, icon, and "Good"/"Avoid" text so the colour signal
+           reads even when you're focused on the caption text. --}}
+
       <!-- Good 1 — Fingers reference -->
       <article class="rounded-2xl overflow-hidden bg-paper border border-hairline/60 flex flex-col">
         <div class="relative img-wrap-fallback aspect-[2/3]">
@@ -302,7 +308,11 @@
             Good
           </span>
         </div>
-        <div class="p-5 flex-1 min-h-[6rem]">
+        <div class="p-5 flex-1 min-h-[7rem]">
+          <p class="flex items-center gap-1.5 text-success font-sans text-eyebrow uppercase tracking-widest font-semibold mb-2">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 144 96 200 224 72"/></svg>
+            Good
+          </p>
           <p class="font-sans text-caption text-graphite leading-relaxed">Fingers photo &mdash; four nails flat in a row, coin clearly placed beside them, dark cloth backdrop.</p>
         </div>
       </article>
@@ -322,7 +332,11 @@
             Good
           </span>
         </div>
-        <div class="p-5 flex-1 min-h-[6rem]">
+        <div class="p-5 flex-1 min-h-[7rem]">
+          <p class="flex items-center gap-1.5 text-success font-sans text-eyebrow uppercase tracking-widest font-semibold mb-2">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 144 96 200 224 72"/></svg>
+            Good
+          </p>
           <p class="font-sans text-caption text-graphite leading-relaxed">Thumb photo &mdash; thumb extended flat, coin alongside, in sharp focus.</p>
         </div>
       </article>
@@ -342,7 +356,11 @@
             Good
           </span>
         </div>
-        <div class="p-5 flex-1 min-h-[6rem]">
+        <div class="p-5 flex-1 min-h-[7rem]">
+          <p class="flex items-center gap-1.5 text-success font-sans text-eyebrow uppercase tracking-widest font-semibold mb-2">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 144 96 200 224 72"/></svg>
+            Good
+          </p>
           <p class="font-sans text-caption text-graphite leading-relaxed">Sharp focus &mdash; the nail-edge silhouette stands out against the cloth.</p>
         </div>
       </article>
@@ -362,7 +380,11 @@
             Avoid
           </span>
         </div>
-        <div class="p-5 flex-1 min-h-[6rem]">
+        <div class="p-5 flex-1 min-h-[7rem]">
+          <p class="flex items-center gap-1.5 text-danger font-sans text-eyebrow uppercase tracking-widest font-semibold mb-2">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round"><line x1="200" y1="56" x2="56" y2="200"/><line x1="200" y1="200" x2="56" y2="56"/></svg>
+            Avoid
+          </p>
           <p class="font-sans text-caption text-graphite leading-relaxed">Out of focus &mdash; nail edges are blurred, can&rsquo;t measure width. Tap to focus on your nails before snapping.</p>
         </div>
       </article>
@@ -382,7 +404,11 @@
             Avoid
           </span>
         </div>
-        <div class="p-5 flex-1 min-h-[6rem]">
+        <div class="p-5 flex-1 min-h-[7rem]">
+          <p class="flex items-center gap-1.5 text-danger font-sans text-eyebrow uppercase tracking-widest font-semibold mb-2">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round"><line x1="200" y1="56" x2="56" y2="200"/><line x1="200" y1="200" x2="56" y2="56"/></svg>
+            Avoid
+          </p>
           <p class="font-sans text-caption text-graphite leading-relaxed">Too far away &mdash; both the nail and the coin should fill most of the frame. Move the camera closer, and keep the coin right next to the nail so they share the same focal plane.</p>
         </div>
       </article>
@@ -402,7 +428,11 @@
             Avoid
           </span>
         </div>
-        <div class="p-5 flex-1 min-h-[6rem]">
+        <div class="p-5 flex-1 min-h-[7rem]">
+          <p class="flex items-center gap-1.5 text-danger font-sans text-eyebrow uppercase tracking-widest font-semibold mb-2">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round"><line x1="200" y1="56" x2="56" y2="200"/><line x1="200" y1="200" x2="56" y2="56"/></svg>
+            Avoid
+          </p>
           <p class="font-sans text-caption text-graphite leading-relaxed">Busy patterned backdrop &mdash; the live-camera alignment border stays red. Switch to plain dark cloth.</p>
         </div>
       </article>
