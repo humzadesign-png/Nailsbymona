@@ -303,7 +303,7 @@
                  class="w-full h-full object-cover object-top" loading="lazy" onerror="this.remove()"
                  width="900" height="1350">
           </picture>
-          <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-success/95 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
+          <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-success/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
             <svg class="w-3 h-3" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 144 96 200 224 72"/></svg>
             Good
           </span>
@@ -323,7 +323,7 @@
                  class="w-full h-full object-cover object-top" loading="lazy" onerror="this.remove()"
                  width="900" height="1350">
           </picture>
-          <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-success/95 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
+          <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-success/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
             <svg class="w-3 h-3" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 144 96 200 224 72"/></svg>
             Good
           </span>
@@ -343,7 +343,7 @@
                  class="w-full h-full object-cover object-top" loading="lazy" onerror="this.remove()"
                  width="900" height="1350">
           </picture>
-          <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-success/95 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
+          <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-success/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
             <svg class="w-3 h-3" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 144 96 200 224 72"/></svg>
             Good
           </span>
@@ -363,7 +363,7 @@
                  class="w-full h-full object-cover object-top" loading="lazy" onerror="this.remove()"
                  width="900" height="1350">
           </picture>
-          <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-danger/95 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
+          <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-danger/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
             <svg class="w-3 h-3" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round"><line x1="200" y1="56" x2="56" y2="200"/><line x1="200" y1="200" x2="56" y2="56"/></svg>
             Avoid
           </span>
@@ -383,7 +383,7 @@
                  class="w-full h-full object-cover object-top" loading="lazy" onerror="this.remove()"
                  width="900" height="1350">
           </picture>
-          <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-danger/95 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
+          <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-danger/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
             <svg class="w-3 h-3" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round"><line x1="200" y1="56" x2="56" y2="200"/><line x1="200" y1="200" x2="56" y2="56"/></svg>
             Avoid
           </span>
@@ -403,7 +403,7 @@
                  class="w-full h-full object-cover object-top" loading="lazy" onerror="this.remove()"
                  width="900" height="1350">
           </picture>
-          <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-danger/95 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
+          <span class="absolute top-3 left-3 flex items-center gap-1.5 bg-danger/90 text-white font-sans text-eyebrow uppercase px-3 py-1.5 rounded-full">
             <svg class="w-3 h-3" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round"><line x1="200" y1="56" x2="56" y2="200"/><line x1="200" y1="200" x2="56" y2="56"/></svg>
             Avoid
           </span>
