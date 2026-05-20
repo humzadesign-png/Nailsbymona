@@ -53,7 +53,7 @@
      SECTION 1 — HERO
      BG: bridal-bg (warm champagne)
 ═══════════════════════════════════════════════ --}}
-<section class="relative h-[70vh] md:h-[80vh] max-h-[900px] w-full flex items-center overflow-hidden">
+<section class="relative min-h-[70vh] md:min-h-[80vh] w-full flex items-center overflow-hidden">
 
   <!-- Background -->
   <div class="absolute inset-0 z-0" style="background: linear-gradient(150deg, #EAE3D9 0%, #F4EFE8 100%)">
