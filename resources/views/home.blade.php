@@ -32,7 +32,7 @@
      SECTION 1 — HERO
      BG: bone (full-bleed image)
 ═══════════════════════════════════════════ --}}
-<section class="relative min-h-[80vh] md:min-h-[88vh] w-full flex items-center overflow-hidden">
+<section class="relative min-h-[clamp(500px,80vh,900px)] md:min-h-[clamp(500px,88vh,900px)] w-full flex items-center overflow-hidden">
 
     {{-- Background image + overlays --}}
     <div class="absolute inset-0 z-0 img-wrap-dark-fallback">

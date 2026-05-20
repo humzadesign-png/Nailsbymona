@@ -45,7 +45,7 @@
 @section('content')
 
 <!-- HERO -->
-<section class="relative min-h-[60vh] md:min-h-[70vh] w-full flex items-end overflow-hidden">
+<section class="relative min-h-[clamp(400px,60vh,800px)] md:min-h-[clamp(400px,70vh,800px)] w-full flex items-end overflow-hidden">
   <!-- Background hand portrait -->
   <div class="absolute inset-0 z-0" style="background: linear-gradient(135deg, #EAE3D9 0%, #FBF8F2 60%, #E0D9CE 100%)">
     <picture>
