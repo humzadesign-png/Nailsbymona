@@ -53,7 +53,7 @@
      SECTION 1 — HERO
      BG: bridal-bg (warm champagne)
 ═══════════════════════════════════════════════ --}}
-<section class="relative min-h-[70vh] md:min-h-[80vh] flex items-center overflow-hidden">
+<section class="relative min-h-[70vh] md:min-h-[80vh] max-h-[900px] max-w-[1920px] mx-auto flex items-center overflow-hidden">
 
   <!-- Background -->
   <div class="absolute inset-0 z-0" style="background: linear-gradient(150deg, #EAE3D9 0%, #F4EFE8 100%)">
@@ -327,8 +327,9 @@
         </ul>
       </div>
 
-      <!-- Pricing card -->
-      <div class="bg-paper rounded-2xl border border-hairline p-8 shadow-card sticky top-24">
+      <!-- Pricing card — sits naturally in the grid; was previously sticky top-24
+           which made it follow the viewport as the customer scrolled. -->
+      <div class="bg-paper rounded-2xl border border-hairline p-8 shadow-card">
 
         <p class="font-sans text-eyebrow text-lavender uppercase mb-4">Bridal Trio</p>
 
