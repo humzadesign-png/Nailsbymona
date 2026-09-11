@@ -127,7 +127,7 @@ class DatabaseSeeder extends Seeder
                 'name'          => 'Bridal Trio — Classic',
                 'slug'          => 'bridal-trio-classic',
                 'tier'          => ProductTier::BridalTrio,
-                'price_pkr'     => 12500,
+                'price_pkr'     => 10000,
                 'description'   => 'Three coordinated sets for Mehendi, Baraat, and Valima. One fitting, three statements. Shipped together in a rigid magnetic gift box with satin lining, glue, prep kit, and a handwritten name card. Order 4 weeks before your Mehendi.',
                 'stock_status'  => StockStatus::MadeToOrder,
                 'lead_time_days'=> 14,

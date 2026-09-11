@@ -32,7 +32,7 @@
      SECTION 1 — HERO
      BG: bone (full-bleed image)
 ═══════════════════════════════════════════ --}}
-<section class="relative min-h-[clamp(500px,80vh,900px)] md:min-h-[clamp(500px,88vh,900px)] w-full flex items-center overflow-hidden">
+<section class="relative min-h-[80vh] md:min-h-[88vh] flex items-center overflow-hidden">
 
     {{-- Background image + overlays --}}
     <div class="absolute inset-0 z-0 img-wrap-dark-fallback">
@@ -351,7 +351,7 @@
                     The Bridal Trio is built for Mehendi, Baraat, and Valima &mdash; three sets, sized once, packaged in a magnetic keepsake box with a handwritten name card and prep kit.
                 </p>
                 <p class="font-sans text-body text-stone mb-10">
-                    Order four weeks before your mehendi. Starting from <span class="text-gold-deep font-medium tracking-tight">Rs.&nbsp;11,000</span>.
+                    Order four weeks before your mehendi. Just <span class="text-gold-deep font-medium tracking-tight">Rs.&nbsp;10,000</span> for all three nights.
                 </p>
                 <div class="flex flex-wrap items-center gap-4">
                     <a href="{{ route('bridal') }}"
@@ -605,7 +605,7 @@
                             </div>
                         </td>
                         <td class="px-7 py-5 text-right">
-                            <p class="font-sans font-semibold text-lavender tabular-nums" style="font-size:1.125rem">Rs.&nbsp;11,000+</p>
+                            <p class="font-sans font-semibold text-lavender tabular-nums" style="font-size:1.125rem">Rs.&nbsp;10,000</p>
                         </td>
                     </tr>
 

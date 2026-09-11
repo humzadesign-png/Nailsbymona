@@ -7,43 +7,22 @@
 </style>
 @endpush
 
-@php
-    // F2 — Bridal Trio Product + BreadcrumbList in a single @graph so
-    // they merge cleanly with the global Organization schema.
-    $bridalSchema = json_encode([
-        '@context' => 'https://schema.org',
-        '@graph'   => [
-            [
-                '@type'    => 'Product',
-                'name'     => 'Bridal Trio — Mehendi, Baraat & Valima',
-                'description' => 'Three coordinated custom-fit press-on gel nail sets for the three nights of a Pakistani wedding. One fitting, one shipment, premium magnetic keepsake packaging.',
-                'sku'      => 'bridal-trio',
-                'brand'    => ['@type' => 'Brand', 'name' => 'Nails by Mona'],
-                'image'    => asset('og-default.jpg'),
-                'offers'   => [
-                    '@type'         => 'Offer',
-                    'priceCurrency' => 'PKR',
-                    'price'         => '11000',
-                    'availability'  => 'https://schema.org/MadeToOrder',
-                    'url'           => route('bridal'),
-                ],
-            ],
-            [
-                '@type'           => 'BreadcrumbList',
-                'itemListElement' => [
-                    ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => route('home')],
-                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'Bridal', 'item' => route('bridal')],
-                ],
-            ],
-        ],
-    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-@endphp
-
 @section('seo')
     <x-seo
         title="Bridal Press-On Nails Pakistan — Mehendi, Baraat &amp; Valima Trio | Nails by Mona"
-        description="The Bridal Trio — three coordinated custom-fit press-on nail sets for Mehendi, Baraat, and Valima. One fitting. One shipment. Handmade in Mirpur. From Rs. 11,000."
-        :schema="$bridalSchema"
+        description="The Bridal Trio — three coordinated custom-fit press-on nail sets for Mehendi, Baraat, and Valima. One fitting. One shipment. Handmade in Mirpur. Rs. 10,000 for all three nights."
+        :schema="json_encode([
+            '@context' => 'https://schema.org',
+            '@type'    => 'Product',
+            'name'     => 'Bridal Trio — Mehendi, Baraat & Valima',
+            'brand'    => ['@type' => 'Brand', 'name' => 'Nails by Mona'],
+            'offers'   => [
+                '@type'         => 'Offer',
+                'priceCurrency' => 'PKR',
+                'price'         => '10000',
+                'availability'  => 'https://schema.org/InStock',
+            ],
+        ])"
     />
 @endsection
 
@@ -53,7 +32,7 @@
      SECTION 1 — HERO
      BG: bridal-bg (warm champagne)
 ═══════════════════════════════════════════════ --}}
-<section class="relative min-h-[clamp(500px,70vh,900px)] md:min-h-[clamp(500px,80vh,900px)] w-full flex items-center overflow-hidden">
+<section class="relative min-h-[70vh] md:min-h-[80vh] flex items-center overflow-hidden">
 
   <!-- Background -->
   <div class="absolute inset-0 z-0" style="background: linear-gradient(150deg, #EAE3D9 0%, #F4EFE8 100%)">
@@ -99,7 +78,7 @@
           class="inline-flex items-center gap-2.5 bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full px-9 py-4 transition-colors duration-200 add-to-bag-bridal"
           style="font-size:1rem"
           data-name="Bridal Trio Package"
-          data-price="11000">
+          data-price="10000">
           Add Trio to bag
           <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M40,72H216a8,8,0,0,1,8,8.83l-12.43,112a8,8,0,0,1-8,7.17H52.4a8,8,0,0,1-8-7.17L32,80.83A8,8,0,0,1,40,72Z"/>
@@ -136,44 +115,50 @@
 
       <!-- Mehendi Panel -->
       <div class="rounded-2xl overflow-hidden group">
-        <div class="overflow-hidden rounded-t-2xl img-wrap-fallback relative" style="aspect-ratio:3/4; background:linear-gradient(150deg,#C4B8D2,#EAE3D9,#FBF8F2)">
-          <img
-            src=""
-            alt="Mehendi night bridal press-on nails &mdash; intricate henna-inspired gold designs"
-            class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
-            onerror="this.remove()"
-            width="480" height="640"
-            loading="lazy">
-          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <p class="font-serif text-gold/40 text-4xl italic" style="font-variation-settings:'opsz' 144,'SOFT' 60">Mehendi</p>
-          </div>
+        <div class="overflow-hidden rounded-t-2xl img-wrap-fallback relative" style="aspect-ratio:3/4; background:linear-gradient(150deg,#4C6B5A,#2E4A3B,#1A2D24)">
+          <picture>
+            <source type="image/webp"
+                    srcset="{{ asset('images/bridal-mehendi-emerald-480.webp') }} 480w,
+                            {{ asset('images/bridal-mehendi-emerald-960.webp') }} 960w"
+                    sizes="(min-width: 768px) 33vw, 100vw">
+            <img
+              src="{{ asset('images/bridal-mehendi-emerald-960.jpg') }}"
+              srcset="{{ asset('images/bridal-mehendi-emerald-480.jpg') }} 480w,
+                      {{ asset('images/bridal-mehendi-emerald-960.jpg') }} 960w"
+              sizes="(min-width: 768px) 33vw, 100vw"
+              alt="Emerald green bridal press-on gel nails with gold French-tip detail and crystal accents, worn with a ruby ring and green-and-gold embroidered outfit — Mehendi night palette"
+              class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
+              onerror="this.parentElement.remove()"
+              width="960" height="1280"
+              loading="lazy">
+          </picture>
         </div>
         <div class="p-6 bg-paper border border-t-0 border-hairline rounded-b-2xl">
           <h3 class="font-serif text-ink mb-3" style="font-size:1.5rem; font-weight:300; font-variation-settings:'opsz' 144,'SOFT' 30">Mehendi</h3>
           <div class="h-0.5 w-8 bg-lavender my-3"></div>
           <p class="font-sans text-caption text-stone leading-relaxed">
-            Earthy ochres and warm golds &mdash; designed to complement the henna on your hands. Fine floral patterns that celebrate the first night of the most beautiful chapter.
+            Deep emerald green with fine gold-outlined tips and jewelled accents &mdash; designed to sit beautifully beside your henna and green-and-gold outfits. A grounded, romantic opening to the wedding.
           </p>
         </div>
       </div>
 
       <!-- Baraat Panel -->
       <div class="rounded-2xl overflow-hidden group">
-        <div class="overflow-hidden rounded-t-2xl img-wrap-fallback relative" style="aspect-ratio:3/4; background:linear-gradient(150deg,#8B2535,#5C1520,#3A0A10)">
+        <div class="overflow-hidden rounded-t-2xl img-wrap-fallback relative" style="aspect-ratio:3/4; background:linear-gradient(150deg,#8B7355,#5C4A38,#2A1F14)">
           <picture>
             <source type="image/webp"
-                    srcset="{{ asset('images/bridal-baraat-deep-red-480.webp') }} 480w,
-                            {{ asset('images/bridal-baraat-deep-red-960.webp') }} 960w"
+                    srcset="{{ asset('images/bridal-baraat-beaded-480.webp') }} 480w,
+                            {{ asset('images/bridal-baraat-beaded-960.webp') }} 960w"
                     sizes="(min-width: 768px) 33vw, 100vw">
             <img
-              src="{{ asset('images/bridal-baraat-deep-red-960.jpg') }}"
-              srcset="{{ asset('images/bridal-baraat-deep-red-480.jpg') }} 480w,
-                      {{ asset('images/bridal-baraat-deep-red-960.jpg') }} 960w"
+              src="{{ asset('images/bridal-baraat-beaded-960.jpg') }}"
+              srcset="{{ asset('images/bridal-baraat-beaded-480.jpg') }} 480w,
+                      {{ asset('images/bridal-baraat-beaded-960.jpg') }} 960w"
               sizes="(min-width: 768px) 33vw, 100vw"
-              alt="Glossy deep red bridal press-on gel nails with subtle crystal accents on both hands — dramatic Baraat night palette"
+              alt="Sheer nude bridal press-on gel nails covered in gold beadwork and crystal clusters — dramatic hand-embellished Baraat night palette"
               class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
               onerror="this.parentElement.remove()"
-              width="1080" height="1920"
+              width="960" height="1280"
               loading="lazy">
           </picture>
         </div>
@@ -181,28 +166,28 @@
           <h3 class="font-serif text-ink mb-3" style="font-size:1.5rem; font-weight:300; font-variation-settings:'opsz' 144,'SOFT' 30">Baraat</h3>
           <div class="h-0.5 w-8 bg-lavender my-3"></div>
           <p class="font-sans text-caption text-stone leading-relaxed">
-            Deep reds, burgundies, and intricate 3D crystals for the main event. Dramatic enough to photograph beautifully, precise enough to feel like art on your hands.
+            A sheer nude base carpeted in gold beadwork and crystal clusters &mdash; hand-set piece by piece. Dramatic under baraat lights, catches every angle in your photographs.
           </p>
         </div>
       </div>
 
       <!-- Valima Panel -->
       <div class="rounded-2xl overflow-hidden group">
-        <div class="overflow-hidden rounded-t-2xl img-wrap-fallback relative" style="aspect-ratio:3/4; background:linear-gradient(150deg,#E8D8C8,#F0E8E0,#F8F4EE)">
+        <div class="overflow-hidden rounded-t-2xl img-wrap-fallback relative" style="aspect-ratio:3/4; background:linear-gradient(150deg,#D4C5A0,#E8DCC0,#F5EED8)">
           <picture>
             <source type="image/webp"
-                    srcset="{{ asset('images/bridal-valima-french-480.webp') }} 480w,
-                            {{ asset('images/bridal-valima-french-960.webp') }} 960w"
+                    srcset="{{ asset('images/bridal-valima-ombre-480.webp') }} 480w,
+                            {{ asset('images/bridal-valima-ombre-960.webp') }} 960w"
                     sizes="(min-width: 768px) 33vw, 100vw">
             <img
-              src="{{ asset('images/bridal-valima-french-960.jpg') }}"
-              srcset="{{ asset('images/bridal-valima-french-480.jpg') }} 480w,
-                      {{ asset('images/bridal-valima-french-960.jpg') }} 960w"
+              src="{{ asset('images/bridal-valima-ombre-960.jpg') }}"
+              srcset="{{ asset('images/bridal-valima-ombre-480.jpg') }} 480w,
+                      {{ asset('images/bridal-valima-ombre-960.jpg') }} 960w"
               sizes="(min-width: 768px) 33vw, 100vw"
-              alt="Classic French-tip bridal press-on nails on outstretched hand — restrained Valima reception polish"
+              alt="Soft nude-to-white ombre bridal press-on gel nails, worn by a bride with a mint-and-gold dupatta over folded hands — luminous Valima reception palette"
               class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
               onerror="this.parentElement.remove()"
-              width="960" height="540"
+              width="960" height="1280"
               loading="lazy">
           </picture>
         </div>
@@ -210,7 +195,7 @@
           <h3 class="font-serif text-ink mb-3" style="font-size:1.5rem; font-weight:300; font-variation-settings:'opsz' 144,'SOFT' 30">Valima</h3>
           <div class="h-0.5 w-8 bg-lavender my-3"></div>
           <p class="font-sans text-caption text-stone leading-relaxed">
-            Soft blush, ivory, and champagne &mdash; lighter and luminous for the reception. Understated elegance that transitions naturally from the celebrations before it.
+            A soft nude-to-white ombre finish with an almond shape &mdash; quiet, luminous, and effortlessly elegant. The calm ending to a joyful three-night story.
           </p>
         </div>
       </div>
@@ -327,16 +312,17 @@
         </ul>
       </div>
 
-      <!-- Pricing card — sits naturally in the grid; was previously sticky top-24
-           which made it follow the viewport as the customer scrolled. -->
+      <!-- Pricing card — sits naturally in the grid; sticky positioning was
+           removed because it made the card follow the viewport as customers
+           scrolled through the checklist beside it. -->
       <div class="bg-paper rounded-2xl border border-hairline p-8 shadow-card">
 
         <p class="font-sans text-eyebrow text-lavender uppercase mb-4">Bridal Trio</p>
 
         <p class="font-serif text-ink mb-2" style="font-size:clamp(2rem,3.5vw,2.75rem); font-weight:300; line-height:1.1; font-variation-settings:'opsz' 144,'SOFT' 30">
-          Rs. 11,000 &ndash; 13,500
+          Rs. 10,000
         </p>
-        <p class="font-sans text-caption text-stone mb-6">depending on design complexity</p>
+        <p class="font-sans text-caption text-stone mb-6">all three nights, one flat price</p>
 
         <div class="h-px bg-hairline mb-5"></div>
 
@@ -352,7 +338,7 @@
         </div>
 
         <p class="font-sans text-caption text-stone italic mb-6">
-          The Trio saves 10&ndash;15% vs ordering three singles &mdash; and one less thing to coordinate during wedding planning.
+          The Trio bundles all three nights together &mdash; a meaningful saving vs. ordering three singles, and one less thing to coordinate during wedding planning.
         </p>
 
         <div class="h-px bg-hairline mb-6"></div>
@@ -361,7 +347,7 @@
           class="inline-flex items-center justify-center gap-2 w-full bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full py-4 transition-colors duration-200 add-to-bag-bridal"
           style="font-size:1rem"
           data-name="Bridal Trio Package"
-          data-price="11000">
+          data-price="10000">
           Order your Bridal Trio
         </button>
 
@@ -589,7 +575,7 @@
         <tbody class="divide-y divide-hairline/70">
           <tr class="hover:bg-shell/20 transition-colors duration-150">
             <td class="px-6 md:px-8 py-4 font-sans font-medium text-ink" style="font-size:0.875rem">Cost for 3 events</td>
-            <td class="px-6 md:px-8 py-4 font-sans font-medium text-lavender-ink" style="font-size:0.875rem">Rs. 11,000 &ndash; 13,500</td>
+            <td class="px-6 md:px-8 py-4 font-sans font-medium text-lavender-ink" style="font-size:0.875rem">Rs. 10,000</td>
             <td class="px-6 md:px-8 py-4 font-sans text-stone" style="font-size:0.875rem">Rs. 7,500 &ndash; 15,000+</td>
           </tr>
           <tr class="hover:bg-shell/20 transition-colors duration-150">
@@ -736,7 +722,7 @@ $(function () {
   // ── Add to bag — Bridal Trio ─────────────────────
   $(document).on('click', '.add-to-bag-bridal', function () {
     const name      = $(this).data('name')  || 'Bridal Trio Package';
-    const price_pkr = parseInt($(this).data('price') || '11000', 10);
+    const price_pkr = parseInt($(this).data('price') || '10000', 10);
     const items = window.NbmBag.get();
     const existing = items.find(i => i.name === name);
     if (existing) {

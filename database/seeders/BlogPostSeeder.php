@@ -83,7 +83,7 @@ HTML,
 
 <h2>The real cost comparison</h2>
 <p>A salon acrylic set costs PKR 2,500–5,000 per application. Over a three-night wedding period, if you want fresh nails for each event (which most brides don't even consider possible), you're looking at PKR 7,500–15,000 — plus acetone damage and salon time that you don't have.</p>
-<p>The Bridal Trio from Nails by Mona costs PKR 11,000–13,500. Three custom-fit sets, coordinated, shipped together, with a refit guarantee if anything doesn't sit right. And you keep them — they can be reused 3–5 times, meaning future events like Eid or anniversaries are already sorted.</p>
+<p>The Bridal Trio from Nails by Mona costs PKR 10,000 flat for all three nights. Three custom-fit sets, coordinated, shipped together, with a refit guarantee if anything doesn't sit right. And you keep them — they can be reused 3–5 times, meaning future events like Eid or anniversaries are already sorted.</p>
 
 <h2>What actually matters on your wedding day</h2>
 <p>Your nails will be in every photograph. The close-ups during ring exchange. The mehndi application. The dupatta adjustment. Hands are prominent in Pakistani wedding photography in a way that's unique to our celebrations — and what's on them matters.</p>

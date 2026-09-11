@@ -11,34 +11,11 @@
 @endpush
 
 @php
-    // F5 — populated ItemList + BreadcrumbList. Google reads these for
-    // collection-page rich results; the previous empty ItemList gave the
-    // crawler nothing to work with.
-    $itemListElements = $products->values()->map(fn ($p, $i) => [
-        '@type'    => 'ListItem',
-        'position' => $i + 1,
-        'url'      => route('product', $p->slug),
-        'name'     => $p->name,
-    ])->all();
-
     $shopSchema = json_encode([
         '@context' => 'https://schema.org',
-        '@graph'   => [
-            [
-                '@type'           => 'ItemList',
-                'name'            => 'Shop Press-On Nails — Nails by Mona',
-                'url'             => route('shop'),
-                'numberOfItems'   => count($itemListElements),
-                'itemListElement' => $itemListElements,
-            ],
-            [
-                '@type'           => 'BreadcrumbList',
-                'itemListElement' => [
-                    ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => route('home')],
-                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'Shop', 'item' => route('shop')],
-                ],
-            ],
-        ],
+        '@type'    => 'ItemList',
+        'name'     => 'Shop Press-On Nails — Nails by Mona',
+        'url'      => route('shop'),
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 @endphp
 
@@ -51,19 +28,6 @@
 @endsection
 
 @section('content')
-
-{{-- Flash error banner — surfaces messages from the order flow when the
-     customer is bounced back here (empty bag, expired session, etc.). --}}
-@error('bag')
-<div class="bg-lavender-wash border-b border-hairline">
-  <div class="max-w-7xl mx-auto px-6 lg:px-10 py-4 flex items-start gap-3">
-    <svg class="w-5 h-5 text-lavender-ink shrink-0 mt-0.5" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-      <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,144a12,12,0,1,1,12-12A12,12,0,0,1,128,168Zm8-56a8,8,0,0,1-16,0V80a8,8,0,0,1,16,0Z"/>
-    </svg>
-    <p class="font-sans text-caption text-lavender-ink">{{ $message }}</p>
-  </div>
-</div>
-@enderror
 
 {{-- ═══════════════════════════════════════════════
      SECTION 1 — MINIMAL HERO STRIP
@@ -269,7 +233,7 @@
           The Bridal Trio covers all three nights as one coordinated order. One fitting. One shipment.
         </p>
         <p class="font-sans text-body text-stone mb-8">
-          Three sets, sized once, packaged in a magnetic keepsake box. From <span class="text-gold-deep font-medium">Rs. 11,000</span>.
+          Three sets, sized once, packaged in a magnetic keepsake box. <span class="text-gold-deep font-medium">Rs. 10,000</span>.
         </p>
         <a href="{{ route('bridal') }}" class="inline-flex items-center gap-2.5 bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full px-8 py-4 transition-colors duration-200" style="font-size:1rem">
           See the Bridal Trio
