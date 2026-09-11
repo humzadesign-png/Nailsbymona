@@ -62,12 +62,21 @@
         <form action="{{ route('order.store') }}" method="POST" id="payment-form">
           @csrf
 
+          @php
+              // Pick the first enabled method as the default-selected radio.
+              // Admin gates the visibility of each card from /admin/manage-settings.
+              $firstEnabled = $settings->jazzcash_enabled ? 'jazzcash'
+                            : ($settings->easypaisa_enabled ? 'easypaisa'
+                            : ($settings->bank_transfer_enabled ? 'bank_transfer' : null));
+          @endphp
+
           {{-- Payment method cards --}}
           <div class="grid gap-4 mb-8">
 
+            @if ($settings->jazzcash_enabled)
             {{-- JazzCash --}}
-            <label class="payment-option border-2 border-hairline rounded-2xl p-5 block selected" data-value="jazzcash">
-              <input type="radio" name="payment_method" value="jazzcash" checked>
+            <label class="payment-option border-2 border-hairline rounded-2xl p-5 block {{ $firstEnabled === 'jazzcash' ? 'selected' : '' }}" data-value="jazzcash">
+              <input type="radio" name="payment_method" value="jazzcash" @checked($firstEnabled === 'jazzcash')>
               <div class="flex items-center gap-4 mb-0">
                 <div class="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center shrink-0">
                   <span class="font-sans text-white font-bold text-xs">JC</span>
@@ -76,8 +85,10 @@
                   <p class="font-sans font-semibold text-ink">JazzCash</p>
                   <p class="font-sans text-caption text-stone">Mobile wallet</p>
                 </div>
-                <div class="w-5 h-5 rounded-full bg-lavender border-2 border-lavender option-dot flex items-center justify-center">
+                <div class="w-5 h-5 rounded-full option-dot flex items-center justify-center {{ $firstEnabled === 'jazzcash' ? 'bg-lavender border-2 border-lavender' : 'border-2 border-ash' }}">
+                  @if ($firstEnabled === 'jazzcash')
                   <svg class="w-3 h-3 text-white" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 144 96 200 224 72"/></svg>
+                  @endif
                 </div>
               </div>
               <div class="account-details mt-4 bg-paper rounded-xl px-4 py-3 border border-hairline/60">
@@ -86,10 +97,12 @@
                 <p class="font-sans text-caption text-stone">Account name: {{ $settings->jazzcash_name }}</p>
               </div>
             </label>
+            @endif
 
+            @if ($settings->easypaisa_enabled)
             {{-- EasyPaisa --}}
-            <label class="payment-option border-2 border-hairline rounded-2xl p-5 block" data-value="easypaisa">
-              <input type="radio" name="payment_method" value="easypaisa">
+            <label class="payment-option border-2 border-hairline rounded-2xl p-5 block {{ $firstEnabled === 'easypaisa' ? 'selected' : '' }}" data-value="easypaisa">
+              <input type="radio" name="payment_method" value="easypaisa" @checked($firstEnabled === 'easypaisa')>
               <div class="flex items-center gap-4">
                 <div class="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center shrink-0">
                   <span class="font-sans text-white font-bold text-xs">EP</span>
@@ -98,7 +111,11 @@
                   <p class="font-sans font-semibold text-ink">EasyPaisa</p>
                   <p class="font-sans text-caption text-stone">Mobile wallet</p>
                 </div>
-                <div class="w-5 h-5 rounded-full border-2 border-ash option-dot"></div>
+                <div class="w-5 h-5 rounded-full option-dot flex items-center justify-center {{ $firstEnabled === 'easypaisa' ? 'bg-lavender border-2 border-lavender' : 'border-2 border-ash' }}">
+                  @if ($firstEnabled === 'easypaisa')
+                  <svg class="w-3 h-3 text-white" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 144 96 200 224 72"/></svg>
+                  @endif
+                </div>
               </div>
               <div class="account-details mt-4 bg-paper rounded-xl px-4 py-3 border border-hairline/60">
                 <p class="font-sans text-caption text-stone mb-1">Send to:</p>
@@ -106,10 +123,12 @@
                 <p class="font-sans text-caption text-stone">Account name: {{ $settings->easypaisa_name }}</p>
               </div>
             </label>
+            @endif
 
+            @if ($settings->bank_transfer_enabled)
             {{-- Bank Transfer --}}
-            <label class="payment-option border-2 border-hairline rounded-2xl p-5 block" data-value="bank_transfer">
-              <input type="radio" name="payment_method" value="bank_transfer">
+            <label class="payment-option border-2 border-hairline rounded-2xl p-5 block {{ $firstEnabled === 'bank_transfer' ? 'selected' : '' }}" data-value="bank_transfer">
+              <input type="radio" name="payment_method" value="bank_transfer" @checked($firstEnabled === 'bank_transfer')>
               <div class="flex items-center gap-4">
                 <div class="w-10 h-10 bg-ink rounded-xl flex items-center justify-center shrink-0">
                   <svg class="w-5 h-5 text-bone" viewBox="0 0 256 256" fill="currentColor"><path d="M243.84,76.19l-104-48a8,8,0,0,0-7.68,0l-104,48A8,8,0,0,0,24,84v8a8,8,0,0,0,8,8h8v96H32a8,8,0,0,0,0,16H224a8,8,0,0,0,0-16H216V100h8a8,8,0,0,0,8-8V84A8,8,0,0,0,243.84,76.19ZM56,196V100h24v96Zm56,0V100h24v96Zm56,0V100h24v96ZM25.78,84,128,36.29,230.22,84Z"/></svg>
@@ -118,7 +137,11 @@
                   <p class="font-sans font-semibold text-ink">Bank Transfer</p>
                   <p class="font-sans text-caption text-stone">Direct bank deposit</p>
                 </div>
-                <div class="w-5 h-5 rounded-full border-2 border-ash option-dot"></div>
+                <div class="w-5 h-5 rounded-full option-dot flex items-center justify-center {{ $firstEnabled === 'bank_transfer' ? 'bg-lavender border-2 border-lavender' : 'border-2 border-ash' }}">
+                  @if ($firstEnabled === 'bank_transfer')
+                  <svg class="w-3 h-3 text-white" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"><polyline points="40 144 96 200 224 72"/></svg>
+                  @endif
+                </div>
               </div>
               <div class="account-details mt-4 bg-paper rounded-xl px-4 py-3 border border-hairline/60">
                 <p class="font-sans text-caption text-stone mb-1">Transfer to:</p>
@@ -127,6 +150,15 @@
                 <p class="font-sans text-caption text-stone">Bank: {{ $settings->bank_name }}</p>
               </div>
             </label>
+            @endif
+
+            @if (! $firstEnabled)
+            <div class="bg-lavender-wash border-l-4 border-lavender rounded-r-xl px-5 py-4">
+              <p class="font-sans text-body text-lavender-ink leading-relaxed">
+                No payment methods are currently available. Please <a href="{{ 'https://wa.me/' . $settings->whatsappForWaMe() }}" class="underline font-semibold">message us on WhatsApp</a> and we'll help you complete your order.
+              </p>
+            </div>
+            @endif
 
           </div>
 
@@ -169,7 +201,8 @@
 
           {{-- Place order CTA --}}
           <button type="submit" id="place-order-btn"
-                  class="w-full bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full py-4 text-lg transition-colors duration-200">
+                  @disabled(! $firstEnabled)
+                  class="w-full bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full py-4 text-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
             Place my order
           </button>
           <p class="font-sans text-caption text-stone text-center mt-3">

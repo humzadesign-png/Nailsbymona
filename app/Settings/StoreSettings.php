@@ -23,6 +23,14 @@ class StoreSettings extends Settings
     public string $bank_account_no   = '';
     public string $bank_iban         = '';
 
+    // ── Payment method visibility (admin-controlled) ──────────────────────────
+    // Each toggle controls whether the method is shown as a selectable option
+    // on the customer checkout page. Setting to false hides the radio card
+    // even if the account details above are filled in.
+    public bool   $jazzcash_enabled       = true;
+    public bool   $easypaisa_enabled      = true;
+    public bool   $bank_transfer_enabled  = true;
+
     // ── Shipping ──────────────────────────────────────────────────────────────
     public int    $shipping_flat_pkr    = 350;   // standard nationwide rate
     public int    $shipping_free_above  = 5000;  // free shipping threshold (0 = disabled)

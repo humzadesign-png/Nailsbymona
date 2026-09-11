@@ -32,14 +32,17 @@ class ManageSettings extends Page
             'contact_email'      => $settings->contact_email,
             'business_hours'     => $settings->business_hours,
 
-            'jazzcash_number'    => $settings->jazzcash_number,
-            'jazzcash_name'      => $settings->jazzcash_name,
-            'easypaisa_number'   => $settings->easypaisa_number,
-            'easypaisa_name'     => $settings->easypaisa_name,
-            'bank_name'          => $settings->bank_name,
-            'bank_account_name'  => $settings->bank_account_name,
-            'bank_account_no'    => $settings->bank_account_no,
-            'bank_iban'          => $settings->bank_iban,
+            'jazzcash_enabled'       => $settings->jazzcash_enabled,
+            'jazzcash_number'        => $settings->jazzcash_number,
+            'jazzcash_name'          => $settings->jazzcash_name,
+            'easypaisa_enabled'      => $settings->easypaisa_enabled,
+            'easypaisa_number'       => $settings->easypaisa_number,
+            'easypaisa_name'         => $settings->easypaisa_name,
+            'bank_transfer_enabled'  => $settings->bank_transfer_enabled,
+            'bank_name'              => $settings->bank_name,
+            'bank_account_name'      => $settings->bank_account_name,
+            'bank_account_no'        => $settings->bank_account_no,
+            'bank_iban'              => $settings->bank_iban,
 
             'shipping_flat_pkr'        => $settings->shipping_flat_pkr,
             'shipping_free_above'      => $settings->shipping_free_above,
@@ -73,22 +76,34 @@ class ManageSettings extends Page
                 ]),
 
                 FormSection::make('JazzCash')->columns(2)
-                    ->description('Customer chooses JazzCash on checkout → these details render on their order-confirmation page.')
+                    ->description('Toggle off to hide this option on checkout. When on, customer picks JazzCash → these details render on their order-confirmation page.')
                     ->schema([
+                        Forms\Components\Toggle::make('jazzcash_enabled')
+                            ->label('Show on checkout')
+                            ->columnSpanFull()
+                            ->inline(false),
                         Forms\Components\TextInput::make('jazzcash_number')->label('Mobile number'),
                         Forms\Components\TextInput::make('jazzcash_name')->label('Account name'),
                     ]),
 
                 FormSection::make('EasyPaisa')->columns(2)
-                    ->description('Customer chooses EasyPaisa → details render on the order-confirmation page.')
+                    ->description('Toggle off to hide this option on checkout. When on, customer picks EasyPaisa → these details render on their order-confirmation page.')
                     ->schema([
+                        Forms\Components\Toggle::make('easypaisa_enabled')
+                            ->label('Show on checkout')
+                            ->columnSpanFull()
+                            ->inline(false),
                         Forms\Components\TextInput::make('easypaisa_number')->label('Mobile number'),
                         Forms\Components\TextInput::make('easypaisa_name')->label('Account name'),
                     ]),
 
                 FormSection::make('Bank Transfer')->columns(2)
-                    ->description('Customer chooses Bank Transfer → these details render on the order-confirmation page.')
+                    ->description('Toggle off to hide this option on checkout. When on, customer picks Bank Transfer → these details render on their order-confirmation page.')
                     ->schema([
+                        Forms\Components\Toggle::make('bank_transfer_enabled')
+                            ->label('Show on checkout')
+                            ->columnSpanFull()
+                            ->inline(false),
                         Forms\Components\TextInput::make('bank_name')->label('Bank name'),
                         Forms\Components\TextInput::make('bank_account_name')->label('Account name'),
                         Forms\Components\TextInput::make('bank_account_no')->label('Account number'),
@@ -139,9 +154,18 @@ class ManageSettings extends Page
             'bridal_deposit_percent', 'reorder_discount_percent',
             'lead_time_standard_days', 'lead_time_bridal_days',
         ];
+        $boolFields = [
+            'jazzcash_enabled', 'easypaisa_enabled', 'bank_transfer_enabled',
+        ];
 
         foreach ($data as $key => $value) {
-            $settings->{$key} = in_array($key, $intFields) ? (int) $value : (string) ($value ?? '');
+            if (in_array($key, $intFields)) {
+                $settings->{$key} = (int) $value;
+            } elseif (in_array($key, $boolFields)) {
+                $settings->{$key} = (bool) $value;
+            } else {
+                $settings->{$key} = (string) ($value ?? '');
+            }
         }
 
         // Normalize WhatsApp number to a canonical `+<digits>` form so
@@ -151,20 +175,34 @@ class ManageSettings extends Page
 
         $settings->save();
 
-        // Soft warning if every payment method is blank — the checkout
-        // confirmation page would render with empty "Send to:" lines and
-        // a customer wouldn't know where to send their payment. Filament
-        // still saves the form (this is a soft warning, not a hard
-        // validation error), so Mona can fix it on her next pass.
-        $jcBlank  = trim((string) $settings->jazzcash_number) === '';
-        $epBlank  = trim((string) $settings->easypaisa_number) === '';
-        $bankBlank = trim((string) $settings->bank_account_no) === ''
-                  && trim((string) $settings->bank_iban) === '';
+        // Guardrail 1 — if every enabled payment method has blank account details,
+        // the customer confirmation page will render with empty "Send to:" lines.
+        // Only warn for the methods that are ENABLED (a disabled method being blank
+        // is fine — Mona is deliberately hiding it).
+        $jcBadFilled  = $settings->jazzcash_enabled       && trim((string) $settings->jazzcash_number) === '';
+        $epBadFilled  = $settings->easypaisa_enabled      && trim((string) $settings->easypaisa_number) === '';
+        $bankBadFilled = $settings->bank_transfer_enabled && trim((string) $settings->bank_account_no) === ''
+                                                          && trim((string) $settings->bank_iban)       === '';
 
-        if ($jcBlank && $epBlank && $bankBlank) {
+        $enabledCount = (int) $settings->jazzcash_enabled
+                      + (int) $settings->easypaisa_enabled
+                      + (int) $settings->bank_transfer_enabled;
+
+        // Guardrail 2 — if every method is disabled, customers can't check out.
+        if ($enabledCount === 0) {
             Notification::make()
-                ->title('Settings saved — but no payment methods are configured.')
-                ->body('Customers selecting JazzCash / EasyPaisa / Bank Transfer at checkout will see blank account details. Please fill in at least one method.')
+                ->title('Warning: all payment methods are turned off.')
+                ->body('Customers cannot check out until you turn at least one method back on.')
+                ->warning()
+                ->persistent()
+                ->send();
+            return;
+        }
+
+        if ($jcBadFilled || $epBadFilled || $bankBadFilled) {
+            Notification::make()
+                ->title('Settings saved — but an enabled method is missing account details.')
+                ->body('One or more enabled payment methods have blank account details. Customers picking them will see empty "Send to:" lines.')
                 ->warning()
                 ->persistent()
                 ->send();

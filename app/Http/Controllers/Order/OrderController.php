@@ -341,8 +341,21 @@ class OrderController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // Only accept methods the admin has left enabled in Settings.
+        // Prevents a stale submitted form (or a tampered request) from placing
+        // an order against a method Mona just hid from the checkout page.
+        $settings = app(StoreSettings::class);
+        $allowedMethods = array_values(array_filter([
+            $settings->jazzcash_enabled       ? 'jazzcash'      : null,
+            $settings->easypaisa_enabled      ? 'easypaisa'     : null,
+            $settings->bank_transfer_enabled  ? 'bank_transfer' : null,
+        ]));
+        if (empty($allowedMethods)) {
+            return redirect()->route('order.payment')
+                ->withErrors(['payment_method' => 'No payment methods are currently available. Please contact us on WhatsApp to complete your order.']);
+        }
         $request->validate([
-            'payment_method' => ['required', 'in:jazzcash,easypaisa,bank_transfer'],
+            'payment_method' => ['required', 'in:' . implode(',', $allowedMethods)],
         ]);
 
         if (! session('order_form.bag') || ! session('order_form.customer')) {
@@ -366,7 +379,6 @@ class OrderController extends Controller
         // pages don't shift the date forward on every reload. Bridal Trio orders
         // use the bridal lead time; everything else uses standard. Both are
         // settings-driven so Mona can tune them from the admin panel.
-        $settings           = app(StoreSettings::class);
         $leadTimeDays       = $totals['isBridalTrio']
             ? (int) $settings->lead_time_bridal_days
             : (int) $settings->lead_time_standard_days;
