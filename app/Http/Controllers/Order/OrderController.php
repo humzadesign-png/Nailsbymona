@@ -11,7 +11,9 @@ use App\Http\Controllers\Order\OrderSizingPhotoController;
 use App\Jobs\AutoCancelOrderJob;
 use App\Jobs\SendPaymentReminderJob;
 use App\Mail\OrderPlaced;
+use App\Enums\CustomOrderStatus;
 use App\Models\Customer;
+use App\Models\CustomOrderRequest;
 use App\Models\Order;
 use App\Notifications\NewOrderNotification;
 use App\Models\OrderItem;
@@ -45,7 +47,13 @@ class OrderController extends Controller
     public function start(Request $request, ?string $slug = null): View|RedirectResponse
     {
         // If a slug was provided (coming from product page), seed the bag in session.
+        // Custom-order checkouts skip this page — their step 1 is the private link page.
+        if (! $slug && ($custom = $this->activeCustomRequest())) {
+            return redirect()->route('custom-order.show', $custom->token);
+        }
+
         if ($slug) {
+            session()->forget('order_form.custom_request_id');
             // Merge this product into the session bag if not already present.
             $bag = session('order_form.bag', []);
             if (empty($bag)) {
@@ -86,6 +94,7 @@ class OrderController extends Controller
             return redirect()->route('shop')->withErrors(['bag' => 'Your bag appears to be empty.']);
         }
 
+        session()->forget('order_form.custom_request_id');
         session(['order_form.bag' => $bag]);
 
         return redirect()->route('order.start');
@@ -257,7 +266,7 @@ class OrderController extends Controller
         $bag         = session('order_form.bag', []);
         $isReturning = session('order_form.is_returning', false);
         $prefill     = session('order_form.customer', []);
-        $totals      = $this->calculateTotals($bag, $isReturning);
+        $totals      = $this->calculateTotals($bag, $isReturning, $this->activeCustomRequest());
 
         return view('order.details', compact('bag', 'isReturning', 'prefill', 'totals'));
     }
@@ -317,10 +326,9 @@ class OrderController extends Controller
             return redirect()->route('order.start');
         }
 
-        $verifiedBag = $this->verifyBag(session('order_form.bag', []));
+        $verifiedBag = $this->resolveBag();
         if (empty($verifiedBag)) {
-            return redirect()->route('shop')
-                ->withErrors(['bag' => 'Your bag is empty or contains items that are no longer available.']);
+            return $this->emptyBagRedirect();
         }
 
         // Replace the session bag with the verified version so it stays
@@ -330,7 +338,7 @@ class OrderController extends Controller
         $bag          = $verifiedBag;
         $isReturning  = session('order_form.is_returning', false);
         $customer     = session('order_form.customer');
-        $totals       = $this->calculateTotals($bag, $isReturning);
+        $totals       = $this->calculateTotals($bag, $isReturning, $this->activeCustomRequest());
         $sizingMethod = session('order_form.sizing_method', 'whatsapp_pending');
 
         return view('order.payment', compact('bag', 'isReturning', 'customer', 'totals', 'sizingMethod'));
@@ -364,14 +372,15 @@ class OrderController extends Controller
 
         // Re-verify the bag against the database BEFORE pricing anything.
         // Customers control localStorage; treating any submitted price as authoritative is unsafe.
-        $verifiedBag = $this->verifyBag(session('order_form.bag', []));
+        $verifiedBag = $this->resolveBag();
         if (empty($verifiedBag)) {
-            return redirect()->route('shop')->withErrors(['bag' => 'Your bag is empty or contains items that are no longer available.']);
+            return $this->emptyBagRedirect();
         }
 
+        $customRequest = $this->activeCustomRequest();
         $isReturning = session('order_form.is_returning', false);
         $customer    = session('order_form.customer');
-        $totals      = $this->calculateTotals($verifiedBag, $isReturning);
+        $totals      = $this->calculateTotals($verifiedBag, $isReturning, $customRequest);
         $method      = PaymentMethod::from($request->input('payment_method'));
         $sizingMethod = SizingCaptureMethod::tryFrom(session('order_form.sizing_method', 'whatsapp_pending'));
 
@@ -379,12 +388,22 @@ class OrderController extends Controller
         // pages don't shift the date forward on every reload. Bridal Trio orders
         // use the bridal lead time; everything else uses standard. Both are
         // settings-driven so Mona can tune them from the admin panel.
-        $leadTimeDays       = $totals['isBridalTrio']
-            ? (int) $settings->lead_time_bridal_days
-            : (int) $settings->lead_time_standard_days;
+        $leadTimeDays       = $customRequest?->lead_time_days
+            ?: ($totals['isBridalTrio']
+                ? (int) $settings->lead_time_bridal_days
+                : (int) $settings->lead_time_standard_days);
         $estimatedDispatch  = now()->addDays($leadTimeDays);
 
-        $order = DB::transaction(function () use ($verifiedBag, $isReturning, $customer, $totals, $method, $sizingMethod, $estimatedDispatch) {
+        $order = DB::transaction(function () use ($verifiedBag, $isReturning, $customer, $totals, $method, $sizingMethod, $estimatedDispatch, $customRequest) {
+            // Custom link: lock the request row so a double-submit (or two
+            // tabs) can't turn one quote into two orders.
+            if ($customRequest) {
+                $locked = CustomOrderRequest::whereKey($customRequest->id)->lockForUpdate()->first();
+                if (! $locked || ! $locked->isUsable()) {
+                    return null;
+                }
+            }
+
             // Find or create customer record.
             $customerId = session('order_form.customer_id');
             $customerRecord = $customerId
@@ -418,6 +437,7 @@ class OrderController extends Controller
                 'total_pkr'             => $totals['total'],
                 'requires_advance'      => $totals['requires_advance'],
                 'is_returning_customer' => $isReturning,
+                'is_custom'             => $customRequest !== null,
                 'payment_method'        => $method->value,
                 'payment_status'        => PaymentStatus::Awaiting->value,
                 'status'                => OrderStatus::New->value,
@@ -446,8 +466,20 @@ class OrderController extends Controller
             $customerRecord->increment('lifetime_value_pkr', $totals['total']);
             $customerRecord->update(['last_ordered_at' => now()]);
 
+            if ($customRequest) {
+                CustomOrderRequest::whereKey($customRequest->id)->update([
+                    'status'   => CustomOrderStatus::Completed->value,
+                    'order_id' => $order->id,
+                ]);
+            }
+
             return $order->fresh(['items']);
         });
+
+        if (! $order) {
+            // The custom link was used up or cancelled between page load and submit.
+            return redirect()->route('custom-order.show', $customRequest->token);
+        }
 
         // Attach sizing photos from temp session storage → permanent order directory.
         OrderSizingPhotoController::attachToOrder($order);
@@ -487,9 +519,54 @@ class OrderController extends Controller
 
         // Clear the order form session data but keep the last order reference.
         session()->forget(['order_form.bag', 'order_form.customer', 'order_form.sizing_method',
-                           'order_form.is_returning', 'order_form.customer_id']);
+                           'order_form.is_returning', 'order_form.customer_id',
+                           'order_form.custom_request_id']);
 
         return redirect()->route('order.confirm', $order->id);
+    }
+
+    /**
+     * The custom order request driving this checkout, if any — only while it
+     * is still pending and unexpired.
+     */
+    private function activeCustomRequest(): ?CustomOrderRequest
+    {
+        $id = session('order_form.custom_request_id');
+        if (! $id) {
+            return null;
+        }
+
+        $request = CustomOrderRequest::find($id);
+
+        return $request?->isUsable() ? $request : null;
+    }
+
+    /**
+     * Server-trusted bag for the current checkout. Custom-link checkouts are
+     * priced from the CustomOrderRequest row; shop checkouts from products.
+     */
+    private function resolveBag(): array
+    {
+        if (session('order_form.custom_request_id')) {
+            $custom = $this->activeCustomRequest();
+            return $custom ? [$custom->toBagItem()] : [];
+        }
+
+        return $this->verifyBag(session('order_form.bag', []));
+    }
+
+    /** Where to send a visitor whose bag resolved to nothing. */
+    private function emptyBagRedirect(): RedirectResponse
+    {
+        if ($id = session('order_form.custom_request_id')) {
+            $custom = CustomOrderRequest::find($id);
+            if ($custom) {
+                return redirect()->route('custom-order.show', $custom->token);
+            }
+        }
+
+        return redirect()->route('shop')
+            ->withErrors(['bag' => 'Your bag is empty or contains items that are no longer available.']);
     }
 
     /**
@@ -597,7 +674,7 @@ class OrderController extends Controller
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /** Calculate order totals from the session bag. */
-    private function calculateTotals(array $bag, bool $isReturning): array
+    private function calculateTotals(array $bag, bool $isReturning, ?CustomOrderRequest $custom = null): array
     {
         $settings = app(StoreSettings::class);
 
@@ -607,13 +684,17 @@ class OrderController extends Controller
         ));
 
         $discountRate  = max(0, $settings->reorder_discount_percent) / 100;
-        $discount      = $isReturning ? (int) round($subtotal * $discountRate) : 0;
+        // Custom designs are quoted prices — no reorder discount on top.
+        $discount      = ($isReturning && ! $custom) ? (int) round($subtotal * $discountRate) : 0;
         $afterDiscount = $subtotal - $discount;
 
         $freeAbove = $settings->shipping_free_above;
         $shipping  = ($freeAbove > 0 && $afterDiscount >= $freeAbove)
             ? 0
             : max(0, $settings->shipping_flat_pkr);
+        if ($custom) {
+            $shipping = $custom->shippingPkr();
+        }
 
         $total           = $afterDiscount + $shipping;
         $requiresAdvance = $total >= max(0, $settings->advance_threshold_pkr);

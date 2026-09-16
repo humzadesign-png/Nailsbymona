@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
@@ -77,7 +78,7 @@ class Order extends Model
         'customer_name', 'customer_email', 'customer_phone',
         'shipping_address', 'city', 'postal_code', 'notes',
         'subtotal_pkr', 'reorder_discount_pkr', 'shipping_pkr', 'total_pkr', 'advance_paid_pkr',
-        'requires_advance', 'is_returning_customer',
+        'requires_advance', 'is_returning_customer', 'is_custom',
         'payment_method', 'payment_status', 'status', 'sizing_capture_method',
         'tracking_number', 'courier',
         'confirmed_at', 'production_started_at', 'shipped_at', 'delivered_at', 'cancelled_at',
@@ -93,6 +94,7 @@ class Order extends Model
         'courier'               => CourierType::class,
         'requires_advance'      => 'boolean',
         'is_returning_customer' => 'boolean',
+        'is_custom'             => 'boolean',
         'confirmed_at'          => 'datetime',
         'production_started_at' => 'datetime',
         'shipped_at'            => 'datetime',
@@ -121,6 +123,12 @@ class Order extends Model
     public function paymentProofs(): HasMany
     {
         return $this->hasMany(OrderPaymentProof::class);
+    }
+
+    /** The custom design request this order came from (custom orders only). */
+    public function customOrderRequest(): HasOne
+    {
+        return $this->hasOne(CustomOrderRequest::class);
     }
 
     /**
@@ -252,6 +260,11 @@ class Order extends Model
      */
     public function leadTimeDays(): int
     {
+        // Custom designs can carry their own lead time, set when Mona quoted them.
+        if ($this->is_custom && ($customDays = $this->customOrderRequest?->lead_time_days)) {
+            return (int) $customDays;
+        }
+
         $settings = app(\App\Settings\StoreSettings::class);
         return $this->isBridalTrio()
             ? (int) $settings->lead_time_bridal_days

@@ -1,0 +1,294 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Enums\CustomOrderStatus;
+use App\Filament\Resources\CustomOrderRequestResource\Pages;
+use App\Models\CustomOrderRequest;
+use App\Settings\StoreSettings;
+use Filament\Actions;
+use Filament\Forms;
+use Filament\Notifications\Notification;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section as FormSection;
+use Filament\Schemas\Schema;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
+
+/**
+ * Custom order links — designs agreed with customers in Instagram / WhatsApp
+ * DMs. Mona fills in the design + quote, then sends the private link. The
+ * customer takes sizing photos with the camera guide and pays through the
+ * normal checkout, which creates a regular Order marked "Custom".
+ */
+class CustomOrderRequestResource extends Resource
+{
+    protected static ?string $model = CustomOrderRequest::class;
+    protected static string | \BackedEnum | null $navigationIcon  = 'heroicon-o-link';
+    protected static string | \UnitEnum   | null $navigationGroup = 'Orders';
+    protected static ?int    $navigationSort  = 2;
+    protected static ?string $navigationLabel = 'Custom order links';
+    protected static ?string $modelLabel      = 'custom order link';
+    protected static ?string $pluralModelLabel = 'custom order links';
+
+    public static function getNavigationBadge(): ?string
+    {
+        $waiting = CustomOrderRequest::where('status', CustomOrderStatus::Pending)
+            ->where('expires_at', '>', now())
+            ->count();
+
+        return $waiting ? (string) $waiting : null;
+    }
+
+    // ── Table ─────────────────────────────────────────────────────────────────
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->defaultSort('created_at', 'desc')
+            ->columns([
+                Tables\Columns\TextColumn::make('design_title')
+                    ->label('Design')
+                    ->weight('semibold')
+                    ->searchable()
+                    ->description(fn (CustomOrderRequest $r) => 'Rs. ' . number_format($r->price_pkr)),
+
+                Tables\Columns\TextColumn::make('customer_name')
+                    ->label('Customer')
+                    ->searchable(['customer_name', 'customer_phone'])
+                    ->description(fn (CustomOrderRequest $r) => $r->customer_phone),
+
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->state(fn (CustomOrderRequest $r) => self::statusLabel($r))
+                    ->color(fn (CustomOrderRequest $r) => match (true) {
+                        $r->status === CustomOrderStatus::Completed => 'success',
+                        $r->status === CustomOrderStatus::Cancelled => 'danger',
+                        $r->isExpired()                             => 'gray',
+                        default                                     => 'warning',
+                    })
+                    ->description(fn (CustomOrderRequest $r) => $r->status === CustomOrderStatus::Pending && ! $r->isExpired()
+                        ? ($r->opened_at ? 'Customer opened the link' : 'Not opened yet')
+                        : null),
+
+                Tables\Columns\TextColumn::make('order.order_number')
+                    ->label('Order')
+                    ->placeholder('—')
+                    ->url(fn (CustomOrderRequest $r) => $r->order_id
+                        ? OrderResource::getUrl('view', ['record' => $r->order_id])
+                        : null),
+
+                Tables\Columns\TextColumn::make('expires_at')
+                    ->label('Link valid until')
+                    ->date('j M Y')
+                    ->sortable()
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Created')
+                    ->since()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                Tables\Filters\Filter::make('waiting')
+                    ->label('Waiting on customer')
+                    ->query(fn ($query) => $query
+                        ->where('status', CustomOrderStatus::Pending)
+                        ->where('expires_at', '>', now())),
+                Tables\Filters\SelectFilter::make('status')
+                    ->options(collect(CustomOrderStatus::cases())->mapWithKeys(fn ($e) => [$e->value => $e->label()])),
+            ])
+            ->actions([
+                Actions\EditAction::make(),
+                Actions\ActionGroup::make(self::linkActions()),
+            ]);
+    }
+
+    /** Shared by the table rows and the edit page header. */
+    public static function linkActions(): array
+    {
+        return [
+            Actions\Action::make('whatsapp')
+                ->label('Send on WhatsApp')
+                ->icon('heroicon-o-chat-bubble-oval-left-ellipsis')
+                ->color('success')
+                ->visible(fn (CustomOrderRequest $record) => $record->isUsable())
+                ->url(fn (CustomOrderRequest $record) => $record->whatsappUrl())
+                ->openUrlInNewTab(),
+
+            Actions\Action::make('extend')
+                ->label('Extend 7 days')
+                ->icon('heroicon-o-clock')
+                ->color('gray')
+                ->visible(fn (CustomOrderRequest $record) => $record->status === CustomOrderStatus::Pending)
+                ->requiresConfirmation()
+                ->modalDescription('The link will stay valid for 7 more days from today.')
+                ->action(function (CustomOrderRequest $record) {
+                    $record->update([
+                        'expires_at' => now()->addDays(CustomOrderRequest::DEFAULT_EXPIRY_DAYS)->endOfDay(),
+                    ]);
+                    Notification::make()->title('Link extended until ' . $record->expires_at->format('j M'))->success()->send();
+                }),
+
+            Actions\Action::make('cancel_link')
+                ->label('Cancel link')
+                ->icon('heroicon-o-x-circle')
+                ->color('danger')
+                ->visible(fn (CustomOrderRequest $record) => $record->status === CustomOrderStatus::Pending)
+                ->requiresConfirmation()
+                ->modalDescription('The customer will no longer be able to use this link to order.')
+                ->action(function (CustomOrderRequest $record) {
+                    $record->update(['status' => CustomOrderStatus::Cancelled]);
+                    Notification::make()->title('Link cancelled.')->success()->send();
+                }),
+
+            Actions\Action::make('view_order')
+                ->label('View order')
+                ->icon('heroicon-o-clipboard-document-list')
+                ->color('primary')
+                ->visible(fn (CustomOrderRequest $record) => $record->order_id !== null)
+                ->url(fn (CustomOrderRequest $record) => OrderResource::getUrl('view', ['record' => $record->order_id])),
+        ];
+    }
+
+    private static function statusLabel(CustomOrderRequest $r): string
+    {
+        if ($r->status === CustomOrderStatus::Pending && $r->isExpired()) {
+            return 'Expired';
+        }
+
+        return $r->status->label();
+    }
+
+    // ── Form ──────────────────────────────────────────────────────────────────
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            FormSection::make('Customer link')
+                ->description('Copy this link or use "Send on WhatsApp" at the top of the page.')
+                ->visible(fn (?CustomOrderRequest $record) => $record !== null)
+                ->schema([
+                    Forms\Components\Placeholder::make('link')
+                        ->label('')
+                        ->content(function (?CustomOrderRequest $record) {
+                            if (! $record) {
+                                return '';
+                            }
+                            $url = e($record->publicUrl());
+                            return new HtmlString(
+                                '<div x-data="{ copied: false }" class="flex flex-wrap items-center gap-3">'
+                                . '<code class="text-sm break-all rounded-lg bg-gray-100 dark:bg-gray-800 px-3 py-2">' . $url . '</code>'
+                                . '<button type="button" class="text-sm font-semibold text-primary-600 hover:underline"'
+                                . ' x-on:click="navigator.clipboard.writeText(\'' . $url . '\'); copied = true; setTimeout(() => copied = false, 2000)"'
+                                . ' x-text="copied ? \'✓ Copied\' : \'Copy link\'"></button>'
+                                . '</div>'
+                                . '<p class="mt-2 text-sm text-gray-500">Status: ' . e(self::statusLabel($record))
+                                . ($record->opened_at ? ' · opened ' . e($record->opened_at->diffForHumans()) : ' · not opened yet')
+                                . '</p>'
+                            );
+                        }),
+                ]),
+
+            FormSection::make('Customer')
+                ->description('As they appear in your Instagram / WhatsApp chat. The customer can correct these at checkout.')
+                ->columns(2)
+                ->schema([
+                    Forms\Components\TextInput::make('customer_name')
+                        ->label('Name')
+                        ->required()
+                        ->maxLength(100),
+                    Forms\Components\TextInput::make('customer_phone')
+                        ->label('WhatsApp number')
+                        ->required()
+                        ->tel()
+                        ->maxLength(30)
+                        ->placeholder('03XX XXXXXXX')
+                        ->helperText('Used for the "Send on WhatsApp" button and to recognise returning customers.'),
+                    Forms\Components\TextInput::make('customer_email')
+                        ->label('Email (optional)')
+                        ->email()
+                        ->maxLength(150),
+                ]),
+
+            FormSection::make('Design & quote')
+                ->columns(2)
+                ->schema([
+                    Forms\Components\TextInput::make('design_title')
+                        ->label('Design name')
+                        ->required()
+                        ->maxLength(120)
+                        ->placeholder('e.g. Maroon chrome with gold flakes')
+                        ->columnSpanFull(),
+                    Forms\Components\Textarea::make('design_description')
+                        ->label('What you agreed')
+                        ->rows(4)
+                        ->maxLength(2000)
+                        ->placeholder('Shape, length, colours, charms — the customer sees this text.')
+                        ->columnSpanFull(),
+                    Forms\Components\FileUpload::make('reference_images')
+                        ->label('Reference photos (optional)')
+                        ->helperText('Up to 4 photos the customer sees on their link. Hands and nails only — no faces.')
+                        ->image()
+                        ->multiple()
+                        ->reorderable()
+                        ->maxFiles(4)
+                        ->maxSize(8192)
+                        ->disk('public')
+                        ->directory('custom-designs')
+                        ->visibility('public')
+                        ->columnSpanFull(),
+                    Forms\Components\TextInput::make('price_pkr')
+                        ->label('Quoted price')
+                        ->required()
+                        ->numeric()
+                        ->minValue(1)
+                        ->prefix('Rs.'),
+                    Forms\Components\TextInput::make('shipping_pkr')
+                        ->label('Shipping')
+                        ->numeric()
+                        ->minValue(0)
+                        ->prefix('Rs.')
+                        ->helperText(function () {
+                            $s = app(StoreSettings::class);
+                            return 'Leave blank for the standard rate (Rs. ' . number_format($s->shipping_flat_pkr)
+                                . ($s->shipping_free_above > 0 ? ', free above Rs. ' . number_format($s->shipping_free_above) : '')
+                                . '). Enter 0 for free shipping.';
+                        }),
+                    Forms\Components\TextInput::make('lead_time_days')
+                        ->label('Making time (days)')
+                        ->numeric()
+                        ->minValue(1)
+                        ->maxValue(90)
+                        ->helperText(fn () => 'Leave blank for the standard ' . app(StoreSettings::class)->lead_time_standard_days . ' days.'),
+                    Forms\Components\DatePicker::make('expires_at')
+                        ->label('Link valid until')
+                        ->native(false)
+                        ->displayFormat('j M Y')
+                        ->minDate(today())
+                        ->default(now()->addDays(CustomOrderRequest::DEFAULT_EXPIRY_DAYS)->endOfDay())
+                        ->required(),
+                ]),
+
+            FormSection::make('Private notes')
+                ->collapsed()
+                ->schema([
+                    Forms\Components\Textarea::make('admin_notes')
+                        ->label('Notes (only you see these)')
+                        ->rows(3)
+                        ->maxLength(2000),
+                ]),
+        ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index'  => Pages\ListCustomOrderRequests::route('/'),
+            'create' => Pages\CreateCustomOrderRequest::route('/create'),
+            'edit'   => Pages\EditCustomOrderRequest::route('/{record}/edit'),
+        ];
+    }
+}

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\Order\CustomOrderController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderPaymentProofController;
 use App\Http\Controllers\Order\OrderSizingPhotoController;
@@ -92,8 +93,21 @@ Route::post('/order/start/lookup',       [OrderController::class, 'customerLooku
 
 // Sizing capture (live camera / upload)
 Route::get('/order/sizing-capture',      [OrderController::class, 'start'])->name('order.sizing'); // Redirects back to step 1 with camera modal
-Route::get('/order/camera',              fn () => view('order.sizing-capture'))->name('order.camera');
+Route::get('/order/camera', function () {
+    // Desktop QR handoff: a phone scanning the QR starts a new session, so for
+    // custom-order checkouts point it at the private custom link instead.
+    $custom = session('order_form.custom_request_id')
+        ? \App\Models\CustomOrderRequest::find(session('order_form.custom_request_id'))
+        : null;
+    $handoffUrl = $custom?->isUsable() ? $custom->publicUrl() : route('order.sizing');
+
+    return view('order.sizing-capture', compact('handoffUrl'));
+})->name('order.camera');
 Route::post('/order/sizing-photos',      [OrderSizingPhotoController::class, 'store'])->name('order.sizing.upload');
+
+// Custom design links (created in admin → Orders → Custom order links)
+Route::get('/custom/{token}',            [CustomOrderController::class, 'show'])->where('token', '[A-Za-z0-9]{20,64}')->name('custom-order.show');
+Route::post('/custom/{token}/begin',     [CustomOrderController::class, 'begin'])->where('token', '[A-Za-z0-9]{20,64}')->middleware('throttle:20,1')->name('custom-order.begin');
 
 // Step 2 — Details
 Route::get('/order/details',             [OrderController::class, 'details'])->name('order.details');

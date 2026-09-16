@@ -57,10 +57,11 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('customer_name')
                     ->label('Customer')
                     ->searchable()
-                    ->description(fn (Order $r) => $r->is_returning_customer
-                        ? '↩ Returning  ·  ' . $r->customer_phone
-                        : $r->customer_phone
-                    ),
+                    ->description(fn (Order $r) => collect([
+                        $r->is_custom ? '✦ Custom' : null,
+                        $r->is_returning_customer ? '↩ Returning' : null,
+                        $r->customer_phone,
+                    ])->filter()->implode('  ·  ')),
 
                 Tables\Columns\TextColumn::make('total_pkr')
                     ->label('Total')
@@ -132,6 +133,9 @@ class OrderResource extends Resource
                         ->where('payment_status', PaymentStatus::Verifying)
                         ->where('status', '!=', OrderStatus::Cancelled)
                         ->reorder('created_at', 'asc')),
+                Tables\Filters\Filter::make('custom_orders')
+                    ->label('Custom designs (from DM links)')
+                    ->query(fn ($query) => $query->where('is_custom', true)),
                 Tables\Filters\Filter::make('returning_customers')
                     ->label('Returning customers')
                     ->query(fn ($query) => $query->where('is_returning_customer', true)),
@@ -428,6 +432,13 @@ class OrderResource extends Resource
                     Infolists\Components\TextEntry::make('total_pkr')
                         ->formatStateUsing(fn ($state) => 'Rs. ' . number_format($state))
                         ->label('Total'),
+                    Infolists\Components\TextEntry::make('customOrderRequest.design_title')
+                        ->label('Custom design')
+                        ->visible(fn (Order $r) => $r->is_custom)
+                        ->url(fn (Order $r) => $r->customOrderRequest
+                            ? CustomOrderRequestResource::getUrl('edit', ['record' => $r->customOrderRequest])
+                            : null)
+                        ->color('primary'),
                 ]),
 
             InfoSection::make('Customer')

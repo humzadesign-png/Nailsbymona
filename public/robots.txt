@@ -2,6 +2,7 @@ User-agent: *
 Disallow: /admin
 Disallow: /admin/
 Disallow: /order/
+Disallow: /custom/
 Disallow: /track
 
 Sitemap: https://nailsbymona.pk/sitemap.xml

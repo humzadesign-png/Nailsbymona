@@ -572,7 +572,7 @@ $(function () {
     $('.state').removeClass('active');
     showState('desktop');
 
-    var pageUrl = '{{ route('order.sizing') }}';
+    var pageUrl = '{{ $handoffUrl ?? route('order.sizing') }}';
 
     // Generate QR client-side (qrcode.js)
     var qrContainer = document.getElementById('desktop-qr-div');
