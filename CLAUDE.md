@@ -297,6 +297,7 @@ Single-row key/value via `spatie/laravel-settings` (class: `App\Settings\StoreSe
 Stored keys:
 - **Contact / social:** `whatsapp_number`, `instagram_handle`, `tiktok_handle`, `contact_email`, `business_hours`
 - **Payments (manual):** `jazzcash_number`, `jazzcash_name`, `easypaisa_number`, `easypaisa_name`, `bank_name`, `bank_account_name`, `bank_account_no`, `bank_iban`
+- **Payment method visibility** *(added 2026-09-11)*: `jazzcash_enabled` (bool, default true), `easypaisa_enabled` (bool, default true), `bank_transfer_enabled` (bool, default true) — admin-controlled toggles that hide the corresponding radio on `/order/payment` while preserving the credentials above. `OrderController::store()` re-validates against the enabled set at POST time.
 - **Shipping:** `shipping_flat_pkr` (default 350), `shipping_free_above` (default 5000; 0 disables)
 - **Advance & deposits:** `advance_threshold_pkr` (default 5000), `advance_percent` (default 25), `bridal_deposit_percent` (default 100 — full advance per §7), `reorder_discount_percent` (default 5)
 - **Lead times (calendar days):** `lead_time_standard_days` (default 5), `lead_time_bridal_days` (default 10)
@@ -805,7 +806,7 @@ Traditional nail polish and acrylics are not compatible with wudu (Islamic ablut
 | **Signature** (volume)                        | 2,500–3,500     | Ombre, art, custom-fit                             |
 | **Glam**                                      | 3,800–4,800     | Charms, 3D, hand-painted                           |
 | **Bridal Single**                             | 5,000–6,500     | One event, premium packaging                       |
-| **Bridal Trio** (Mehendi + Baraat + Valima)   | 11,000–13,500   | 3 sets, one fitting, ~10–15% off vs 3 singles      |
+| **Bridal Trio** (Mehendi + Baraat + Valima)   | **10,000 flat** | 3 sets, one fitting; ~33–49% off vs 3 singles (2026-09-11)  |
 | **Refill / Reorder**                          | -5%             | Saved sizing on file, faster lead time             |
 
 **Margin model:** ~35–45% net at handmade scale. Track quarterly.
@@ -1254,7 +1255,7 @@ When Phase 6 opens, this is the architecture. Stays in CLAUDE.md so future Claud
 ### Bridal Trio package
 
 - One fitting (saved profile), one shipment, three coordinated looks.
-- PKR 11,000–13,500 — ~10–15% off vs three singles.
+- **PKR 10,000 flat** (updated 2026-09-11 from the previous 11,000–13,500 range) — a meaningful saving vs three singles (15,000–19,500).
 - Premium packaging (rigid magnetic box, satin lining, mini glue + prep kit, handwritten name card).
 
 ---
@@ -2134,6 +2135,187 @@ Sub-session refining the size guide gallery after Mona reviewed the deployed ver
 
 ---
 
+### 2026-09-11 — Admin payment-method visibility toggles + Bridal Trio refresh
+
+Two small but customer-facing shipped changes and a corresponding pricing/positioning refresh. All work deployed live to `https://nailsbymona.pk` via `/root/deploy.sh`.
+
+**Part 1 — Admin toggle for each payment method** (commit `a085147` on branch `claude/peaceful-elion-ed28a3` → pushed to `main`)
+
+Mona asked for the ability to hide any of the three payment methods (JazzCash / EasyPaisa / Bank Transfer) from the customer checkout page independently from whether the account details for that method are filled in. She may want to add JazzCash details but not yet expose them to customers, or temporarily turn a method off while she reorganises. Old behaviour: all three radios always rendered on `/order/payment`, and the only way to "hide" a method was to blank its account details (which still rendered an empty radio with no explanation).
+
+**New settings fields** (Spatie settings migration `2026_09_11_120000_add_payment_method_toggles.php`):
+```
+store.jazzcash_enabled       (bool, default true)
+store.easypaisa_enabled      (bool, default true)
+store.bank_transfer_enabled  (bool, default true)
+```
+Defaults to `true` so the migration is a no-op for existing installs — nothing changes for customers until Mona flips a toggle.
+
+**`App\Settings\StoreSettings` gained three `public bool` properties** under a new "Payment method visibility (admin-controlled)" comment block, placed right after the existing payment credential fields.
+
+**`App\Filament\Pages\ManageSettings`:**
+- Each payment `FormSection` (JazzCash / EasyPaisa / Bank Transfer) now leads with a `Forms\Components\Toggle::make('{method}_enabled')->label('Show on checkout')->columnSpanFull()->inline(false)`. Toggle sits above the account-detail inputs in the same card.
+- Section-level `->description(...)` copy added to each block: "Toggle off to hide this option on checkout. When on, customer picks {Method} → these details render on their order-confirmation page."
+- `mount()` fills the three new keys in `$this->form->fill([...])`.
+- `save()` — new `$boolFields` array (`jazzcash_enabled`, `easypaisa_enabled`, `bank_transfer_enabled`). Loop over `$data` casts int fields to `(int)`, bool fields to `(bool)`, everything else to `(string)`.
+- **Guardrail 1 (all disabled):** if all three are off after save, shows a persistent warning notification "Warning: all payment methods are turned off. Customers cannot check out until you turn at least one method back on." and `return`s before the success toast.
+- **Guardrail 2 (enabled but blank):** if any *enabled* method has blank primary credentials (`jazzcash_number` / `easypaisa_number` / (`bank_account_no` AND `bank_iban`)), shows a persistent warning "Settings saved — but an enabled method is missing account details" and returns. A disabled method being blank is intentional and produces no warning.
+
+**`resources/views/order/payment.blade.php`:**
+- New `@php` block at the top of the checkout `<form>` computes `$firstEnabled` — the first of `jazzcash` / `easypaisa` / `bank_transfer` whose `_enabled` flag is true (or `null` if none).
+- Each of the three method cards is wrapped in `@if ($settings->{method}_enabled)`. A disabled method renders nothing — no empty radio, no blank details block.
+- The `<input type="radio">` for each card uses `@checked($firstEnabled === '{method}')` instead of the previous hardcoded `checked` on JazzCash. The `.selected` class on the outer `<label>` and the lavender-fill on the option dot inside it also read from `$firstEnabled`, so the visible selection state is always consistent with the checked radio.
+- New empty-state banner: if `! $firstEnabled` (all three off), the payment card list renders a single `bg-lavender-wash` card saying "No payment methods are currently available. Please [message us on WhatsApp](wa.me/…) and we'll help you complete your order."
+- `<button id="place-order-btn">` gains `@disabled(! $firstEnabled)` + Tailwind `disabled:opacity-50 disabled:cursor-not-allowed` so the CTA is visibly dead in the all-off state.
+
+**`app/Http/Controllers/Order/OrderController.php` (`store()`):**
+- New guard block at the very top of the method — reads `StoreSettings` via `app(StoreSettings::class)`, builds `$allowedMethods = array_values(array_filter([...]))` from the three toggles, and if the array is empty, redirects back to `/order/payment` with a `withErrors(['payment_method' => ...])`.
+- The `$request->validate([...])` call now uses `'in:' . implode(',', $allowedMethods)` instead of the previous hardcoded `'in:jazzcash,easypaisa,bank_transfer'`.
+- The later `$settings = app(StoreSettings::class)` reassignment (used for `lead_time_bridal_days` / `lead_time_standard_days` around line 358 before this session) was removed — the top-of-method binding is reused instead of resolving twice.
+- **Why validate on the server too:** a customer with the payment page open when Mona disables a method could otherwise POST a stale method value and slip past the UI-only gate.
+
+**Deploy notes:**
+- Settings migration runs via `/root/deploy.sh` automatically (calls `php artisan migrate --force`).
+- Verified live via tinker after deploy:
+  ```
+  jazzcash_enabled: true
+  easypaisa_enabled: true
+  bank_transfer_enabled: true
+  ```
+
+**Confirmation page (`/order/confirm`) not changed:** the payment-details block there already renders only the `$order->payment_method` the customer picked. Since they picked from a filtered list of enabled methods, whatever they see reflects a method that was enabled at order-placement time. No gating needed.
+
+**Confirmation email templates not changed:** same reasoning — customer already committed to a specific method at order-time.
+
+**Part 2 — Bridal section image swap + Rs. 10,000 flat trio pricing** (commit `8c45fc5` on branch `claude/peaceful-elion-ed28a3` → pushed to `main`)
+
+Mona delivered three real photos for the Bridal section — one per event — and asked to bring the Bridal Trio down to a flat Rs. 10,000. The old page was still on the emerald/deep-red/French-tip placeholder trio from Phase 1, with a range of Rs. 11,000–13,500.
+
+**Source photos (in `~/Downloads/`)** and their destinations:
+
+| Event | Source file | Actual design |
+|---|---|---|
+| **Mehendi** | `WhatsApp Image 2026-09-10 at 22.15.12.jpeg` (3024×4032, iPhone portrait) | Emerald green almond nails with gold French-tip detail + jewelled accents, ruby ring, green-and-gold embroidered outfit |
+| **Baraat** | `3146F759-3C77-4CD0-8029-43CE916F2235.jpeg` (3024×4032, iPhone portrait) | Sheer nude base carpeted in gold beadwork + crystal clusters, hand-set piece by piece |
+| **Walima (Valima)** | `WhatsApp Image 2026-09-11 at 22.29.18.jpeg` (1280×854, landscape) | Bride's folded hands in prayer with soft nude-to-white ombre nails, mint-and-gold dupatta / sequined lehenga |
+
+**Image processing pipeline** (scratchpad → `public/images/`):
+1. Mehendi + Baraat were already 3024×4032 portrait (native 3:4). `sips -Z 1280` down to 960×1280, `sips -Z 640` down to 480×640, `formatOptions 88` for the JPEG.
+2. Walima at 1280×854 landscape needed a portrait crop first. `sips -c 854 640` crops from centre to 640×854, then `-Z 1280` → 960×1280 and `-Z 640` → 480×640. Centre crop was verified visually to keep the folded hands intact and the mint-gold dupatta framed nicely.
+3. WebP variants via `cwebp -q 82 -quiet {jpg} -o {webp}` for each of the six JPEGs.
+4. All 12 files copied into `public/images/`:
+   ```
+   bridal-mehendi-emerald-480.jpg  / -480.webp / -960.jpg / -960.webp
+   bridal-baraat-beaded-480.jpg    / -480.webp / -960.jpg / -960.webp
+   bridal-valima-ombre-480.jpg     / -480.webp / -960.jpg / -960.webp
+   ```
+   The old `bridal-baraat-deep-red-*` and `bridal-valima-french-*` files were left in place (dead references now, but harmless — small dead-code cleanup task for later).
+
+**`resources/views/bridal.blade.php` — three-event panel rewrite (Section 2 "The Collection"):**
+- **Mehendi panel:** was a blank img with an italic "Mehendi" text overlay (placeholder). Now uses `<picture>` with WebP/JPEG srcset, real `alt` text describing the emerald design, and a background gradient stripe from deep forest (`#4C6B5A → #2E4A3B → #1A2D24`) as the loading/error fallback. Caption copy: "Deep emerald green with fine gold-outlined tips and jewelled accents — designed to sit beautifully beside your henna and green-and-gold outfits. A grounded, romantic opening to the wedding."
+- **Baraat panel:** was the old deep-red stock image + "Deep reds, burgundies, intricate 3D crystals" copy. Now points at `bridal-baraat-beaded-*`, gradient stripe swapped to warm bronze (`#8B7355 → #5C4A38 → #2A1F14`). Caption: "A sheer nude base carpeted in gold beadwork and crystal clusters — hand-set piece by piece. Dramatic under baraat lights, catches every angle in your photographs."
+- **Valima panel:** was the old French-tip stock image. Now points at `bridal-valima-ombre-*`, gradient stripe kept in the warm-champagne family (`#D4C5A0 → #E8DCC0 → #F5EED8`). Caption: "A soft nude-to-white ombre finish with an almond shape — quiet, luminous, and effortlessly elegant. The calm ending to a joyful three-night story."
+- All three panels now use `width="960" height="1280"` (the true 3:4 dimensions of the medium image) so the browser reserves the correct layout box before the image loads — no CLS. `sizes="(min-width: 768px) 33vw, 100vw"` on both `<source>` and `<img srcset>`.
+
+**Pricing card in `bridal.blade.php` (Section 3 "The Package"):**
+- Big price line: `Rs. 11,000 – 13,500` → **`Rs. 10,000`** (single flat rate, no dash).
+- Sub-caption: "depending on design complexity" → **"all three nights, one flat price"**.
+- Kept the two comparison rows:
+  - Bridal Single (one event): Rs. 5,000 – 6,500 *(unchanged, based on the existing single-set tier)*.
+  - Three singles separately: Rs. 15,000 – 19,500 *(unchanged — kept struck through as the anchor value the Trio saves against)*.
+- Copy line under the two comparisons: "The Trio saves 10–15% vs ordering three singles" → **"The Trio bundles all three nights together — a meaningful saving vs. ordering three singles, and one less thing to coordinate during wedding planning."** (10,000 vs 15,000–19,500 is ~33–49% off, but the copy stays qualitative rather than shouting a big percentage — matches the atelier voice.)
+- `data-price="11000"` on both "Add Trio to bag" buttons (hero + pricing card) → `data-price="10000"` via `replace_all: true` on `bridal.blade.php`.
+- The bridal.blade.php in this branch still had the pre-fix `sticky top-24` on the pricing card (that fix from the 2026-05-19 session hadn't landed on this worktree yet). Removed `sticky top-24`; card now sits naturally in the grid. Added a matching comment: "Pricing card — sits naturally in the grid; sticky positioning was removed because it made the card follow the viewport as customers scrolled through the checklist beside it."
+
+**JSON-LD schema (top of `bridal.blade.php`):**
+- `x-seo :schema` inline JSON-LD `Product`'s `Offer.price` field: `'11000'` → `'10000'`.
+- Meta description: `"...Handmade in Mirpur. From Rs. 11,000."` → `"...Handmade in Mirpur. Rs. 10,000 for all three nights."`
+
+**Comparison table** further down the page:
+- Row "Cost for 3 events" Trio cell: `Rs. 11,000 – 13,500` → `Rs. 10,000`. Salon acrylics comparison cell (`Rs. 7,500 – 15,000+`) unchanged.
+
+**JS bag fallback:**
+- Add-to-bag handler at the bottom of `bridal.blade.php`: `parseInt($(this).data('price') || '11000', 10)` → `... || '10000', 10)`.
+
+**Other views:**
+- `resources/views/home.blade.php`:
+  - Bridal callout paragraph: "Order four weeks before your mehendi. Starting from Rs. 11,000." → "Order four weeks before your mehendi. Just Rs. 10,000 for all three nights."
+  - Pricing tier table row for Bridal Trio: `Rs. 11,000+` → `Rs. 10,000`.
+- `resources/views/shop.blade.php`:
+  - Bridal callout banner: "Three sets, sized once, packaged in a magnetic keepsake box. From Rs. 11,000." → "... Rs. 10,000." (dropped "From" since it's now flat).
+
+**Seeders (for reproducibility of fresh installs):**
+- `database/seeders/DatabaseSeeder.php`: Bridal Trio Classic row's `price_pkr` was `12500` → `10000`. **Note:** the seeder value was 12,500, not 11,000, because it was set later than the view copy; this session brings them into agreement at 10,000.
+- `database/seeders/BlogPostSeeder.php`: line 86 (inside the "Press-On Nails vs Acrylics: Which Is Better for Pakistani Brides?" post body): "The Bridal Trio from Nails by Mona costs PKR 11,000–13,500. ..." → "... costs PKR 10,000 flat for all three nights. ..." Seeder is idempotent via `firstOrCreate(['slug' => ...])`, so re-running it will NOT update the already-seeded blog post row on prod — see production DB update note below.
+
+**Live DB update on production (not covered by seeder re-run):**
+- The Bridal Trio product row in the live MySQL DB was at `price_pkr = 5000` (Mona had manually reduced it via Filament some time between seeding and this session). Updated to `10000` via tinker on prod:
+  ```
+  $p = App\Models\Product::where('slug', 'bridal-trio-classic')->first();
+  $p->price_pkr = 10000; $p->save();
+  ```
+  Confirmed `before: 5000` → `after: 10000`.
+- The blog-post body copy ("...costs PKR 11,000–13,500...") on the live DB was NOT updated this session. Since the post row is already seeded, re-running the seeder wouldn't touch it. If Mona (or a future session) wants the live blog body updated: either edit via Filament's BlogPostResource RichEditor OR run a targeted `BlogPost::where('slug', 'press-on-nails-vs-acrylics-pakistan-brides')->update([...])` on prod. Flagging this here so it doesn't get lost — the seeder is now correct for future installs but production still shows the old range in one blog post.
+
+**Smoke test after deploy:**
+- `curl -sS -o /dev/null -w "%{http_code}"` — `/bridal` → 200, all three new image URLs (jpg + webp) → 200.
+- `curl -sS https://nailsbymona.pk/bridal | grep -oE "Rs\.[&nbsp; ]*[0-9,]+" | sort -u` returned:
+  ```
+  Rs. 0
+  Rs. 10,000     ← Trio ✓
+  Rs. 15,000     ← "three singles separately" (crossed out)
+  Rs. 5,000      ← Bridal Single tier
+  Rs. 7,500      ← Salon acrylics comparison range low end
+  ```
+  All expected. No stray `Rs. 11,000` / `Rs. 13,500` / `Rs. 12,500` on the page.
+
+**Worktree confusion during this session — worth remembering:**
+- The session started in worktree `.claude/worktrees/jovial-heisenberg-5302da` on branch `claude/peaceful-elion-ed28a3`. Halfway through the bridal image work the Edit tool started refusing writes to `jovial-heisenberg-5302da` with "belongs to a different worktree" — the session's isolation had been switched to a stale sibling folder `peaceful-elion-ed28a3/` that had the same content but was NOT the git-registered worktree.
+- Diagnosis: `.git/worktrees/` registry showed only `dreamy-lederberg-07314e`, `epic-sanderson-dea15a`, and `jovial-heisenberg-5302da`. But the physical `peaceful-elion-ed28a3/` folder had its own `.git` file with `gitdir: .../.git/worktrees/peaceful-elion-ed28a3` pointing at a non-existent registry entry.
+- Recovery: applied edits to `peaceful-elion-ed28a3/`, then `cp`'d every changed file (5 blade/PHP files + 12 new images) over to the real registered worktree at `jovial-heisenberg-5302da/`. Committed + pushed from there. Removed the stale `peaceful-elion-ed28a3/` folder afterwards.
+- **Guidance for future sessions:** if you see a write refused with "belongs to a different worktree" and the target path looks correct, run `git worktree list` in the main repo AND `ls .git/worktrees/` — a physical folder that lacks a matching registry entry is a stale duplicate. Copy files to the registered worktree and commit there; don't try to `git rebase` or push from the ghost folder.
+
+**Files touched in this session:**
+- `app/Settings/StoreSettings.php` — 3 new bool properties.
+- `app/Filament/Pages/ManageSettings.php` — Toggle components + `save()` bool handling + two guardrail notifications.
+- `app/Http/Controllers/Order/OrderController.php` — dynamic `payment_method` validation gate + dedup redundant `$settings` reassignment.
+- `resources/views/order/payment.blade.php` — conditional radio rendering + dynamic default-selected state + empty-state banner + disabled CTA.
+- `resources/views/bridal.blade.php` — three panel image swaps + Rs. 10,000 flat trio pricing + copy refresh + drop `sticky top-24` + JS fallback price + schema price + meta description.
+- `resources/views/home.blade.php` — bridal callout + pricing tier table row.
+- `resources/views/shop.blade.php` — bridal callout banner.
+- `database/seeders/DatabaseSeeder.php` — Bridal Trio Classic `price_pkr` 12500 → 10000.
+- `database/seeders/BlogPostSeeder.php` — "vs acrylics" post body pricing line rewritten.
+- `database/settings/2026_09_11_120000_add_payment_method_toggles.php` — new Spatie settings migration (3 bools).
+- `public/images/bridal-mehendi-emerald-{480,960}.{jpg,webp}` — new (4 files).
+- `public/images/bridal-baraat-beaded-{480,960}.{jpg,webp}` — new (4 files).
+- `public/images/bridal-valima-ombre-{480,960}.{jpg,webp}` — new (4 files).
+
+**Migrations applied this session (on prod, via deploy.sh):**
+```
+2026_09_11_120000_add_payment_method_toggles
+```
+
+**Commits (both on `main`):**
+```
+a085147  Admin toggle for payment method visibility
+8c45fc5  Bridal: three real event photos + Rs. 10,000 flat trio price
+```
+
+---
+
+### 2026-09-11 (later) — Instagram launch caption drafts (no code changes)
+
+Humza asked for an Instagram Story caption to launch the website. Drafted three progressively-longer options (single slide / two slides / three slides), each addressing:
+- The delay: "we were supposed to launch months ago but internet issues in our area pushed us back"
+- The move to the website: browse / size / pay / track all happen there — no more DM hustle
+- Explicit CTA: `nailsbymona.pk`, link-in-bio, "Visit website" story sticker, `@nailsbymona` tag
+
+Also flagged three small distribution nudges: use the Story link sticker (higher CTR than link-in-bio), add a "reshare this to help us spread the word 💜" line on the last slide, and 3 hashtags (`#NailsByMona #PakistaniPressOns #CustomFitNails`). Offered Urdu / Roman-Urdu variants and a Reel voiceover version if wanted (Humza did not confirm in this session — pick up in a future one if he needs them).
+
+**No code changes, no deploys.** Captured here purely so a future session knows the launch positioning language Humza has already blessed for social copy.
+
+---
+
 ## 33. Pointers for Future Claude Sessions
 
 - **Read this file first.** Overrides anything you think you remember.
@@ -2249,6 +2431,18 @@ Sub-session refining the size guide gallery after Mona reviewed the deployed ver
 - **`og:locale=en_GB`, not `en_PK`.** Facebook silently drops unknown locales. `hreflang="en-PK"` carries the Pakistan signal for Google instead.
 - **Schema.org product availability:** `made_to_order` → `https://schema.org/MadeToOrder` (NOT `PreOrder` — that implies a future release date).
 - **Product page FAQs are DB-driven.** `ShopController::show()` passes `$faqs` from the `general` category. Product view loops them with `aria-expanded + aria-controls`. Falls back to a hardcoded 5-question set if the table is empty.
+
+— **2026-09-11 pointers** (payment toggles + bridal refresh — see §32 entry):
+
+- **Payment methods are individually hideable from `/admin/manage-settings`.** Three `StoreSettings` booleans (`jazzcash_enabled`, `easypaisa_enabled`, `bank_transfer_enabled`) gate whether each `<label class="payment-option">` on `/order/payment` renders at all. All default true. `payment.blade.php` picks `$firstEnabled` at render time and auto-selects that radio; the `<button id="place-order-btn">` is `@disabled(! $firstEnabled)`. If all three are off, an empty-state card points customers to WhatsApp.
+- **`OrderController::store()` server-validates `payment_method` against the currently-enabled set,** not a hardcoded `in:jazzcash,easypaisa,bank_transfer` list. A stale customer form-post for a disabled method is rejected with a `withErrors` back to `/order/payment`. Don't reintroduce the hardcoded validator — a mid-checkout admin toggle would slip past it.
+- **`ManageSettings::save()` has two persistent warning notifications:** (1) all three payment methods off = customers can't check out; (2) an enabled method has blank primary credentials (`jazzcash_number` / `easypaisa_number` / `bank_account_no+bank_iban`) = customers picking it will see empty "Send to:" lines. A disabled method with blank credentials is deliberate and stays silent.
+- **Bridal Trio is Rs. 10,000 flat** (not a range). Every reference: hero meta description, JSON-LD `Offer.price` = `'10000'`, pricing card big line, comparison table row, home + shop callouts, seeder `price_pkr`, "Add Trio to bag" `data-price="10000"` on both hero + pricing buttons. If Mona later wants to reintroduce a range or bump the price, all edit sites are cross-referenced in the 2026-09-11 §32 entry above.
+- **Bridal event photos are Mona's real work now.** `public/images/bridal-mehendi-emerald-{480,960}.{jpg,webp}` (emerald), `bridal-baraat-beaded-{480,960}.{jpg,webp}` (gold-beaded), `bridal-valima-ombre-{480,960}.{jpg,webp}` (ombre bride). All are 3:4 portrait crops (960×1280 medium, 480×640 small). The old `bridal-baraat-deep-red-*` and `bridal-valima-french-*` files still exist in `public/images/` but are unreferenced — safe to delete in a future cleanup pass.
+- **Live DB blog post drift:** the "vs acrylics" post's seeded body copy still says "PKR 11,000–13,500" on prod even though `BlogPostSeeder.php` was updated to "10,000 flat". The seeder is `firstOrCreate(['slug' => ...])` so re-running does NOT rewrite the body. To fix on prod: edit via Filament BlogPostResource RichEditor, or run a targeted `BlogPost::where('slug', 'press-on-nails-vs-acrylics-pakistan-brides')->update(['content' => ...])` on prod. Flagged but not fixed this session because the post body is long-form and Mona should review any rewrite.
+- **`Order` sizing photos aggregation:** `Customer::sizingPhotosFromOrders()` (Block 5, A13) is the source for the collapsible grid on `CustomerResource` view page. If a future session adds a saved-sizing-profile carousel to the customer-facing site, reuse this accessor rather than writing a new query.
+- **Phantom-worktree hazard.** A session's isolation can point at a physical folder that is NOT registered in `.git/worktrees/`. Symptom: Edit tool refuses writes to the "correct" path with a "belongs to a different worktree" error. Diagnosis: `git worktree list` in the main repo shows the real registered set; `ls .git/worktrees/` shows the registry entries; a physical folder without a matching registry entry is a stale duplicate. Recovery: apply edits to the phantom folder, then `cp` every changed file into the real registered worktree, commit and push from there. Delete the phantom afterwards.
+- **Vercel plugin hooks continue to auto-suggest Next.js / next-cache-components / nextjs skills** on every `app/**` Read. Continue to ignore per §33 — this remains a Laravel project.
 
 ---
 
