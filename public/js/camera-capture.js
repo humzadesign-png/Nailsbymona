@@ -270,9 +270,13 @@
   }
 
   // ── Capture frame ──────────────────────────────────────────────────────────
-  // Long edge capped at 2000px: plenty of detail to read nail width against the
-  // coin, and keeps each upload well under 1 MB on slow mobile connections.
-  const MAX_EDGE = 2000;
+  // Long edge capped at 1600px (~15px per mm at close-up framing): plenty to
+  // read nail width against the coin, and a small upload on slow connections.
+  const MAX_EDGE = 1600;
+  const JPEG_QUALITY = 0.85;
+  // Remembered per device: if multipart uploads break here once (seen on
+  // iPhone Chrome), go straight to the base64 upload next time.
+  const MULTIPART_BROKEN_KEY = 'nbm.sizingMultipartBroken';
 
   function captureFrame(photoType) {
     const video = document.getElementById('camera-video');
@@ -289,14 +293,14 @@
 
     // Keep a data URL too — used by the upload retry path and as a fallback
     // when a browser's toBlob() hands back null.
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    const dataUrl = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
     captures[photoType] = { blob: null, dataUrl: dataUrl };
 
     canvas.toBlob(blob => {
       if (captures[photoType] && captures[photoType].dataUrl === dataUrl) {
         captures[photoType].blob = blob;
       }
-    }, 'image/jpeg', 0.9);
+    }, 'image/jpeg', JPEG_QUALITY);
   }
 
   // ── Preview thumbnails ─────────────────────────────────────────────────────
@@ -403,9 +407,13 @@
 
     // Attempt 1: multipart files. Attempt 2: the same photos as base64 text,
     // which survives phone browsers that break multipart uploads.
-    let result = await send(buildMultipart(types));
+    let result = { ok: false, status: 0 };
+    if (!multipartKnownBroken()) {
+      result = await send(buildMultipart(types), false, btn);
+    }
     if (!result.ok && result.status !== 419 && result.status !== 422) {
-      result = await send(buildBase64(types), true);
+      if (result.status === 0 || result.status === 400) rememberMultipartBroken();
+      result = await send(buildBase64(types), true, btn);
     }
 
     if (result.ok) {
@@ -445,9 +453,16 @@
     });
   }
 
-  function send(body, isJson) {
+  function send(body, isJson, btn) {
     return new Promise(resolve => {
       const xhr = new XMLHttpRequest();
+      if (btn && xhr.upload) {
+        xhr.upload.onprogress = (e) => {
+          if (!e.lengthComputable) return;
+          const pct = Math.min(99, Math.round((e.loaded / e.total) * 100));
+          btn.textContent = pct < 99 ? 'Uploading your photos… ' + pct + '%' : 'Almost done…';
+        };
+      }
       xhr.open('POST', config.uploadRoute, true);
       xhr.timeout = 90000;
       xhr.setRequestHeader('Accept', 'application/json');
@@ -468,6 +483,14 @@
       xhr.ontimeout = () => resolve({ ok: false, status: 0 });
       xhr.send(body);
     });
+  }
+
+  function multipartKnownBroken() {
+    try { return localStorage.getItem(MULTIPART_BROKEN_KEY) === '1'; } catch (e) { return false; }
+  }
+
+  function rememberMultipartBroken() {
+    try { localStorage.setItem(MULTIPART_BROKEN_KEY, '1'); } catch (e) { /* private mode */ }
   }
 
   function dataUrlToBlob(dataUrl) {
