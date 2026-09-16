@@ -405,16 +405,26 @@
     setSubmitting(btn, true);
     hideUploadError();
 
+    // TEMP diagnostics (iPhone Chrome slow upload) — remove once resolved.
+    const diag = { t0: Date.now(), skipMultipart: multipartKnownBroken(), steps: [],
+      sizes: types.map(t => Math.round((captures[t].dataUrl || '').length / 1024) + 'KB'),
+      blobs: types.map(t => captures[t].blob ? Math.round(captures[t].blob.size / 1024) + 'KB' : 'null') };
+
     // Attempt 1: multipart files. Attempt 2: the same photos as base64 text,
     // which survives phone browsers that break multipart uploads.
     let result = { ok: false, status: 0 };
     if (!multipartKnownBroken()) {
+      const ts = Date.now();
       result = await send(buildMultipart(types), false, btn);
+      diag.steps.push(['multipart', result.status, Date.now() - ts]);
     }
     if (!result.ok && result.status !== 419 && result.status !== 422) {
-      if (result.status === 0 || result.status === 400) rememberMultipartBroken();
+      if (result.status <= 0 || result.status === 400) rememberMultipartBroken();
+      const ts = Date.now();
       result = await send(buildBase64(types), true, btn);
+      diag.steps.push(['base64', result.status, Date.now() - ts]);
     }
+    reportDiag(diag);
 
     if (result.ok) {
       stopStream();
@@ -425,12 +435,20 @@
     setSubmitting(btn, false);
     if (result.status === 419) {
       showUploadError('Your session expired. Please reload this page and take your photos again.');
-    } else if (result.status === 0) {
+    } else if (result.status <= 0) {
       showUploadError('We couldn\'t reach the server — please check your internet connection and tap Submit again.');
     } else {
       showUploadError((result.message || 'Upload failed. Please tap Submit to try again, or upload your photos instead.')
         + ' (Error ' + result.status + ')');
     }
+  }
+
+  function reportDiag(diag) {
+    try {
+      diag.total = Date.now() - diag.t0;
+      const body = new URLSearchParams({ _token: config.csrfToken, diag: JSON.stringify(diag) });
+      if (navigator.sendBeacon) navigator.sendBeacon('/order/sizing-diag', body);
+    } catch (e) { /* diagnostics must never break the upload */ }
   }
 
   function buildMultipart(types) {
@@ -480,7 +498,8 @@
         });
       };
       xhr.onerror   = () => resolve({ ok: false, status: 0 });
-      xhr.ontimeout = () => resolve({ ok: false, status: 0 });
+      xhr.onabort   = () => resolve({ ok: false, status: -1 });
+      xhr.ontimeout = () => resolve({ ok: false, status: -2 });
       xhr.send(body);
     });
   }
