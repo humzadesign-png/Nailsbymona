@@ -28,9 +28,7 @@
     <span class="font-sans font-semibold text-lavender" style="font-size:1.05rem">Rs.&nbsp;{{ number_format($totals['total']) }}</span>
   </div>
 
-  @if ($totals['requires_advance'])
   <p class="font-sans text-caption text-stone pt-1">
-    Advance required — details on the next step.
+    Paid in full before production starts.
   </p>
-  @endif
 </div>

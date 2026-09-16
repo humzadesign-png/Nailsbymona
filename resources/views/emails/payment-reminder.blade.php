@@ -23,17 +23,8 @@
 <div class="row">
   <p class="label">Amount due</p>
   @php
-    $isBridalTrio = $order->items->contains(fn($i) => $i->product_tier_snapshot === 'bridal_trio');
-    if ($isBridalTrio) {
-      $amountDue = (int)($order->total_pkr * 0.50);
-      $amountNote = '50% Bridal Trio deposit';
-    } elseif ($order->requires_advance) {
-      $amountDue = (int)($order->total_pkr * 0.30);
-      $amountNote = '30% advance required';
-    } else {
-      $amountDue = $order->total_pkr;
-      $amountNote = 'Full payment';
-    }
+    $amountDue  = $order->advanceAmountPkr();
+    $amountNote = $order->isLegacyAdvanceOrder() ? 'Advance payment' : 'Full payment';
   @endphp
   <p class="value price">Rs.&nbsp;{{ number_format($amountDue) }}</p>
   <p style="font-size:13px;color:#7A6E65">{{ $amountNote }}</p>

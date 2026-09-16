@@ -116,26 +116,18 @@
       </div>
       <div class="px-6 py-5">
 
-        {{-- Advance notice --}}
-        @if ($isBridalTrio)
+        {{-- Amount due. Every order is paid in full up front; only orders placed
+             before 2026-09-16 under the old advance rule show a partial amount. --}}
+        @if ($order->isLegacyAdvanceOrder())
         <div class="mb-5 bg-lavender-wash border-l-4 border-lavender rounded-r-xl px-4 py-3">
           <p class="font-sans text-caption text-lavender-ink leading-relaxed">
-            <strong>Bridal Trio:</strong> 50% deposit required now to reserve your slot.
-            Advance due: <strong>Rs.&nbsp;{{ number_format($order->advance_paid_pkr ?: (int)($order->total_pkr * 0.50)) }}</strong>.
-            Balance paid before dispatch.
-          </p>
-        </div>
-        @elseif ($order->requires_advance)
-        <div class="mb-5 bg-lavender-wash border-l-4 border-lavender rounded-r-xl px-4 py-3">
-          <p class="font-sans text-caption text-lavender-ink leading-relaxed">
-            <strong>30% advance required.</strong>
-            Please send <strong>Rs.&nbsp;{{ number_format((int)($order->total_pkr * 0.30)) }}</strong> now.
-            The balance of Rs.&nbsp;{{ number_format($order->total_pkr - (int)($order->total_pkr * 0.30)) }} is due before dispatch.
+            <strong>Advance due now: Rs.&nbsp;{{ number_format($order->advanceAmountPkr()) }}</strong>.
+            The balance of Rs.&nbsp;{{ number_format($order->total_pkr - $order->advanceAmountPkr()) }} is due before dispatch.
           </p>
         </div>
         @else
         <p class="font-sans text-body text-graphite mb-4 leading-relaxed">
-          Please send the full amount of <strong class="text-ink">Rs.&nbsp;{{ number_format($order->total_pkr) }}</strong> to the account below. Your order goes into production once payment is confirmed.
+          Please send the full amount of <strong class="text-ink">Rs.&nbsp;{{ number_format($order->total_pkr) }}</strong> to the account below. We start making your set as soon as your payment is confirmed.
         </p>
         @endif
 

@@ -59,9 +59,8 @@
       <section>
         <h2 class="font-serif text-2xl text-ink mt-12 mb-4">Payment</h2>
         <ul class="list-disc pl-6 space-y-2">
-          <li><strong>Standard orders:</strong> full payment before production begins. We accept JazzCash, EasyPaisa and bank transfer. After you place the order you upload a screenshot of the transfer; Mona verifies within 24 hours.</li>
-          <li><strong>Orders ≥ Rs. 5,000:</strong> a partial advance is required (typically 25%) before production starts. The balance is collected before the set is dispatched.</li>
-          <li><strong>Bridal Trio:</strong> full advance is required before production starts. Bridal work has a 10-day lead time, materials are sourced specifically for your event, and the trio cannot be re-sold.</li>
+          <li><strong>All orders, including custom designs and the Bridal Trio:</strong> full payment before production begins. Every set is made to measure for your nails and cannot be re-sold.</li>
+          <li>We accept JazzCash, EasyPaisa and bank transfer. After you place the order you upload a screenshot of the transfer; we verify it within 24 hours and confirm on WhatsApp.</li>
           <li>If payment proof is not uploaded within 72 hours of placing the order, the order is automatically cancelled. You can place it again any time.</li>
         </ul>
       </section>

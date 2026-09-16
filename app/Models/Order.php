@@ -215,27 +215,29 @@ class Order extends Model
     }
 
     /**
-     * The advance amount required for this order, in PKR.
+     * Amount the customer must pay before production starts, in PKR.
      *
-     * - Bridal Trio: settings-driven deposit % (default 100 — full advance, per CLAUDE.md §7).
-     * - Other orders ≥ the advance threshold: settings-driven advance % (default 25).
-     * - Otherwise: full total.
+     * Since 2026-09-16 every order is paid in full up front, so this is the
+     * order total. Orders placed earlier under the partial-advance rule keep
+     * `requires_advance = true` and are still asked for the advance share
+     * they were quoted (settings-driven %), so those customers aren't
+     * suddenly shown a different amount.
      */
     public function advanceAmountPkr(): int
     {
-        $settings = app(\App\Settings\StoreSettings::class);
-
-        if ($this->items->contains(fn ($i) => $i->product_tier_snapshot === 'bridal_trio')) {
-            $pct = max(0, min(100, $settings->bridal_deposit_percent));
-            return (int) round($this->total_pkr * ($pct / 100));
+        if (! $this->requires_advance || $this->isBridalTrio()) {
+            return (int) $this->total_pkr;
         }
 
-        if ($this->requires_advance) {
-            $pct = max(0, min(100, $settings->advance_percent));
-            return (int) round($this->total_pkr * ($pct / 100));
-        }
+        $pct = max(0, min(100, (int) app(\App\Settings\StoreSettings::class)->advance_percent));
 
-        return $this->total_pkr;
+        return (int) round($this->total_pkr * ($pct / 100));
+    }
+
+    /** True only for older orders still on the advance-then-balance flow. */
+    public function isLegacyAdvanceOrder(): bool
+    {
+        return $this->requires_advance && $this->advanceAmountPkr() < (int) $this->total_pkr;
     }
 
     /**
@@ -338,6 +340,53 @@ class Order extends Model
         }
 
         return "{$emoji} awaiting payment · {$time}";
+    }
+
+    /**
+     * wa.me link with a status-aware update for the customer, so Mona can
+     * confirm payment / production / dispatch on WhatsApp instead of relying
+     * on email alone. Null when there's no usable phone number.
+     */
+    public function whatsappUpdateUrl(): ?string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $this->customer_phone);
+        if (strlen($digits) < 10) {
+            return null;
+        }
+        // Checkout stores the local part after a fixed +92 prefix (3001234567);
+        // older rows may be 03001234567 or 923001234567.
+        if (str_starts_with($digits, '0')) {
+            $digits = '92' . substr($digits, 1);
+        } elseif (strlen($digits) === 10 && str_starts_with($digits, '3')) {
+            $digits = '92' . $digits;
+        }
+
+        return "https://wa.me/{$digits}?text=" . rawurlencode($this->whatsappUpdateMessage());
+    }
+
+    public function whatsappUpdateMessage(): string
+    {
+        $first    = \Illuminate\Support\Str::of((string) $this->customer_name)->explode(' ')->first() ?: 'there';
+        $num      = $this->order_number;
+        $total    = 'Rs. ' . number_format((int) $this->total_pkr);
+        $dispatch = $this->estimatedDispatchAt()->format('D, j M');
+        $track    = route('track');
+        $hello    = "Hello {$first}, this is Nails by Mona 💜\n\n";
+
+        return match ($this->status) {
+            OrderStatus::New => $this->payment_status === PaymentStatus::Verifying
+                ? $hello . "Thank you for sending your payment for order {$num}. We're checking it now and will confirm shortly."
+                : $hello . "Thank you for your order {$num}. To start making your set, please send {$total} and upload the payment screenshot on your order page. You can find your order here: {$track}",
+            OrderStatus::Confirmed => $hello . "Your payment of " . 'Rs. ' . number_format((int) ($this->advance_paid_pkr ?: $this->total_pkr))
+                . " for order {$num} is confirmed. We're starting on your set now — expected dispatch around {$dispatch}.\n\nTrack your order any time: {$track}",
+            OrderStatus::InProduction => $hello . "Your set for order {$num} is now being made by hand. Expected dispatch around {$dispatch}.",
+            OrderStatus::Shipped => $hello . "Your order {$num} is on its way"
+                . ($this->courier ? " with {$this->courier->label()}" : '')
+                . ($this->tracking_number ? ". Tracking number: {$this->tracking_number}" : '') . '.'
+                . (($url = $this->courierTrackingUrl()) ? "\n\nTrack it here: {$url}" : ''),
+            OrderStatus::Delivered => $hello . "Your order {$num} should have arrived — we hope you love it! If any nail doesn't sit right, message us within 7 days for your free first refit.",
+            default => $hello . "About your order {$num} — ",
+        };
     }
 
     /** Courier tracking URL from config. */

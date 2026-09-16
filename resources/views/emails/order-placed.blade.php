@@ -39,30 +39,14 @@
 
 <div class="divider"></div>
 
-{{-- Payment instructions — percentages and rupee amounts read from
-     StoreSettings via the Order::advanceAmountPkr() helper. --}}
-@php
-  $settings    = app(\App\Settings\StoreSettings::class);
-  $isBridalTrio = $order->isBridalTrio();
-  $bridalPct   = max(0, min(100, (int) $settings->bridal_deposit_percent));
-  $advancePct  = max(0, min(100, (int) $settings->advance_percent));
-  $advanceRs   = $order->advanceAmountPkr();
-@endphp
-
-@if($isBridalTrio)
+{{-- Payment instructions. Full payment up front; older partial-advance
+     orders keep their quoted advance via Order::advanceAmountPkr(). --}}
+@if($order->isLegacyAdvanceOrder())
 <div class="notice">
-  @if($bridalPct >= 100)
-    <p><strong>Bridal Trio</strong> — Paid in full up-front to reserve your production slot and lock in your event dates. Total: <strong>Rs.&nbsp;{{ number_format($order->total_pkr) }}</strong>. Payment details are on your confirmation page.</p>
-  @else
-    <p><strong>Bridal Trio</strong> — A {{ $bridalPct }}% deposit of <strong>Rs.&nbsp;{{ number_format($advanceRs) }}</strong> is required to reserve your production slot. I'll send the payment details on WhatsApp shortly.</p>
-  @endif
-</div>
-@elseif($order->requires_advance)
-<div class="notice">
-  <p>A <strong>{{ $advancePct }}% advance of Rs.&nbsp;{{ number_format($advanceRs) }}</strong> is required before production begins. I'll reach out on WhatsApp with details.</p>
+  <p>An advance of <strong>Rs.&nbsp;{{ number_format($order->advanceAmountPkr()) }}</strong> is required before production begins. Payment details are on your confirmation page.</p>
 </div>
 @else
-<p>To confirm your order, please send <strong>Rs.&nbsp;{{ number_format($order->total_pkr) }}</strong> using the method you selected. Payment details are on your confirmation page.</p>
+<p>To confirm your order, please send the full amount of <strong>Rs.&nbsp;{{ number_format($order->total_pkr) }}</strong> using the method you selected. Payment details are on your confirmation page.</p>
 @endif
 
 <p style="font-size:14px;color:#7A6E65">Your order goes into production once I verify your payment — usually within 24 hours. Estimated dispatch: <strong>{{ $order->estimatedDispatchAt()->format('D, d M Y') }}</strong>.</p>

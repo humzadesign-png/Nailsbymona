@@ -118,16 +118,9 @@ class ManageSettings extends Page
                         ->helperText('Set to 0 to disable free shipping.'),
                 ]),
 
-                FormSection::make('Advance & deposits')->columns(2)->schema([
-                    Forms\Components\TextInput::make('advance_threshold_pkr')
-                        ->label('Advance required above (PKR)')->numeric()->required()->prefix('Rs.')
-                        ->helperText('Orders ≥ this amount must pay a partial advance up-front.'),
-                    Forms\Components\TextInput::make('advance_percent')
-                        ->label('Advance percentage')->numeric()->required()->suffix('%')
-                        ->helperText('Typical: 20–30%.'),
-                    Forms\Components\TextInput::make('bridal_deposit_percent')
-                        ->label('Bridal Trio deposit')->numeric()->required()->suffix('%')
-                        ->helperText('Bridal Trio orders pay this percentage up-front. 100 = full advance.'),
+                // Advance / deposit settings removed from the form 2026-09-16:
+                // every order is now paid in full up front.
+                FormSection::make('Discounts')->columns(2)->schema([
                     Forms\Components\TextInput::make('reorder_discount_percent')
                         ->label('Returning-customer discount')->numeric()->required()->suffix('%')
                         ->helperText('Discount applied at checkout when sizing-on-file is matched.'),

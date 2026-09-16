@@ -715,7 +715,9 @@ class OrderController extends Controller
         }
 
         $total           = $afterDiscount + $shipping;
-        $requiresAdvance = $total >= max(0, $settings->advance_threshold_pkr);
+        // Full payment up front for every order (2026-09-16). Kept as a key so
+        // older orders' `requires_advance` history stays meaningful.
+        $requiresAdvance = false;
 
         $isBridalTrio = collect($bag)->contains(fn ($i) => ($i['tier'] ?? '') === 'bridal_trio');
 

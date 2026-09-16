@@ -23,7 +23,7 @@ class FaqSeeder extends Seeder
 
             // Payment
             ['category' => FaqCategory::Payment, 'sort_order' => 1, 'question' => 'What payment methods do you accept?', 'answer' => 'JazzCash, EasyPaisa, and bank transfer. All payments are verified manually within 24 hours. Upload your payment screenshot on the confirmation page and I\'ll confirm as soon as I\'ve checked it.'],
-            ['category' => FaqCategory::Payment, 'sort_order' => 2, 'question' => 'Do I pay the full amount upfront?', 'answer' => 'For orders under Rs. 5,000: full payment before production begins. For orders Rs. 5,000 and above: 30% advance to start, remainder before dispatch. For the Bridal Trio: full payment in advance.'],
+            ['category' => FaqCategory::Payment, 'sort_order' => 2, 'question' => 'Do I pay the full amount upfront?', 'answer' => 'Yes. Every set is made to measure for your nails, so all orders, including custom designs and the Bridal Trio, are paid in full before we start. We confirm your payment on WhatsApp within 24 hours, and your first refit is free if the fit isn't right.'],
             ['category' => FaqCategory::Payment, 'sort_order' => 3, 'question' => 'What happens if I don\'t pay within 72 hours?', 'answer' => 'I\'ll send a gentle reminder at 24 and 48 hours. If payment hasn\'t been received by 72 hours, the order is automatically cancelled. You\'re welcome to place a new order any time.'],
 
             // Shipping

@@ -13,6 +13,7 @@ class ViewOrder extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            OrderResource::whatsappUpdateAction(),
             OrderResource::recordNailSizesAction(),
             Actions\EditAction::make(),
         ];

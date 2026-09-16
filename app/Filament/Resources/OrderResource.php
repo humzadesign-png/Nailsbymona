@@ -149,29 +149,19 @@ class OrderResource extends Resource
             ->actions([
                 Actions\ViewAction::make(),
 
-                Actions\Action::make('whatsapp')
-                    ->label('WhatsApp')
-                    ->icon('heroicon-o-chat-bubble-oval-left-ellipsis')
-                    ->color('gray')
-                    ->visible(fn (Order $r) => filled($r->customer_phone))
-                    ->url(function (Order $r) {
-                        $digits = preg_replace('/\D+/', '', $r->customer_phone ?? '');
-                        $msg    = "Hello, this is Mona. About your order {$r->order_number} —";
-                        return "https://wa.me/{$digits}?text=" . rawurlencode($msg);
-                    })
-                    ->openUrlInNewTab(),
+                self::whatsappUpdateAction(),
 
                 Actions\Action::make('confirm')
-                    ->label('Confirm: full payment')
+                    ->label('Confirm payment')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->visible(fn (Order $r) => $r->status === OrderStatus::New)
                     ->requiresConfirmation()
-                    ->modalHeading('Confirm full payment')
+                    ->modalHeading('Confirm payment')
                     ->modalDescription(fn (Order $r) =>
                         'This marks the full Rs. ' . number_format($r->total_pkr) .
-                        ' as paid and confirms the order. A confirmation email is sent to the customer.')
-                    ->modalSubmitActionLabel('Yes, confirm full payment')
+                        ' as paid and confirms the order. A confirmation email is sent, and you can send a WhatsApp confirmation next.')
+                    ->modalSubmitActionLabel('Yes, payment received')
                     ->action(function (Order $r) {
                         $r->update([
                             'status'           => OrderStatus::Confirmed,
@@ -188,14 +178,15 @@ class OrderResource extends Resource
                         } catch (\Throwable $e) {
                             \Log::error('PaymentVerified mail failed', ['order' => $r->id, 'e' => $e->getMessage()]);
                         }
-                        Notification::make()->title('Order confirmed — email sent to customer.')->success()->send();
+                        self::notifyWithWhatsapp($r, 'Payment confirmed — email sent.');
                     }),
 
                 Actions\Action::make('confirm_advance')
-                    ->label('Confirm: advance only')
+                    ->label('Confirm: advance only (older order)')
                     ->icon('heroicon-o-banknotes')
                     ->color('info')
-                    ->visible(fn (Order $r) => $r->status === OrderStatus::New && $r->requires_advance)
+                    // Only orders placed before full-payment-up-front (2026-09-16).
+                    ->visible(fn (Order $r) => $r->status === OrderStatus::New && $r->isLegacyAdvanceOrder())
                     ->requiresConfirmation()
                     ->modalHeading('Confirm advance payment')
                     ->modalDescription(fn (Order $r) =>
@@ -217,7 +208,7 @@ class OrderResource extends Resource
                         } catch (\Throwable $e) {
                             \Log::error('PaymentVerified mail failed', ['order' => $r->id, 'e' => $e->getMessage()]);
                         }
-                        Notification::make()->title('Advance recorded — email sent to customer.')->success()->send();
+                        self::notifyWithWhatsapp($r, 'Advance recorded — email sent.');
                     }),
 
                 Actions\Action::make('mark_balance_paid')
@@ -257,7 +248,7 @@ class OrderResource extends Resource
                         } catch (\Throwable $e) {
                             \Log::error('OrderInProduction mail failed', ['order' => $r->id, 'e' => $e->getMessage()]);
                         }
-                        Notification::make()->title('Order moved to production — email sent to customer.')->success()->send();
+                        self::notifyWithWhatsapp($r, 'Moved to production — email sent.');
                     }),
                 Actions\Action::make('ship')
                     ->label('Mark Shipped')
@@ -299,7 +290,7 @@ class OrderResource extends Resource
                         } catch (\Throwable $e) {
                             \Log::error('OrderShipped mail failed', ['order' => $r->id, 'e' => $e->getMessage()]);
                         }
-                        Notification::make()->title('Order marked as shipped — email sent to customer.')->success()->send();
+                        self::notifyWithWhatsapp($r, 'Marked as shipped — email sent.');
                     }),
                 Actions\Action::make('deliver')
                     ->label('Mark Delivered')
@@ -350,7 +341,7 @@ class OrderResource extends Resource
             ->bulkActions([
                 Actions\BulkActionGroup::make([
                     Actions\BulkAction::make('confirm_bulk')
-                        ->label('Confirm: full payment')
+                        ->label('Confirm payment')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
@@ -637,6 +628,44 @@ class OrderResource extends Resource
     }
 
     // ── "Record nail sizes" action — reused on table row and view page header ─
+
+    /**
+     * Opens WhatsApp with a status-aware update (payment confirmed, in
+     * production, shipped with tracking, delivered). Many customers don't read
+     * email, so WhatsApp is the dependable way to reach them.
+     */
+    public static function whatsappUpdateAction(): Actions\Action
+    {
+        return Actions\Action::make('whatsapp')
+            ->label('WhatsApp update')
+            ->icon('heroicon-o-chat-bubble-oval-left-ellipsis')
+            ->color('success')
+            ->visible(fn (Order $record) => $record->whatsappUpdateUrl() !== null)
+            ->url(fn (Order $record) => $record->whatsappUpdateUrl())
+            ->openUrlInNewTab();
+    }
+
+    /** Success toast with a one-tap "Send on WhatsApp" button for the new status. */
+    private static function notifyWithWhatsapp(Order $order, string $title): void
+    {
+        $order->refresh();
+        $url = $order->whatsappUpdateUrl();
+
+        Notification::make()
+            ->title($title)
+            ->body($url ? 'Let the customer know on WhatsApp too.' : 'No WhatsApp number on this order.')
+            ->success()
+            ->persistent()
+            ->actions($url ? [
+                Actions\Action::make('send_whatsapp')
+                    ->label('Send on WhatsApp')
+                    ->button()
+                    ->color('success')
+                    ->url($url, shouldOpenInNewTab: true)
+                    ->close(),
+            ] : [])
+            ->send();
+    }
 
     public static function recordNailSizesAction(): Actions\Action
     {
