@@ -56,8 +56,11 @@ class CustomOrderRequestResource extends Resource
 
                 Tables\Columns\TextColumn::make('customer_name')
                     ->label('Customer')
-                    ->searchable(['customer_name', 'customer_phone'])
-                    ->description(fn (CustomOrderRequest $r) => $r->customer_phone),
+                    ->searchable(['customer_name', 'customer_phone', 'customer_instagram'])
+                    ->description(fn (CustomOrderRequest $r) => collect([
+                        $r->customer_phone,
+                        $r->customer_instagram ? '@' . $r->customer_instagram : null,
+                    ])->filter()->implode('  ·  ') ?: null),
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
@@ -114,8 +117,17 @@ class CustomOrderRequestResource extends Resource
                 ->label('Send on WhatsApp')
                 ->icon('heroicon-o-chat-bubble-oval-left-ellipsis')
                 ->color('success')
-                ->visible(fn (CustomOrderRequest $record) => $record->isUsable())
+                ->visible(fn (CustomOrderRequest $record) => $record->isUsable() && $record->whatsappUrl())
                 ->url(fn (CustomOrderRequest $record) => $record->whatsappUrl())
+                ->openUrlInNewTab(),
+
+            Actions\Action::make('instagram')
+                ->label('Open Instagram chat')
+                ->icon('heroicon-o-camera')
+                ->color('gray')
+                ->tooltip('Copy the message on the edit page first, then paste it into the chat.')
+                ->visible(fn (CustomOrderRequest $record) => $record->isUsable() && $record->instagramUrl())
+                ->url(fn (CustomOrderRequest $record) => $record->instagramUrl())
                 ->openUrlInNewTab(),
 
             Actions\Action::make('extend')
@@ -153,6 +165,19 @@ class CustomOrderRequestResource extends Resource
         ];
     }
 
+    /** Read-only text with a copy-to-clipboard button (Alpine is bundled with Filament). */
+    private static function copyRow(string $label, string $text, string $buttonLabel): string
+    {
+        return '<div x-data="{ copied: false, text: ' . e(json_encode($text)) . ' }" class="mb-3">'
+            . '<p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">' . e($label) . '</p>'
+            . '<div class="flex flex-wrap items-start gap-3">'
+            . '<pre class="flex-1 min-w-0 whitespace-pre-wrap break-all rounded-lg bg-gray-100 dark:bg-gray-800 px-3 py-2 text-sm font-sans">' . e($text) . '</pre>'
+            . '<button type="button" class="text-sm font-semibold text-primary-600 hover:underline"'
+            . ' x-on:click="navigator.clipboard.writeText(text); copied = true; setTimeout(() => copied = false, 2000)"'
+            . ' x-text="copied ? \'✓ Copied\' : \'' . e($buttonLabel) . '\'"></button>'
+            . '</div></div>';
+    }
+
     private static function statusLabel(CustomOrderRequest $r): string
     {
         if ($r->status === CustomOrderStatus::Pending && $r->isExpired()) {
@@ -168,7 +193,7 @@ class CustomOrderRequestResource extends Resource
     {
         return $schema->components([
             FormSection::make('Customer link')
-                ->description('Copy this link or use "Send on WhatsApp" at the top of the page.')
+                ->description('Send on WhatsApp with the button at the top, or copy the message and paste it into Instagram.')
                 ->visible(fn (?CustomOrderRequest $record) => $record !== null)
                 ->schema([
                     Forms\Components\Placeholder::make('link')
@@ -177,15 +202,11 @@ class CustomOrderRequestResource extends Resource
                             if (! $record) {
                                 return '';
                             }
-                            $url = e($record->publicUrl());
+
                             return new HtmlString(
-                                '<div x-data="{ copied: false }" class="flex flex-wrap items-center gap-3">'
-                                . '<code class="text-sm break-all rounded-lg bg-gray-100 dark:bg-gray-800 px-3 py-2">' . $url . '</code>'
-                                . '<button type="button" class="text-sm font-semibold text-primary-600 hover:underline"'
-                                . ' x-on:click="navigator.clipboard.writeText(\'' . $url . '\'); copied = true; setTimeout(() => copied = false, 2000)"'
-                                . ' x-text="copied ? \'✓ Copied\' : \'Copy link\'"></button>'
-                                . '</div>'
-                                . '<p class="mt-2 text-sm text-gray-500">Status: ' . e(self::statusLabel($record))
+                                self::copyRow('Link', $record->publicUrl(), 'Copy link')
+                                . self::copyRow('Message (for Instagram, Facebook, SMS…)', $record->shareMessage(), 'Copy message')
+                                . '<p class="mt-3 text-sm text-gray-500">Status: ' . e(self::statusLabel($record))
                                 . ($record->opened_at ? ' · opened ' . e($record->opened_at->diffForHumans()) : ' · not opened yet')
                                 . '</p>'
                             );
@@ -193,7 +214,7 @@ class CustomOrderRequestResource extends Resource
                 ]),
 
             FormSection::make('Customer')
-                ->description('As they appear in your Instagram / WhatsApp chat. The customer can correct these at checkout.')
+                ->description('Only the name is required. Add a WhatsApp number or Instagram handle — whichever chat the customer messaged you on. They can correct details at checkout.')
                 ->columns(2)
                 ->schema([
                     Forms\Components\TextInput::make('customer_name')
@@ -201,12 +222,18 @@ class CustomOrderRequestResource extends Resource
                         ->required()
                         ->maxLength(100),
                     Forms\Components\TextInput::make('customer_phone')
-                        ->label('WhatsApp number')
-                        ->required()
+                        ->label('WhatsApp number (optional)')
                         ->tel()
                         ->maxLength(30)
                         ->placeholder('03XX XXXXXXX')
-                        ->helperText('Used for the "Send on WhatsApp" button and to recognise returning customers.'),
+                        ->helperText('Shows the "Send on WhatsApp" button.'),
+                    Forms\Components\TextInput::make('customer_instagram')
+                        ->label('Instagram handle (optional)')
+                        ->prefix('@')
+                        ->maxLength(60)
+                        ->placeholder('username')
+                        ->rule('regex:/^@?[A-Za-z0-9._\/:]+$/')
+                        ->helperText('Shows the "Open Instagram chat" button.'),
                     Forms\Components\TextInput::make('customer_email')
                         ->label('Email (optional)')
                         ->email()

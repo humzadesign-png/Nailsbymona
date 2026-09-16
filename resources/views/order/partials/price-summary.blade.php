@@ -11,9 +11,9 @@
   </div>
   @endforeach
 
-  @if ($isReturning && $totals['discount'] > 0)
+  @if ($totals['discount'] > 0)
   <div class="flex justify-between items-center pt-2 border-t border-hairline">
-    <span class="font-sans text-caption text-stone">Reorder discount (–5%)</span>
+    <span class="font-sans text-caption text-stone">Reorder discount (–{{ (int) $settings->reorder_discount_percent }}%)</span>
     <span class="font-sans text-caption text-lavender-ink">–Rs.&nbsp;{{ number_format($totals['discount']) }}</span>
   </div>
   @endif

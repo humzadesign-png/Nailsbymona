@@ -266,7 +266,7 @@ class OrderController extends Controller
         $bag         = session('order_form.bag', []);
         $isReturning = session('order_form.is_returning', false);
         $prefill     = session('order_form.customer', []);
-        $totals      = $this->calculateTotals($bag, $isReturning, $this->activeCustomRequest());
+        $totals      = $this->calculateTotals($bag, $this->reorderDiscountApplies(), $this->activeCustomRequest());
 
         return view('order.details', compact('bag', 'isReturning', 'prefill', 'totals'));
     }
@@ -338,7 +338,7 @@ class OrderController extends Controller
         $bag          = $verifiedBag;
         $isReturning  = session('order_form.is_returning', false);
         $customer     = session('order_form.customer');
-        $totals       = $this->calculateTotals($bag, $isReturning, $this->activeCustomRequest());
+        $totals       = $this->calculateTotals($bag, $this->reorderDiscountApplies(), $this->activeCustomRequest());
         $sizingMethod = session('order_form.sizing_method', 'whatsapp_pending');
 
         return view('order.payment', compact('bag', 'isReturning', 'customer', 'totals', 'sizingMethod'));
@@ -378,7 +378,10 @@ class OrderController extends Controller
         }
 
         $customRequest = $this->activeCustomRequest();
-        $isReturning = session('order_form.is_returning', false);
+        // "Returning" on the order = has a previous paid order (and so gets the
+        // reorder discount). Skipping the camera with saved sizing is tracked
+        // separately via sizing_capture_method = from_profile.
+        $isReturning = $this->reorderDiscountApplies();
         $customer    = session('order_form.customer');
         $totals      = $this->calculateTotals($verifiedBag, $isReturning, $customRequest);
         $method      = PaymentMethod::from($request->input('payment_method'));
@@ -674,7 +677,22 @@ class OrderController extends Controller
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /** Calculate order totals from the session bag. */
-    private function calculateTotals(array $bag, bool $isReturning, ?CustomOrderRequest $custom = null): array
+    /**
+     * Reorder discount only for a matched customer with a previous paid order.
+     * Re-checked from the database on every step, so an order cancelled while
+     * this checkout is open removes the discount before the order is placed.
+     */
+    private function reorderDiscountApplies(): bool
+    {
+        $customerId = session('order_form.customer_id');
+        if (! session('order_form.is_returning') || ! $customerId) {
+            return false;
+        }
+
+        return (bool) Customer::find($customerId)?->qualifiesForReorderDiscount();
+    }
+
+    private function calculateTotals(array $bag, bool $applyReorderDiscount, ?CustomOrderRequest $custom = null): array
     {
         $settings = app(StoreSettings::class);
 
@@ -685,7 +703,7 @@ class OrderController extends Controller
 
         $discountRate  = max(0, $settings->reorder_discount_percent) / 100;
         // Custom designs are quoted prices — no reorder discount on top.
-        $discount      = ($isReturning && ! $custom) ? (int) round($subtotal * $discountRate) : 0;
+        $discount      = ($applyReorderDiscount && ! $custom) ? (int) round($subtotal * $discountRate) : 0;
         $afterDiscount = $subtotal - $discount;
 
         $freeAbove = $settings->shipping_free_above;

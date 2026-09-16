@@ -23,7 +23,7 @@ class CustomOrderRequest extends Model
 
     protected $fillable = [
         'token',
-        'customer_name', 'customer_phone', 'customer_email',
+        'customer_name', 'customer_phone', 'customer_instagram', 'customer_email',
         'design_title', 'design_description', 'reference_images',
         'price_pkr', 'shipping_pkr', 'lead_time_days',
         'status', 'expires_at', 'opened_at', 'order_id',
@@ -51,6 +51,9 @@ class CustomOrderRequest extends Model
 
         // The admin picks a date — keep the link valid through the end of that day.
         static::saving(function (self $request) {
+            if ($request->isDirty('customer_instagram')) {
+                $request->customer_instagram = self::normalizeInstagram($request->customer_instagram);
+            }
             if ($request->expires_at && $request->isDirty('expires_at')) {
                 $request->expires_at = $request->expires_at->copy()->endOfDay();
             }
@@ -88,23 +91,49 @@ class CustomOrderRequest extends Model
             ->all();
     }
 
-    /** Pre-filled WhatsApp message containing the link, sent from the admin panel. */
-    public function whatsappUrl(): string
+    /** The message Mona sends with the link — same text for WhatsApp and Instagram. */
+    public function shareMessage(): string
+    {
+        $firstName = Str::of($this->customer_name)->explode(' ')->first();
+
+        return "Hello {$firstName}, this is Nails by Mona 💜\n\n"
+             . "Your custom design \"{$this->design_title}\" is ready to order. "
+             . "Please open this link to take your nail sizing photos (our camera guide shows you exactly how) and complete your payment:\n\n"
+             . $this->publicUrl() . "\n\n"
+             . "The link is valid until " . $this->expires_at?->format('j M') . ".";
+    }
+
+    /** wa.me link with the message pre-filled, or null when there's no WhatsApp number. */
+    public function whatsappUrl(): ?string
     {
         $digits = preg_replace('/\D+/', '', $this->customer_phone ?? '');
+        if (strlen($digits) < 7) {
+            return null;
+        }
         // Pakistani local format 03xx… → 923xx… so wa.me resolves the number.
         if (str_starts_with($digits, '0')) {
             $digits = '92' . substr($digits, 1);
         }
 
-        $firstName = Str::of($this->customer_name)->explode(' ')->first();
-        $msg = "Hello {$firstName}, this is Nails by Mona 💜\n\n"
-             . "Your custom design \"{$this->design_title}\" is ready to order. "
-             . "Please open this link to take your nail sizing photos (our camera guide shows you exactly how) and complete your payment:\n\n"
-             . $this->publicUrl() . "\n\n"
-             . "The link is valid until " . $this->expires_at?->format('j M') . ".";
+        return "https://wa.me/{$digits}?text=" . rawurlencode($this->shareMessage());
+    }
 
-        return "https://wa.me/{$digits}?text=" . rawurlencode($msg);
+    /** Opens an Instagram DM with the customer (Instagram doesn't support pre-filled text). */
+    public function instagramUrl(): ?string
+    {
+        $handle = self::normalizeInstagram($this->customer_instagram);
+
+        return $handle ? "https://ig.me/m/{$handle}" : null;
+    }
+
+    /** "@Sana.Nails " or "instagram.com/sana.nails/" → "sana.nails". */
+    public static function normalizeInstagram(?string $raw): ?string
+    {
+        $handle = trim((string) $raw);
+        $handle = preg_replace('#^(https?://)?(www\.)?instagram\.com/#i', '', $handle);
+        $handle = trim($handle, "@/ \t");
+
+        return preg_match('/^[A-Za-z0-9._]{1,30}$/', $handle) ? strtolower($handle) : null;
     }
 
     /**

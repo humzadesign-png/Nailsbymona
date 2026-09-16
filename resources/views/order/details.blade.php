@@ -64,10 +64,16 @@
         <div class="h-0.5 w-10 bg-lavender mb-8"></div>
 
         {{-- Reorder discount banner --}}
-        @if ($isReturning)
+        @if ($totals['discount'] > 0)
         <div class="mb-6 bg-lavender-wash border border-hairline rounded-xl px-5 py-4">
           <p class="font-sans text-body text-lavender-ink">
-            <strong>Welcome back!</strong> A 5% reorder discount has been applied to your order.
+            <strong>Welcome back!</strong> A {{ (int) $settings->reorder_discount_percent }}% reorder discount has been applied to your order.
+          </p>
+        </div>
+        @elseif ($isReturning)
+        <div class="mb-6 bg-lavender-wash border border-hairline rounded-xl px-5 py-4">
+          <p class="font-sans text-body text-lavender-ink">
+            <strong>Welcome back!</strong> Your sizing is on file, so there are no photos to take this time.
           </p>
         </div>
         @endif

@@ -46,6 +46,24 @@ class Customer extends Model
     }
 
     /**
+     * The reorder discount is for customers who have actually bought before:
+     * at least one order whose payment was confirmed (Confirmed or later).
+     * Cancelled and still-unpaid orders don't count, so if a first order is
+     * cancelled the next one is treated as a first order again.
+     */
+    public function qualifiesForReorderDiscount(): bool
+    {
+        return $this->orders()
+            ->whereIn('status', [
+                \App\Enums\OrderStatus::Confirmed,
+                \App\Enums\OrderStatus::InProduction,
+                \App\Enums\OrderStatus::Shipped,
+                \App\Enums\OrderStatus::Delivered,
+            ])
+            ->exists();
+    }
+
+    /**
      * Normalize a Pakistani-style phone number to its last 10 significant
      * digits (the unique identifier of the line) so that all of these match:
      *

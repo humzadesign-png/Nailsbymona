@@ -447,6 +447,15 @@
         </button>
       </div>
 
+      {{-- Upload error (filled by camera-capture.js) --}}
+      <div id="sizing-upload-error" class="hidden mb-4 bg-paper border-l-4 border-danger rounded-r-xl px-5 py-4" role="alert">
+        <p data-message class="font-sans text-body text-graphite leading-relaxed"></p>
+        <button type="button" id="upload-error-use-upload"
+                class="mt-2 font-sans text-caption text-lavender-ink hover:text-lavender font-medium underline underline-offset-4">
+          Upload photos from my gallery instead →
+        </button>
+      </div>
+
       {{-- Submit --}}
       <button id="submit-sizing-btn"
               class="w-full bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full py-4 text-base transition-colors duration-200">
@@ -551,9 +560,19 @@
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="{{ asset('js/camera-capture.js') }}"></script>
+<script src="{{ asset('js/camera-capture.js') }}?v={{ filemtime(public_path('js/camera-capture.js')) }}"></script>
 <script>
 $(function () {
+
+  // Kick off the camera capture module first, so the desktop screen's
+  // "Use this device's camera" escape hatch still has a working camera.
+  if (typeof NbmCamera !== 'undefined') {
+    NbmCamera.init({
+      uploadRoute: '{{ route('order.sizing.upload') }}',
+      nextUrl:     '{{ route('order.details') }}',
+      csrfToken:   '{{ csrf_token() }}',
+    });
+  }
 
   // ── Desktop detection ─────────────────────────────────────────────────────
   function isDesktopDevice() {
@@ -613,18 +632,14 @@ $(function () {
   }
   // ── End desktop detection ─────────────────────────────────────────────────
 
-  // Kick off the camera capture module
-  if (typeof NbmCamera !== 'undefined') {
-    NbmCamera.init({
-      uploadRoute: '{{ route('order.sizing.upload') }}',
-      nextUrl:     '{{ route('order.details') }}',
-      csrfToken:   '{{ csrf_token() }}',
-    });
-  }
-
   // Camera back button → return to explainer
   $('#camera-back-btn').on('click', function () {
     showState('explainer');
+  });
+
+  // Upload error → switch to the file-upload fallback
+  $('#upload-error-use-upload').on('click', function () {
+    showState('upload');
   });
 
   // Use upload fallback button (from explainer)
@@ -683,12 +698,14 @@ $(function () {
       data:        fd,
       processData: false,
       contentType: false,
+      headers:     { 'Accept': 'application/json' },
     })
     .done(function () {
       window.location.href = '{{ route('order.details') }}';
     })
-    .fail(function () {
-      alert('Upload failed. Please check your photos and try again.');
+    .fail(function (xhr) {
+      var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Upload failed. Please check your photos and try again.';
+      alert(msg + ' (Error ' + xhr.status + ')');
       $('#upload-submit-btn').text('Submit photos →').prop('disabled', false).removeClass('opacity-75 cursor-not-allowed');
     });
   });

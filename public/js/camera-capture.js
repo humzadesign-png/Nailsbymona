@@ -270,18 +270,33 @@
   }
 
   // ── Capture frame ──────────────────────────────────────────────────────────
+  // Long edge capped at 2000px: plenty of detail to read nail width against the
+  // coin, and keeps each upload well under 1 MB on slow mobile connections.
+  const MAX_EDGE = 2000;
+
   function captureFrame(photoType) {
     const video = document.getElementById('camera-video');
     if (!video || video.readyState < 2) return;
 
+    const srcW  = video.videoWidth  || 1280;
+    const srcH  = video.videoHeight || 720;
+    const scale = Math.min(1, MAX_EDGE / Math.max(srcW, srcH));
+
     const canvas = document.createElement('canvas');
-    canvas.width  = video.videoWidth  || 1280;
-    canvas.height = video.videoHeight || 720;
-    canvas.getContext('2d').drawImage(video, 0, 0);
+    canvas.width  = Math.round(srcW * scale);
+    canvas.height = Math.round(srcH * scale);
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Keep a data URL too — used by the upload retry path and as a fallback
+    // when a browser's toBlob() hands back null.
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    captures[photoType] = { blob: null, dataUrl: dataUrl };
 
     canvas.toBlob(blob => {
-      captures[photoType] = blob;
-    }, 'image/jpeg', 0.92);
+      if (captures[photoType] && captures[photoType].dataUrl === dataUrl) {
+        captures[photoType].blob = blob;
+      }
+    }, 'image/jpeg', 0.9);
   }
 
   // ── Preview thumbnails ─────────────────────────────────────────────────────
@@ -297,11 +312,10 @@
     if (notice) notice.style.display = hasOther ? 'none' : '';
   }
 
-  function setThumb(imgId, blob, wrapId) {
-    if (!blob) return;
-    const url = URL.createObjectURL(blob);
+  function setThumb(imgId, capture, wrapId) {
+    if (!capture) return;
     const img = document.getElementById(imgId);
-    if (img) img.src = url;
+    if (img) img.src = capture.dataUrl;
     if (wrapId) {
       const wrap = document.getElementById(wrapId);
       if (wrap) wrap.classList.remove('hidden');
@@ -371,61 +385,118 @@
     }
   }
 
-  // ── Upload sizing blobs ────────────────────────────────────────────────────
+  // ── Upload sizing photos ───────────────────────────────────────────────────
+  const PHOTO_ORDER = ['fingers', 'thumb', 'fingers_other', 'thumb_other'];
+
   async function submitSizing() {
     const btn = document.getElementById('submit-sizing-btn');
-    if (!btn) return;
+    if (!btn || btn.disabled) return;
 
-    btn.textContent = 'Submitting…';
-    btn.disabled    = true;
-    btn.classList.add('opacity-75', 'cursor-not-allowed');
-
-    const fd = new FormData();
-    fd.append('_token', config.csrfToken);
-
-    const order = [
-      { key: 'fingers',       type: 'fingers' },
-      { key: 'thumb',         type: 'thumb' },
-      { key: 'fingers_other', type: 'fingers_other' },
-      { key: 'thumb_other',   type: 'thumb_other' },
-    ];
-
-    let idx = 0;
-    order.forEach(({ key, type }) => {
-      if (captures[key]) {
-        fd.append(`photos[${idx}]`,      captures[key], `${type}.jpg`);
-        fd.append(`photo_types[${idx}]`, type);
-        idx++;
-      }
-    });
-
-    if (idx === 0) {
-      alert('No photos captured. Please take at least 2 photos before submitting.');
-      btn.textContent = 'Submit my sizing →';
-      btn.disabled    = false;
-      btn.classList.remove('opacity-75', 'cursor-not-allowed');
+    const types = PHOTO_ORDER.filter(t => captures[t]);
+    if (!captures.fingers || !captures.thumb) {
+      showUploadError('Please take both photos — your fingers and your thumb — before submitting.');
       return;
     }
 
-    try {
-      const res = await fetch(config.uploadRoute, { method: 'POST', body: fd });
+    setSubmitting(btn, true);
+    hideUploadError();
 
-      if (res.ok) {
-        stopStream();
-        window.location.href = config.nextUrl;
-      } else {
-        const data = await res.json().catch(() => ({}));
-        alert(data.message || 'Upload failed. Please try again or use the upload option instead.');
-        btn.textContent = 'Submit my sizing →';
-        btn.disabled    = false;
-        btn.classList.remove('opacity-75', 'cursor-not-allowed');
-      }
-    } catch (err) {
-      alert('Network error. Please check your connection and try again.');
-      btn.textContent = 'Submit my sizing →';
-      btn.disabled    = false;
-      btn.classList.remove('opacity-75', 'cursor-not-allowed');
+    // Attempt 1: multipart files. Attempt 2: the same photos as base64 text,
+    // which survives phone browsers that break multipart uploads.
+    let result = await send(buildMultipart(types));
+    if (!result.ok && result.status !== 419 && result.status !== 422) {
+      result = await send(buildBase64(types), true);
     }
+
+    if (result.ok) {
+      stopStream();
+      window.location.href = config.nextUrl;
+      return;
+    }
+
+    setSubmitting(btn, false);
+    if (result.status === 419) {
+      showUploadError('Your session expired. Please reload this page and take your photos again.');
+    } else if (result.status === 0) {
+      showUploadError('We couldn\'t reach the server — please check your internet connection and tap Submit again.');
+    } else {
+      showUploadError((result.message || 'Upload failed. Please tap Submit to try again, or upload your photos instead.')
+        + ' (Error ' + result.status + ')');
+    }
+  }
+
+  function buildMultipart(types) {
+    const fd = new FormData();
+    fd.append('_token', config.csrfToken);
+    types.forEach((type, i) => {
+      const cap  = captures[type];
+      const blob = cap.blob || dataUrlToBlob(cap.dataUrl);
+      fd.append('photos[' + i + ']', new File([blob], type + '.jpg', { type: 'image/jpeg' }));
+      fd.append('photo_types[' + i + ']', type);
+    });
+    return fd;
+  }
+
+  function buildBase64(types) {
+    return JSON.stringify({
+      _token:        config.csrfToken,
+      photos_base64: types.map(t => captures[t].dataUrl),
+      photo_types:   types,
+    });
+  }
+
+  function send(body, isJson) {
+    return new Promise(resolve => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', config.uploadRoute, true);
+      xhr.timeout = 90000;
+      xhr.setRequestHeader('Accept', 'application/json');
+      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+      xhr.setRequestHeader('X-CSRF-TOKEN', config.csrfToken);
+      if (isJson) xhr.setRequestHeader('Content-Type', 'application/json');
+
+      xhr.onload = () => {
+        let data = {};
+        try { data = JSON.parse(xhr.responseText); } catch (e) { /* non-JSON error page */ }
+        resolve({
+          ok:      xhr.status >= 200 && xhr.status < 300 && data.success !== false,
+          status:  xhr.status,
+          message: data.message,
+        });
+      };
+      xhr.onerror   = () => resolve({ ok: false, status: 0 });
+      xhr.ontimeout = () => resolve({ ok: false, status: 0 });
+      xhr.send(body);
+    });
+  }
+
+  function dataUrlToBlob(dataUrl) {
+    const [head, b64] = dataUrl.split(',');
+    const mime  = (head.match(/data:([^;]+)/) || [])[1] || 'image/jpeg';
+    const bin   = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  }
+
+  function setSubmitting(btn, busy) {
+    btn.textContent = busy ? 'Submitting…' : 'Submit my sizing →';
+    btn.disabled    = busy;
+    btn.classList.toggle('opacity-75', busy);
+    btn.classList.toggle('cursor-not-allowed', busy);
+  }
+
+  function showUploadError(message) {
+    const box = document.getElementById('sizing-upload-error');
+    if (!box) { alert(message); return; }
+    box.querySelector('[data-message]').textContent = message;
+    box.classList.remove('hidden');
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function hideUploadError() {
+    const box = document.getElementById('sizing-upload-error');
+    if (box) box.classList.add('hidden');
   }
 
   // ── Utility ────────────────────────────────────────────────────────────────
