@@ -56,10 +56,15 @@
       configureOverlay('thumb');
       updatePhotoStrip(state);
       show('state-camera');
-      startBrightnessLoop();        // stream already running
+      // Normally already running; restarts it after a Retake from the preview.
+      startStream().then(startBrightnessLoop);
 
     } else if (state === 'preview') {
       stopBrightnessLoop();
+      // Release the camera while the customer reviews and submits. iPhone
+      // Chrome uploads crawl (30s+ for 700 KB) while a page holds the camera;
+      // with it released they finish in a few seconds. Retake restarts it.
+      stopStream();
       buildPreviewThumbnails();
       show('state-preview');
 
@@ -95,7 +100,10 @@
       stream = null;
     }
     const video = document.getElementById('camera-video');
-    if (video) video.srcObject = null;
+    if (video) {
+      video.pause();
+      video.srcObject = null;
+    }
   }
 
   // ── Overlay and strip helpers ──────────────────────────────────────────────
