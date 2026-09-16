@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderSizingPhoto;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -28,7 +29,7 @@ class OrderSizingPhotoController extends Controller
      * in OrderController@store after step 3). We store photos in a temp session directory
      * keyed by a sizing session ULID and attach them to the order on creation.
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request): JsonResponse|RedirectResponse
     {
         // Two accepted payloads:
         //  • multipart `photos[]` files (normal path)
@@ -57,10 +58,7 @@ class OrderSizingPhotoController extends Controller
                 'errors' => $validator->errors()->all(),
             ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'We couldn\'t read your photos. Please retake them and try again.',
-            ], 422);
+            return $this->failure($request, 'We couldn\'t read your photos. Please retake them and try again.');
         }
 
         // Generate or reuse a sizing session ID.
@@ -90,10 +88,7 @@ class OrderSizingPhotoController extends Controller
             } catch (\Throwable $e) {
                 Log::warning('Sizing photo could not be decoded', ['type' => $type, 'error' => $e->getMessage()]);
 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'One of your photos couldn\'t be processed. Please retake it and try again.',
-                ], 422);
+                return $this->failure($request, 'One of your photos couldn\'t be processed. Please retake it and try again.');
             }
 
             $storedPaths[] = [
@@ -108,7 +103,21 @@ class OrderSizingPhotoController extends Controller
         session(['order_form.sizing_photos' => $storedPaths]);
         session(['order_form.sizing_method' => 'live_camera']);
 
+        // Native form submission (iPhone Chrome/Firefox/Edge) → go straight to step 2.
+        if ($request->boolean('native_submit')) {
+            return redirect()->route('order.details');
+        }
+
         return response()->json(['success' => true, 'count' => count($storedPaths)]);
+    }
+
+    private function failure(Request $request, string $message): JsonResponse|RedirectResponse
+    {
+        if ($request->boolean('native_submit')) {
+            return redirect()->route('order.camera')->with('sizing_upload_error', $message);
+        }
+
+        return response()->json(['success' => false, 'message' => $message], 422);
     }
 
     /** Raw image bytes from a `data:image/...;base64,` URL. */

@@ -405,26 +405,27 @@
     setSubmitting(btn, true);
     hideUploadError();
 
-    // TEMP diagnostics (iPhone Chrome slow upload) — remove once resolved.
-    const diag = { t0: Date.now(), skipMultipart: multipartKnownBroken(), steps: [],
-      sizes: types.map(t => Math.round((captures[t].dataUrl || '').length / 1024) + 'KB'),
-      blobs: types.map(t => captures[t].blob ? Math.round(captures[t].blob.size / 1024) + 'KB' : 'null') };
+    // Third-party iPhone browsers (Chrome, Firefox, Edge) push script-made
+    // uploads through their own slow bridge — measured 66s for 700 KB on
+    // iPhone Chrome vs 2.6s in Safari. A normal form submission uses the
+    // browser's native loader and is as fast as Safari.
+    if (usesSlowScriptUploads()) {
+      btn.textContent = 'Uploading your photos…';
+      stopStream();
+      submitNativeForm(types);
+      return;
+    }
 
     // Attempt 1: multipart files. Attempt 2: the same photos as base64 text,
     // which survives phone browsers that break multipart uploads.
     let result = { ok: false, status: 0 };
     if (!multipartKnownBroken()) {
-      const ts = Date.now();
       result = await send(buildMultipart(types), false, btn);
-      diag.steps.push(['multipart', result.status, Date.now() - ts]);
     }
     if (!result.ok && result.status !== 419 && result.status !== 422) {
       if (result.status <= 0 || result.status === 400) rememberMultipartBroken();
-      const ts = Date.now();
       result = await send(buildBase64(types), true, btn);
-      diag.steps.push(['base64', result.status, Date.now() - ts]);
     }
-    reportDiag(diag);
 
     if (result.ok) {
       stopStream();
@@ -443,12 +444,60 @@
     }
   }
 
-  function reportDiag(diag) {
+  function usesSlowScriptUploads() {
+    return /CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
+  }
+
+  /**
+   * Submit the photos with a real <form> POST. Files are attached through
+   * DataTransfer when the browser allows it; otherwise the photos go as
+   * base64 text fields. The server redirects to the next step itself.
+   */
+  function submitNativeForm(types) {
+    const form = document.createElement('form');
+    form.method  = 'POST';
+    form.action  = config.uploadRoute;
+    form.enctype = 'multipart/form-data';
+    form.style.display = 'none';
+
+    const addField = (name, value) => {
+      const input = document.createElement('input');
+      input.type  = 'hidden';
+      input.name  = name;
+      input.value = value;
+      form.appendChild(input);
+    };
+
+    addField('_token', config.csrfToken);
+    addField('native_submit', '1');
+
+    let filesAttached = false;
     try {
-      diag.total = Date.now() - diag.t0;
-      const body = new URLSearchParams({ _token: config.csrfToken, diag: JSON.stringify(diag) });
-      if (navigator.sendBeacon) navigator.sendBeacon('/order/sizing-diag', body);
-    } catch (e) { /* diagnostics must never break the upload */ }
+      types.forEach((type, i) => {
+        const cap  = captures[type];
+        const blob = cap.blob || dataUrlToBlob(cap.dataUrl);
+        const dt   = new DataTransfer();
+        dt.items.add(new File([blob], type + '.jpg', { type: 'image/jpeg' }));
+
+        const input = document.createElement('input');
+        input.type  = 'file';
+        input.name  = 'photos[' + i + ']';
+        input.files = dt.files;
+        if (!input.files || input.files.length !== 1) throw new Error('DataTransfer unsupported');
+        form.appendChild(input);
+      });
+      filesAttached = true;
+    } catch (e) {
+      form.querySelectorAll('input[type=file]').forEach(el => el.remove());
+    }
+
+    types.forEach((type, i) => {
+      if (!filesAttached) addField('photos_base64[' + i + ']', captures[type].dataUrl);
+      addField('photo_types[' + i + ']', type);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
   }
 
   function buildMultipart(types) {

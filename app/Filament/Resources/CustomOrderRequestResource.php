@@ -15,6 +15,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Js;
 
 /**
  * Custom order links — designs agreed with customers in Instagram / WhatsApp
@@ -121,11 +122,24 @@ class CustomOrderRequestResource extends Resource
                 ->url(fn (CustomOrderRequest $record) => $record->whatsappUrl())
                 ->openUrlInNewTab(),
 
+            // Copies the full message (greeting + link + expiry) — paste it into an
+            // Instagram / Facebook / SMS chat. Runs in the browser, no server round trip.
+            Actions\Action::make('copy_message')
+                ->label('Copy message + link')
+                ->icon('heroicon-o-clipboard-document')
+                ->color('primary')
+                ->visible(fn (CustomOrderRequest $record) => $record->isUsable())
+                ->alpineClickHandler(fn (CustomOrderRequest $record) =>
+                    'window.navigator.clipboard.writeText(' . Js::from($record->shareMessage()) . ')'
+                    . '.then(() => new FilamentNotification().title(\'Message copied — paste it into the chat\').success().send())'
+                    . '.catch(() => alert(\'Copy failed — use the Copy message button on the edit page.\'))'
+                ),
+
             Actions\Action::make('instagram')
                 ->label('Open Instagram chat')
                 ->icon('heroicon-o-camera')
                 ->color('gray')
-                ->tooltip('Copy the message on the edit page first, then paste it into the chat.')
+                ->tooltip('Tap "Copy message + link" first, then paste it into the chat.')
                 ->visible(fn (CustomOrderRequest $record) => $record->isUsable() && $record->instagramUrl())
                 ->url(fn (CustomOrderRequest $record) => $record->instagramUrl())
                 ->openUrlInNewTab(),

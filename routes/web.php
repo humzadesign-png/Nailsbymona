@@ -104,14 +104,6 @@ Route::get('/order/camera', function () {
     return view('order.sizing-capture', compact('handoffUrl'));
 })->name('order.camera');
 Route::post('/order/sizing-photos',      [OrderSizingPhotoController::class, 'store'])->name('order.sizing.upload');
-// TEMP: client-side upload timings from the camera page (iPhone Chrome slow-upload investigation).
-Route::post('/order/sizing-diag', function (Request $request) {
-    \Log::info('sizing-diag', [
-        'ua'   => substr((string) $request->userAgent(), 0, 160),
-        'diag' => substr((string) $request->input('diag'), 0, 1000),
-    ]);
-    return response()->noContent();
-})->middleware('throttle:20,1');
 
 // Custom design links (created in admin → Orders → Custom order links)
 Route::get('/custom/{token}',            [CustomOrderController::class, 'show'])->where('token', '[A-Za-z0-9]{20,64}')->name('custom-order.show');

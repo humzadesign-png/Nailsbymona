@@ -259,6 +259,12 @@
     </div>{{-- /state-desktop --}}
 
 
+    @if (session('sizing_upload_error'))
+      <div class="mb-6 bg-paper border-l-4 border-danger rounded-r-xl px-5 py-4" role="alert">
+        <p class="font-sans text-body text-graphite leading-relaxed">{{ session('sizing_upload_error') }}</p>
+      </div>
+    @endif
+
     {{-- ── State A: Explainer ──────────────────────────────────────────── --}}
     <div id="state-explainer" class="state active">
       <p class="font-sans text-eyebrow text-lavender uppercase mb-3">Sizing capture</p>
