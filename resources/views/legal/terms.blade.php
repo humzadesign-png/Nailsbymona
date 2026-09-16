@@ -60,7 +60,7 @@
         <h2 class="font-serif text-2xl text-ink mt-12 mb-4">Payment</h2>
         <ul class="list-disc pl-6 space-y-2">
           <li><strong>All orders, including custom designs and the Bridal Trio:</strong> full payment before production begins. Every set is made to measure for your nails and cannot be re-sold.</li>
-          <li>We accept JazzCash, EasyPaisa and bank transfer. After you place the order you upload a screenshot of the transfer; we verify it within 24 hours and confirm on WhatsApp.</li>
+          <li>We accept JazzCash, EasyPaisa and bank transfer. After you place the order you upload a screenshot of the transfer; we verify it within 24 hours and email you once it's confirmed.</li>
           <li>If payment proof is not uploaded within 72 hours of placing the order, the order is automatically cancelled. You can place it again any time.</li>
         </ul>
       </section>
