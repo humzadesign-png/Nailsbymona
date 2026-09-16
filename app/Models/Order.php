@@ -124,6 +124,18 @@ class Order extends Model
     }
 
     /**
+     * Orders still waiting on payment (Awaiting or Verifying) that are NOT
+     * cancelled. Cancelled orders keep their stale payment_status, so every
+     * "awaiting payment" queue must go through this scope.
+     */
+    public function scopeAwaitingPayment($query)
+    {
+        return $query
+            ->whereIn('payment_status', [PaymentStatus::Awaiting, PaymentStatus::Verifying])
+            ->where('status', '!=', OrderStatus::Cancelled);
+    }
+
+    /**
      * Generate the next sequential order number for the current year.
      *
      * IMPORTANT — must use withTrashed() everywhere. The orders table has
@@ -283,7 +295,9 @@ class Order extends Model
      */
     public function getPaymentAgeHoursAttribute(): ?int
     {
-        if ($this->payment_status !== PaymentStatus::Awaiting || ! $this->created_at) {
+        if ($this->payment_status !== PaymentStatus::Awaiting
+            || $this->status === OrderStatus::Cancelled
+            || ! $this->created_at) {
             return null;
         }
         return (int) $this->created_at->diffInHours(now());

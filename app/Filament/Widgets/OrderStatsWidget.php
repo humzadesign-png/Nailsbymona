@@ -32,11 +32,8 @@ class OrderStatsWidget extends BaseWidget
 
         // SLA queue includes both Awaiting (no proof yet) and Verifying
         // (proof uploaded, needs Mona's review) — the unified bucket Mona
-        // works from each morning.
-        $awaitingPayment = Order::whereIn('payment_status', [
-            PaymentStatus::Awaiting,
-            PaymentStatus::Verifying,
-        ])->count();
+        // works from each morning. Cancelled orders are excluded.
+        $awaitingPayment = Order::awaitingPayment()->count();
 
         $inProduction = Order::where('status', OrderStatus::InProduction)->count();
 

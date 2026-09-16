@@ -124,12 +124,13 @@ class OrderResource extends Resource
                     // Includes "Verifying" (customer uploaded proof, Mona hasn't
                     // reviewed yet) so the queue surfaces both states together.
                     ->query(fn ($query) => $query
-                        ->whereIn('payment_status', [PaymentStatus::Awaiting, PaymentStatus::Verifying])
+                        ->awaitingPayment()
                         ->reorder('created_at', 'asc')),
                 Tables\Filters\Filter::make('verifying')
                     ->label('Proof uploaded — needs review')
                     ->query(fn ($query) => $query
                         ->where('payment_status', PaymentStatus::Verifying)
+                        ->where('status', '!=', OrderStatus::Cancelled)
                         ->reorder('created_at', 'asc')),
                 Tables\Filters\Filter::make('returning_customers')
                     ->label('Returning customers')

@@ -30,9 +30,9 @@ class OrdersNeedingAttentionWidget extends BaseWidget
         return $table
             ->query(
                 Order::query()
+                    ->where('status', '!=', OrderStatus::Cancelled)
                     ->where(function ($q) {
-                        $q->where('payment_status', PaymentStatus::Awaiting)
-                          ->orWhere('payment_status', PaymentStatus::Verifying)
+                        $q->whereIn('payment_status', [PaymentStatus::Awaiting, PaymentStatus::Verifying])
                           ->orWhere('status', OrderStatus::New);
                     })
                     ->latest()
