@@ -355,8 +355,10 @@ class Order extends Model
         }
         // Checkout stores the local part after a fixed +92 prefix (3001234567);
         // older rows may be 03001234567 or 923001234567.
-        if (str_starts_with($digits, '0')) {
-            $digits = '92' . substr($digits, 1);
+        if (str_starts_with($digits, '00')) {
+            $digits = substr($digits, 2);            // 0092… international prefix
+        } elseif (str_starts_with($digits, '0')) {
+            $digits = '92' . substr($digits, 1);     // 03xx… local format
         } elseif (strlen($digits) === 10 && str_starts_with($digits, '3')) {
             $digits = '92' . $digits;
         }

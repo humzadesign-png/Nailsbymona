@@ -111,8 +111,12 @@ class CustomOrderRequest extends Model
             return null;
         }
         // Pakistani local format 03xx… → 923xx… so wa.me resolves the number.
-        if (str_starts_with($digits, '0')) {
-            $digits = '92' . substr($digits, 1);
+        if (str_starts_with($digits, '00')) {
+            $digits = substr($digits, 2);            // 0092… international prefix
+        } elseif (str_starts_with($digits, '0')) {
+            $digits = '92' . substr($digits, 1);     // 03xx… local format
+        } elseif (strlen($digits) === 10 && str_starts_with($digits, '3')) {
+            $digits = '92' . $digits;                // 3xx… without prefix
         }
 
         return "https://wa.me/{$digits}?text=" . rawurlencode($this->shareMessage());
