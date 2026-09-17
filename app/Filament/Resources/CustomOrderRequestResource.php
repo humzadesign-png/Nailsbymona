@@ -148,20 +148,6 @@ class CustomOrderRequestResource extends Resource
                 ->url(fn (CustomOrderRequest $record) => $record->instagramUrl())
                 ->openUrlInNewTab(),
 
-            // Sizes can be recorded straight from the link — Mona often measures
-            // from the photos before the customer finishes checkout.
-            Actions\Action::make('record_sizes')
-                ->label('Record nail sizes')
-                ->icon('heroicon-o-finger-print')
-                ->color('gray')
-                ->visible(fn (CustomOrderRequest $record) => $record->customer_id !== null)
-                ->fillForm(fn (CustomOrderRequest $record) => CustomerResource::nailSizesFormData($record->customer))
-                ->form(CustomerResource::nailSizesFormSchema())
-                ->action(function (CustomOrderRequest $record, array $data) {
-                    CustomerResource::saveNailSizes($record->customer, $data);
-                    Notification::make()->title('Nail sizes saved for ' . $record->customer_name . '.')->success()->send();
-                }),
-
             Actions\Action::make('view_customer')
                 ->label('Open customer')
                 ->icon('heroicon-o-user')

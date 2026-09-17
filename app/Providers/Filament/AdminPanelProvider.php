@@ -82,7 +82,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 \App\Filament\Widgets\OrderStatsWidget::class,
-                \App\Filament\Widgets\CustomOrderLinksWidget::class,
                 \App\Filament\Widgets\RecentOrdersWidget::class,
                 \App\Filament\Widgets\OrdersNeedingAttentionWidget::class,
             ])
