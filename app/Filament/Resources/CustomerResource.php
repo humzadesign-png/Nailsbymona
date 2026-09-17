@@ -33,10 +33,14 @@ class CustomerResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()->weight('semibold')
                     ->description(fn (Customer $r) => $r->email),
-                Tables\Columns\TextColumn::make('phone')->searchable()->copyable(),
+                Tables\Columns\TextColumn::make('phone')->searchable()->copyable()
+                    ->description(fn (Customer $r) => $r->instagram ? '@' . $r->instagram : null),
                 Tables\Columns\TextColumn::make('city')->toggleable(),
                 Tables\Columns\IconColumn::make('has_sizing_on_file')->label('Sizing saved')->boolean(),
-                Tables\Columns\TextColumn::make('total_orders')->label('Orders')->sortable(),
+                Tables\Columns\TextColumn::make('total_orders')->label('Orders')->sortable()
+                    ->description(fn (Customer $r) => ($n = $r->customOrderRequests()->count())
+                        ? $n . ' custom link' . ($n === 1 ? '' : 's')
+                        : null),
                 Tables\Columns\TextColumn::make('lifetime_value_pkr')
                     ->label('Lifetime value')
                     ->formatStateUsing(fn ($state) => 'Rs. ' . number_format($state ?? 0))
@@ -46,6 +50,12 @@ class CustomerResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('has_sizing_on_file')->label('Sizing on file'),
+                Tables\Filters\Filter::make('from_custom_link')
+                    ->label('From a custom design link')
+                    ->query(fn ($query) => $query->whereHas('customOrderRequests')),
+                Tables\Filters\Filter::make('no_orders_yet')
+                    ->label('Quoted but no order yet')
+                    ->query(fn ($query) => $query->whereHas('customOrderRequests')->doesntHave('orders')),
             ])
             ->actions([
                 Actions\ViewAction::make(),
@@ -66,6 +76,11 @@ class CustomerResource extends Resource
                 Infolists\Components\TextEntry::make('email')->copyable(),
                 Infolists\Components\TextEntry::make('phone')->copyable(),
                 Infolists\Components\TextEntry::make('whatsapp')->label('WhatsApp')->copyable(),
+                Infolists\Components\TextEntry::make('instagram')->label('Instagram')
+                    ->placeholder('—')
+                    ->formatStateUsing(fn ($state) => $state ? '@' . $state : null)
+                    ->url(fn ($state) => $state ? 'https://instagram.com/' . $state : null)
+                    ->openUrlInNewTab(),
                 Infolists\Components\TextEntry::make('city'),
                 Infolists\Components\TextEntry::make('postal_code')->label('Postal code'),
                 Infolists\Components\TextEntry::make('default_shipping_address')
@@ -84,6 +99,32 @@ class CustomerResource extends Resource
                 Infolists\Components\IconEntry::make('has_sizing_on_file')
                     ->label('Sizing on file')->boolean(),
             ]),
+
+            // Custom design links quoted to this customer over Instagram / WhatsApp.
+            InfoSection::make('Custom design links')
+                ->description('Designs quoted to this customer from Instagram / WhatsApp chats.')
+                ->collapsible()
+                ->columnSpanFull()
+                ->visible(fn (Customer $record) => $record->customOrderRequests()->exists())
+                ->schema([
+                    Infolists\Components\RepeatableEntry::make('customOrderRequests')
+                        ->hiddenLabel()
+                        ->columns(4)
+                        ->schema([
+                            Infolists\Components\TextEntry::make('design_title')
+                                ->label('Design')
+                                ->url(fn ($record) => CustomOrderRequestResource::getUrl('edit', ['record' => $record])),
+                            Infolists\Components\TextEntry::make('price_pkr')
+                                ->label('Quoted')
+                                ->formatStateUsing(fn ($state) => 'Rs. ' . number_format($state)),
+                            Infolists\Components\TextEntry::make('status')
+                                ->label('Status')
+                                ->badge()
+                                ->formatStateUsing(fn ($state) => $state->label()),
+                            Infolists\Components\TextEntry::make('created_at')
+                                ->label('Sent')->date('j M Y'),
+                        ]),
+                ]),
 
             InfoSection::make('Saved Nail Sizes')
                 ->description('Sizes recorded by Mona from the customer\'s sizing photos.')
@@ -159,6 +200,7 @@ class CustomerResource extends Resource
                 Forms\Components\TextInput::make('email')->email(),
                 Forms\Components\TextInput::make('phone'),
                 Forms\Components\TextInput::make('whatsapp')->label('WhatsApp'),
+                Forms\Components\TextInput::make('instagram')->label('Instagram handle')->prefix('@'),
             ]),
 
             FormSection::make('Address')->columns(2)->schema([
@@ -223,29 +265,46 @@ class CustomerResource extends Resource
 
     // ── "Edit nail sizes" action — used on the customer view page header ──────
 
+    /** Current sizes for the modal form (empty array when none recorded yet). */
+    public static function nailSizesFormData(?Customer $customer): array
+    {
+        $profile = $customer?->sizingProfile;
+
+        return $profile ? $profile->only([
+            'size_r_thumb', 'size_r_index', 'size_r_middle', 'size_r_ring', 'size_r_pinky',
+            'size_l_thumb', 'size_l_index', 'size_l_middle', 'size_l_ring', 'size_l_pinky',
+            'notes',
+        ]) : [];
+    }
+
+    /** Save (or update) a customer's nail sizes and flag sizing as on file. */
+    public static function saveNailSizes(?Customer $customer, array $data, ?string $sourceOrderId = null): void
+    {
+        if (! $customer) {
+            return;
+        }
+
+        CustomerSizingProfile::updateOrCreate(
+            ['customer_id' => $customer->id],
+            array_merge($data, array_filter([
+                'verified_by_admin_at' => now(),
+                'source_order_id'      => $sourceOrderId,
+            ]))
+        );
+
+        $customer->update(['has_sizing_on_file' => true]);
+    }
+
     public static function editNailSizesAction(): Actions\Action
     {
         return Actions\Action::make('edit_nail_sizes')
             ->label('Edit nail sizes')
             ->icon('heroicon-o-finger-print')
             ->color('gray')
-            ->fillForm(function (Customer $record): array {
-                $profile = $record->sizingProfile;
-
-                return $profile ? $profile->only([
-                    'size_r_thumb', 'size_r_index', 'size_r_middle', 'size_r_ring', 'size_r_pinky',
-                    'size_l_thumb', 'size_l_index', 'size_l_middle', 'size_l_ring', 'size_l_pinky',
-                    'notes',
-                ]) : [];
-            })
+            ->fillForm(fn (Customer $record) => self::nailSizesFormData($record))
             ->form(self::nailSizesFormSchema())
             ->action(function (Customer $record, array $data): void {
-                CustomerSizingProfile::updateOrCreate(
-                    ['customer_id' => $record->id],
-                    array_merge($data, ['verified_by_admin_at' => now()])
-                );
-
-                $record->update(['has_sizing_on_file' => true]);
+                self::saveNailSizes($record, $data);
 
                 Notification::make()
                     ->title('Nail sizes saved.')

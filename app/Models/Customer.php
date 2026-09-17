@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Customer extends Model
 {
     protected $fillable = [
-        'name', 'email', 'phone', 'whatsapp',
+        'name', 'email', 'phone', 'whatsapp', 'instagram',
         'default_shipping_address', 'city', 'postal_code',
         'has_sizing_on_file', 'notes',
         'total_orders', 'lifetime_value_pkr', 'last_ordered_at',
@@ -23,6 +23,12 @@ class Customer extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    /** Custom design links (Instagram / WhatsApp quotes) created for this customer. */
+    public function customOrderRequests(): HasMany
+    {
+        return $this->hasMany(CustomOrderRequest::class)->latest();
     }
 
     public function sizingProfile(): HasOne

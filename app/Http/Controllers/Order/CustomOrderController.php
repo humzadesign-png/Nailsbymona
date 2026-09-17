@@ -76,19 +76,23 @@ class CustomOrderController extends Controller
         // Start clean — a leftover shop bag must never mix into a custom order.
         session()->forget(self::ORDER_FORM_KEYS);
 
-        $savedCustomer = $this->customerWithSizing($request);
+        $savedCustomer  = $this->customerWithSizing($request);
+        $linkedCustomer = $request->customer ?: $request->syncCustomer();
 
         session([
             'order_form.custom_request_id' => $request->id,
+            // Attach the order to the customer record created with the link, so
+            // there's one customer row instead of a duplicate made at checkout.
+            'order_form.customer_id'       => $linkedCustomer?->id,
             'order_form.bag'               => [$request->toBagItem()],
             'order_form.customer'          => [
                 'name'    => $request->customer_name,
                 'email'   => $request->customer_email ?: $savedCustomer?->email,
                 // Details form shows a fixed +92 prefix — prefill the local 10 digits.
                 'phone'   => Customer::normalizePhoneTail($request->customer_phone) ?: $request->customer_phone,
-                'address' => $savedCustomer?->default_shipping_address,
-                'city'    => $savedCustomer?->city,
-                'postal'  => $savedCustomer?->postal_code,
+                'address' => $savedCustomer?->default_shipping_address ?: $linkedCustomer?->default_shipping_address,
+                'city'    => $savedCustomer?->city ?: $linkedCustomer?->city,
+                'postal'  => $savedCustomer?->postal_code ?: $linkedCustomer?->postal_code,
                 'notes'   => '',
             ],
         ]);

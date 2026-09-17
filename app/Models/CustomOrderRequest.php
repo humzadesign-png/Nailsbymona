@@ -22,7 +22,7 @@ class CustomOrderRequest extends Model
     public const DEFAULT_EXPIRY_DAYS = 7;
 
     protected $fillable = [
-        'token',
+        'token', 'customer_id',
         'customer_name', 'customer_phone', 'customer_instagram', 'customer_email',
         'design_title', 'design_description', 'reference_images',
         'price_pkr', 'shipping_pkr', 'lead_time_days',
@@ -49,6 +49,14 @@ class CustomOrderRequest extends Model
             $request->expires_at ??= now()->addDays(self::DEFAULT_EXPIRY_DAYS)->endOfDay();
         });
 
+        // Every link belongs to a customer record, created on first save.
+        static::saved(function (self $request) {
+            if ($request->customer_id === null
+                || $request->wasChanged(['customer_phone', 'customer_email', 'customer_instagram'])) {
+                $request->syncCustomer();
+            }
+        });
+
         // The admin picks a date — keep the link valid through the end of that day.
         static::saving(function (self $request) {
             if ($request->isDirty('customer_instagram')) {
@@ -63,6 +71,46 @@ class CustomOrderRequest extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * Match this request to an existing customer (by phone, then email), or
+     * create one, so DM customers appear under Customers straight away — with
+     * their contact details, quoted design and any sizing Mona records.
+     * Missing customer fields are filled in; existing values are never
+     * overwritten.
+     */
+    public function syncCustomer(): ?Customer
+    {
+        $customer = null;
+        foreach ([$this->customer_phone, $this->customer_email] as $contact) {
+            if ($contact && ($found = Customer::findByContact($contact))) {
+                $customer = $found;
+                break;
+            }
+        }
+
+        $customer ??= new Customer(['name' => $this->customer_name]);
+
+        $fill = [];
+        if (blank($customer->name))      $fill['name']      = $this->customer_name;
+        if (blank($customer->phone))     $fill['phone']     = $this->customer_phone;
+        if (blank($customer->whatsapp))  $fill['whatsapp']  = $this->customer_phone;
+        if (blank($customer->email))     $fill['email']     = $this->customer_email;
+        if (blank($customer->instagram)) $fill['instagram'] = $this->customer_instagram;
+
+        $customer->fill(array_filter($fill, fn ($v) => filled($v)))->save();
+
+        if ($this->customer_id !== $customer->id) {
+            $this->forceFill(['customer_id' => $customer->id])->saveQuietly();
+        }
+
+        return $customer;
     }
 
     public function isExpired(): bool

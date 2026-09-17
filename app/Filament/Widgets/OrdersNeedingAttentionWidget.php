@@ -46,7 +46,10 @@ class OrdersNeedingAttentionWidget extends BaseWidget
 
                 Tables\Columns\TextColumn::make('customer_name')
                     ->label('Customer')
-                    ->description(fn (Order $r) => $r->customer_phone),
+                    ->description(fn (Order $r) => collect([
+                        $r->is_custom ? '✦ Custom' : null,
+                        $r->customer_phone,
+                    ])->filter()->implode('  ·  ')),
 
                 Tables\Columns\TextColumn::make('total_pkr')
                     ->label('Total')
