@@ -45,13 +45,13 @@
 @section('content')
 
 {{-- HERO — shared page-hero component (2026-09-24). Hands and work only,
-     never a face (CLAUDE.md §24). Photo: a finished set on the brand card. --}}
+     never a face (CLAUDE.md §24). Photo supplied by Humza 2026-09-24. --}}
 <x-page-hero
-    image="about-set-card"
-    :widths="[768, 1280]"
-    position="center 38%"
+    image="about-hero"
+    :widths="[768, 960]"
+    position="center 45%"
     badge="Made by hand in Mirpur"
-    alt="A finished set of nude French-tip press-on nails on a Nails by Mona card, held in hand">
+    alt="Hands holding a coffee cup, wearing almond press-on nails with black polka-dot tips, gold bands and hand-painted pink flowers">
 
     <p class="font-sans text-eyebrow text-lavender uppercase mb-4">Our story</p>
     <h1 class="font-serif text-display-lg lg:text-display-xl text-ink">Hi, I'm Mona. I make every set myself.</h1>
@@ -168,92 +168,50 @@
     <h2 class="font-serif text-display text-ink mb-2" style="font-variation-settings:'opsz' 144,'SOFT' 30">From your photo to your door.</h2>
     <div class="h-0.5 w-10 bg-lavender mb-12"></div>
 
-    <div class="max-w-2xl space-y-0">
+    @php
+      // Brand icon set (public/icons, 24×24, 1.5 stroke). Brush + magnifier
+      // drawn in the same style. Markers match the home page step circles.
+      $steps = [
+        ['You share your sizing photos',
+         'Two close-up photos — your fingers laid flat in a row with a coin above the middle nail, and your thumb extended with a coin above the thumbnail. About 90 seconds. No salon visits. I read every nail width directly off the coin in each photo.',
+         '<path d="M3 8H8L10 5H14L16 8H21C21.6 8 22 8.4 22 9V18C22 18.6 21.6 19 21 19H3C2.4 19 2 18.6 2 18V9C2 8.4 2.4 8 3 8Z"/><circle cx="12" cy="13.5" r="3.5"/>'],
+        ['We confirm your design',
+         'Your order confirmation arrives by email. If you’ve asked for a change to a design, or something in your sizing photos needs a second look, I get in touch before I start. For bridal orders, this is where we finalise all three looks together.',
+         '<path d="M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C13.1 22 14 21.1 14 20C14 19.4 13.8 18.9 13.4 18.5C13.1 18.1 13 17.7 13 17.2C13 16.1 13.9 15.2 15 15.2H17C19.8 15.2 22 13 22 10.2C22 5.6 17.5 2 12 2Z"/><circle cx="7" cy="11" r="1.2" fill="currentColor" stroke="none"/><circle cx="9" cy="7.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="7.5" r="1.2" fill="currentColor" stroke="none"/>'],
+        ['I build your set',
+         'Each nail individually on a form. Gel base, colour layers, any hand-painting or charm work, topcoat — cured between each stage. Custom orders: ' . $settings->lead_time_standard_days . ' days. Bridal Trio: ' . $settings->lead_time_bridal_days . ' days.',
+         '<path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/>'],
+        ['Quality check',
+         'Before I pack anything, I wear-test a spare nail. I check the finish, the cure, the colour payoff. If something isn’t right at this stage — I start over.',
+         '<circle cx="10.5" cy="10.5" r="7"/><line x1="15.5" y1="15.5" x2="21" y2="21"/><polyline points="7.5 10.7 9.7 12.9 13.6 8.8"/>'],
+        ['Packed and shipped',
+         'Your nails go into the magnetic box, wrapped in tissue, with glue, a prep pad, and an application guide. You get your tracking number the same day the parcel goes to the courier.',
+         '<rect x="3" y="8" width="18" height="3" rx="1"/><rect x="3.5" y="11" width="17" height="10.5" rx="0.5"/><line x1="12" y1="8" x2="12" y2="21.5"/><path d="M12 8.5C10.5 6.2 7.5 5.5 6.2 6.8C5 8 7 9.2 12 8.5"/><path d="M12 8.5C13.5 6.2 16.5 5.5 17.8 6.8C19 8 17 9.2 12 8.5"/>'],
+        ['You wear them',
+         'Apply in under ten minutes. Each wear lasts 5–10 days, and with careful removal you’ll get 3–5 wears from a single set. And if you send me a photo of them on — honestly, it makes my day.',
+         '<path d="M12 21L4.2 13.2C2 11 2 7.5 4.2 5.3C6.4 3.1 10 3.1 12 5.3C14 3.1 17.6 3.1 19.8 5.3C22 7.5 22 11 19.8 13.2Z"/>'],
+      ];
+    @endphp
 
-      <!-- Step 1 -->
-      <div class="flex gap-6 pb-10">
+    <ol class="max-w-2xl">
+      @foreach($steps as [$title, $text, $icon])
+      <li class="flex gap-5 md:gap-6 {{ $loop->last ? '' : 'pb-10' }}">
         <div class="flex flex-col items-center">
-          <div class="w-10 h-10 rounded-full bg-lavender-wash border-2 border-lavender flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5 text-lavender-ink" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M208,112a80,80,0,1,1-80-80A80,80,0,0,1,208,112Z"/></svg>
+          <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 {{ $loop->last ? 'bg-lavender text-white' : 'bg-paper border border-hairline text-lavender' }}">
+            <svg class="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $icon !!}</svg>
           </div>
-          <div class="flex-1 w-px bg-hairline mt-2"></div>
+          @unless($loop->last)
+          <div class="flex-1 w-px bg-hairline mt-3"></div>
+          @endunless
         </div>
-        <div class="pt-1.5 pb-4">
-          <h3 class="font-sans font-medium text-ink mb-2" style="font-size:1rem">You share your sizing photos</h3>
-          <p class="font-sans text-body text-stone">Two close-up photos &mdash; your fingers laid flat in a row with a coin above the middle nail, and your thumb extended with a coin above the thumbnail. About 90 seconds. No salon visits. I read every nail width directly off the coin in each photo.</p>
+        <div class="pt-2.5">
+          <h3 class="font-sans font-semibold text-ink mb-1.5" style="font-size:0.9375rem">{{ $title }}</h3>
+          <p class="font-sans text-caption md:text-body text-stone leading-relaxed">{{ $text }}</p>
         </div>
-      </div>
+      </li>
+      @endforeach
+    </ol>
 
-      <!-- Step 2 -->
-      <div class="flex gap-6 pb-10">
-        <div class="flex flex-col items-center">
-          <div class="w-10 h-10 rounded-full bg-lavender-wash border-2 border-lavender flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5 text-lavender-ink" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M152.61,165.49a48,48,0,0,1-62.1-62.1A8,8,0,0,1,93.8,99.46l13.6,21.84a8,8,0,0,1-1.21,9.62L98.91,138.6a40,40,0,0,0,18.49,18.49l7.68-7.28a8,8,0,0,1,9.62-1.21L156.54,162.2A8,8,0,0,1,152.61,165.49Z"/><path d="M128,32a96,96,0,0,0-83.32,143.51L32.27,224l49.71-12.49A96,96,0,1,0,128,32Z"/></svg>
-          </div>
-          <div class="flex-1 w-px bg-hairline mt-2"></div>
-        </div>
-        <div class="pt-1.5 pb-4">
-          <h3 class="font-sans font-medium text-ink mb-2" style="font-size:1rem">We align on design</h3>
-          <p class="font-sans text-body text-stone">I message you on WhatsApp within a day to confirm the design direction. For bridal orders, this is where we coordinate across all three looks.</p>
-        </div>
-      </div>
-
-      <!-- Step 3 -->
-      <div class="flex gap-6 pb-10">
-        <div class="flex flex-col items-center">
-          <div class="w-10 h-10 rounded-full bg-lavender-wash border-2 border-lavender flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5 text-lavender-ink" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M200,168v16a8,8,0,0,1-8,8H72a8,8,0,0,1-8-8V168"/><polyline points="100 120 128 148 156 120"/><line x1="128" y1="28" x2="128" y2="148"/></svg>
-          </div>
-          <div class="flex-1 w-px bg-hairline mt-2"></div>
-        </div>
-        <div class="pt-1.5 pb-4">
-          <h3 class="font-sans font-medium text-ink mb-2" style="font-size:1rem">I build your set</h3>
-          <p class="font-sans text-body text-stone">Each nail individually on a form. Gel base, colour layers, any hand-painting or charm work, topcoat &mdash; cured between each stage. Custom orders: {{ $settings->lead_time_standard_days }} days. Bridal Trio: {{ $settings->lead_time_bridal_days }} days.</p>
-        </div>
-      </div>
-
-      <!-- Step 4 -->
-      <div class="flex gap-6 pb-10">
-        <div class="flex flex-col items-center">
-          <div class="w-10 h-10 rounded-full bg-lavender-wash border-2 border-lavender flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5 text-lavender-ink" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M128,24S32,96,32,152a96,96,0,0,0,192,0C224,96,128,24,128,24Z"/></svg>
-          </div>
-          <div class="flex-1 w-px bg-hairline mt-2"></div>
-        </div>
-        <div class="pt-1.5 pb-4">
-          <h3 class="font-sans font-medium text-ink mb-2" style="font-size:1rem">Quality check</h3>
-          <p class="font-sans text-body text-stone">Before I pack anything, I wear-test a spare nail. I check the finish, the cure, the colour payoff. If something isn't right at this stage &mdash; I start over.</p>
-        </div>
-      </div>
-
-      <!-- Step 5 -->
-      <div class="flex gap-6 pb-10">
-        <div class="flex flex-col items-center">
-          <div class="w-10 h-10 rounded-full bg-lavender-wash border-2 border-lavender flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5 text-lavender-ink" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><rect x="32" y="72" width="192" height="144" rx="8"/><path d="M168,72V56a40,40,0,0,0-80,0V72"/></svg>
-          </div>
-          <div class="flex-1 w-px bg-hairline mt-2"></div>
-        </div>
-        <div class="pt-1.5 pb-4">
-          <h3 class="font-sans font-medium text-ink mb-2" style="font-size:1rem">Packed and shipped</h3>
-          <p class="font-sans text-body text-stone">Your nails go into the magnetic box, wrapped in tissue, with glue, a prep pad, and an application guide. I send you your tracking number the same day I hand the parcel to the courier.</p>
-        </div>
-      </div>
-
-      <!-- Step 6 -->
-      <div class="flex gap-6">
-        <div class="flex flex-col items-center">
-          <div class="w-10 h-10 rounded-full bg-lavender flex items-center justify-center shrink-0">
-            <svg class="w-5 h-5 text-white" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M225.86,102.82c-3.77-3.94-7.67-8-9.14-11.57-1.36-3.27-1.44-8.69-1.52-13.94-.15-9.76-.31-20.82-8-28.51s-18.75-7.85-28.51-8c-5.25-.08-10.67-.16-13.94-1.52-3.56-1.47-7.63-5.37-11.57-9.14C146.28,23.51,138.44,16,128,16s-18.27,7.51-25.18,14.14c-3.94,3.77-8,7.67-11.57,9.14C88,40.64,82.56,40.72,77.31,40.8c-9.76.15-20.82.31-28.51,8S40.95,67.55,40.8,77.31c-.08,5.25-.16,10.67-1.52,13.94-1.47,3.56-5.37,7.63-9.14,11.57C23.51,109.72,16,117.56,16,128s7.51,18.27,14.14,25.18c3.77,3.94,7.67,8,9.14,11.57,1.36,3.27,1.44,8.69,1.52,13.94.15,9.76.31,20.82,8,28.51s18.75,7.85,28.51,8c5.25.08,10.67.16,13.94,1.52,3.56,1.47,7.63,5.37,11.57,9.14C109.72,232.49,117.56,240,128,240s18.27-7.51,25.18-14.14c3.94-3.77,8-7.67,11.57-9.14,3.27-1.36,8.69-1.44,13.94-1.52,9.76-.15,20.82-.31,28.51-8s7.85-18.75,8-28.51c.08-5.25.16-10.67,1.52-13.94,1.47-3.56,5.37-7.63,9.14-11.57C232.49,146.28,240,138.44,240,128S232.49,109.73,225.86,102.82Zm-52.2,6.84-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32Z" fill="currentColor" stroke="none"/></svg>
-          </div>
-        </div>
-        <div class="pt-1.5">
-          <h3 class="font-sans font-medium text-ink mb-2" style="font-size:1rem">You wear them</h3>
-          <p class="font-sans text-body text-stone">Apply in under ten minutes. They last 7&ndash;10 days. With careful removal, you'll get 3&ndash;5 wears from a single set. And if you send me a photo of them on &mdash; honestly, it makes my day.</p>
-        </div>
-      </div>
-
-    </div>
   </div>
 </section>
 
