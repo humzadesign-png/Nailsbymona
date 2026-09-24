@@ -2554,6 +2554,11 @@ Recording sizes always failed with Livewire's "Error while loading page". Cause:
 - **Admin notifications go to the bell and to push.** The panel has `->databaseNotifications()` (polls every 30s, `notifications` table). `NewOrderNotification` and `PaymentProofUploadedNotification` both use `['database', WebPushChannel::class]`; the proof one is sent from `OrderPaymentProofController::store`. Both link to the order's **view** page.
 - **`public/sw.js` reads `data.data.url`** — `WebPushMessage` nests custom data, so before this fix tapping a push always opened `/admin`.
 - `PaymentStatus::Verifying` shows as **"Proof uploaded"** in the admin.
+- **Dashboard widgets are not lazy** (`$isLazy = false`) and `OrderStatsWidget` has `$pollingInterval = null` — Filament's default 5s stats polling queued requests ahead of everything else on slow phones. Don't turn either back on.
+- **Public-disk images are optimized.** `App\Support\ImageOptimizer` scales originals to 1600px and writes a `name-640.webp` variant; `img_variant($path)` serves it in grids/cards (falls back to the original). New uploads are processed on save (AppServiceProvider model events) and Filament FileUploads resize on-device first. Backfill/redo: `php artisan images:optimize [--force]`. Pre-optimization backup of the live photos: `/root/public-images-backup-20260924-*.tar` (the shop page was ~20 MB of 4–7 MB camera originals).
+- **nginx (prod) now has** `http2`, gzip for CSS/JS/SVG/JSON (`/etc/nginx/conf.d/nbm-performance.conf`), 1-year immutable cache on `^~ /build/`, 7-day cache on static images/css/js. Previous site config backed up to `/root/nailsbymona.nginx.bak-20260924-*`. Server is in **Singapore**.
+- **The wudu post's slug is `muslim-women-press-on-nails-wudu`.** Two wrong slugs that used to be linked 301 to it (routes/web.php). Google Fonts load non-blocking (preload + `media="print"` swap).
+- **`storage/app/public/ugc/01KRKC22…jpg` and `01KRKDDF…jpg` are tracked in git but differ on prod** (live data). Never commit changes to them — `git pull` on prod will refuse and the deploy stops.
 
 — **2026-09-11 pointers** (payment toggles + bridal refresh — see §32 entry):
 
