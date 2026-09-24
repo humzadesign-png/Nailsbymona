@@ -14,13 +14,18 @@ use Filament\Widgets\TableWidget as BaseWidget;
 class RecentOrdersWidget extends BaseWidget
 {
     protected static ?int $sort = 2;
-    protected int | string | array $columnSpan = 'full';
 
-    protected static ?string $heading = 'Recent orders';
+    // Render with the dashboard instead of loading afterwards in its own
+    // request — on a phone connection those extra round-trips were slow.
+    protected static bool $isLazy = false;
+    protected int | string | array $columnSpan = 'full';
 
     public function table(Table $table): Table
     {
         return $table
+            // Title is drawn in the toolbar row instead (AdminPanelProvider render
+            // hook), so it sits on the same line as the column picker.
+            ->heading(null)
             ->query(Order::query()->latest()->limit(10))
             ->recordUrl(fn (Order $r) => OrderResource::getUrl('view', ['record' => $r]))
             ->columns([

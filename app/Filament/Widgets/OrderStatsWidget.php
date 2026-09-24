@@ -13,6 +13,15 @@ class OrderStatsWidget extends BaseWidget
 {
     protected static ?int $sort = 1;
 
+    // Render with the dashboard instead of loading afterwards in its own
+    // request — on a phone connection those extra round-trips were slow.
+    protected static bool $isLazy = false;
+
+    // Filament refreshes stats every 5s by default. Those constant requests
+    // queued up ahead of everything else on the dashboard; numbers now
+    // refresh when the page is opened.
+    protected ?string $pollingInterval = null;
+
     protected function getColumns(): int | array | null
     {
         return ['default' => 2, 'lg' => 4];

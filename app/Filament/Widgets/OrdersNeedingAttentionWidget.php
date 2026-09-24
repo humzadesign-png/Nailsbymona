@@ -22,6 +22,10 @@ use Filament\Widgets\TableWidget as BaseWidget;
 class OrdersNeedingAttentionWidget extends BaseWidget
 {
     protected static ?int $sort = 3;
+
+    // Render with the dashboard instead of loading afterwards in its own
+    // request — on a phone connection those extra round-trips were slow.
+    protected static bool $isLazy = false;
     protected int | string | array $columnSpan = 'full';
     protected static ?string $heading = 'Orders needing attention';
 
