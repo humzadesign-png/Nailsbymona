@@ -248,7 +248,7 @@
         </button>
         <div class="faq-answer pb-6">
           <p class="font-sans text-body text-graphite mb-3">Use the order tracking page &mdash; enter your order number and the email or phone number you used when ordering.</p>
-          <a href="{{ url('/order/track') }}" class="font-sans text-caption font-medium text-lavender-ink hover:text-lavender underline-offset-4 hover:underline transition-colors duration-200">Track your order &rarr;</a>
+          <a href="{{ route('track') }}" class="font-sans text-caption font-medium text-lavender-ink hover:text-lavender underline-offset-4 hover:underline transition-colors duration-200">Track your order &rarr;</a>
         </div>
       </div>
 
