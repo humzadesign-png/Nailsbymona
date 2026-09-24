@@ -53,7 +53,8 @@ Route::get('/bridal', function () {
         ->whereIn('tier', ['bridal_single', 'bridal_trio'])
         ->whereNotNull('cover_image')
         ->orderBy('sort_order')->orderBy('created_at')
-        ->limit(6)
+        // 5, not 6: with the tall first tile, 5 fill both the 2- and 3-column grids evenly.
+        ->limit(5)
         ->get();
 
     return view('bridal', compact('bridalProducts'));
