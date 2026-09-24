@@ -47,12 +47,14 @@ class OrderResource extends Resource
     {
         return $table
             ->defaultSort('created_at', 'desc')
+            // Tap anywhere on a row to open the order (was: only the
+            // order number, which copied it to the clipboard instead).
+            ->recordUrl(fn (Order $r) => static::getUrl('view', ['record' => $r]))
             ->columns([
                 Tables\Columns\TextColumn::make('order_number')
                     ->label('Order')
                     ->searchable()
-                    ->weight('semibold')
-                    ->copyable(),
+                    ->weight('semibold'),
 
                 Tables\Columns\TextColumn::make('customer_name')
                     ->label('Customer')

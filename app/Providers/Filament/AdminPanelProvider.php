@@ -28,6 +28,10 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('Nails by Mona')
+            // Bell in the top bar: new orders + payment proofs land here
+            // (alongside phone push). Polls so it updates without a reload.
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->brandLogo(asset('logo-text.svg'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('logo-text.svg'))

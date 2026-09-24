@@ -7,7 +7,8 @@ self.addEventListener('push', function (event) {
         icon:    data.icon    || '/icon-192.png',
         badge:   '/icon-192.png',
         tag:     data.tag     || 'nbm-notification',
-        data:    { url: data.url || '/admin' },
+        // WebPushMessage nests custom data under `data` — read that first.
+        data:    { url: (data.data && data.data.url) || data.url || '/admin' },
         vibrate: [200, 100, 200],
     };
 

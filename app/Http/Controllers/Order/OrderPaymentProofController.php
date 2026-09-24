@@ -6,8 +6,11 @@ use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderPaymentProof;
+use App\Models\User;
+use App\Notifications\PaymentProofUploadedNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -77,6 +80,18 @@ class OrderPaymentProofController extends Controller
         // firing on an order that's actively under review.
         if ($order->payment_status === PaymentStatus::Awaiting) {
             $order->update(['payment_status' => PaymentStatus::Verifying->value]);
+        }
+
+        // Tell Mona a proof is waiting — push to her phone + the admin bell.
+        // Queued (ShouldQueue), so the customer's upload response isn't held up.
+        try {
+            User::query()->chunkById(50, function ($users) use ($order) {
+                foreach ($users as $u) {
+                    $u->notify(new PaymentProofUploadedNotification($order));
+                }
+            });
+        } catch (\Throwable $e) {
+            Log::error('PaymentProofUploadedNotification failed', ['order' => $order->id, 'error' => $e->getMessage()]);
         }
 
         return response()->json([

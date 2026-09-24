@@ -12,7 +12,14 @@ use Illuminate\Notifications\Notification;
 use NotificationChannels\WebPush\WebPushChannel;
 use NotificationChannels\WebPush\WebPushMessage;
 
-class NewOrderNotification extends Notification implements ShouldQueue
+/**
+ * Sent to every admin when a customer uploads a payment proof on
+ * /order/confirm. Two channels:
+ *   • WebPush  — phone/desktop push via the admin PWA service worker
+ *   • database — the bell in the Filament top bar, so it's there even if
+ *                push is blocked or the phone was off
+ */
+class PaymentProofUploadedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -26,23 +33,23 @@ class NewOrderNotification extends Notification implements ShouldQueue
     public function toWebPush(object $notifiable, object $notification): WebPushMessage
     {
         return (new WebPushMessage())
-            ->title('New order — ' . $this->order->order_number)
-            ->body('Rs. ' . number_format($this->order->total_pkr) . ' · ' . $this->order->customer_name)
+            ->title('Payment proof uploaded — ' . $this->order->order_number)
+            ->body('Rs. ' . number_format($this->order->total_pkr) . ' · ' . $this->order->customer_name . ' · tap to review')
             ->icon('/icon-192.png')
-            ->tag('order-' . $this->order->id)
+            ->tag('proof-' . $this->order->id)
             ->data(['url' => $this->url()]);
     }
 
     public function toDatabase(object $notifiable): array
     {
         return FilamentNotification::make()
-            ->title('New order — ' . $this->order->order_number)
-            ->body('Rs. ' . number_format($this->order->total_pkr) . ' · ' . $this->order->customer_name)
-            ->icon('heroicon-o-shopping-bag')
-            ->iconColor('primary')
+            ->title('Payment proof uploaded — ' . $this->order->order_number)
+            ->body('Rs. ' . number_format($this->order->total_pkr) . ' · ' . $this->order->customer_name . '. Check it and confirm the payment.')
+            ->icon('heroicon-o-banknotes')
+            ->iconColor('success')
             ->actions([
-                Action::make('open')
-                    ->label('Open order')
+                Action::make('review')
+                    ->label('Review order')
                     ->url($this->url())
                     ->markAsRead(),
             ])

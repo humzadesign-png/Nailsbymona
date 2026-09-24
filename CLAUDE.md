@@ -2548,6 +2548,13 @@ Recording sizes always failed with Livewire's "Error while loading page". Cause:
 - **WhatsApp messaging is manual and optional.** `Order::whatsappUpdateUrl()` powers one grey button on the order; there are no per-stage prompts, and customer-facing copy promises email confirmation. The Business API is Phase 7.5 — Mona rejected the manual-per-stage workload, so don't wire automatic WhatsApp before the API exists.
 - **`robots.txt` disallows `/custom/`** alongside `/admin`, `/order/`, `/track`.
 
+— **2026-09-24 pointers** (admin tap targets + proof alerts):
+
+- **Order rows open on a tap anywhere** — `->recordUrl(...view...)` on the Orders table, `RecentOrdersWidget` and `OrdersNeedingAttentionWidget`. Don't put `->copyable()` back on list columns; it grabs the tap and copies instead of opening. (Copy buttons stay on the order's view page.)
+- **Admin notifications go to the bell and to push.** The panel has `->databaseNotifications()` (polls every 30s, `notifications` table). `NewOrderNotification` and `PaymentProofUploadedNotification` both use `['database', WebPushChannel::class]`; the proof one is sent from `OrderPaymentProofController::store`. Both link to the order's **view** page.
+- **`public/sw.js` reads `data.data.url`** — `WebPushMessage` nests custom data, so before this fix tapping a push always opened `/admin`.
+- `PaymentStatus::Verifying` shows as **"Proof uploaded"** in the admin.
+
 — **2026-09-11 pointers** (payment toggles + bridal refresh — see §32 entry):
 
 - **Payment methods are individually hideable from `/admin/manage-settings`.** Three `StoreSettings` booleans (`jazzcash_enabled`, `easypaisa_enabled`, `bank_transfer_enabled`) gate whether each `<label class="payment-option">` on `/order/payment` renders at all. All default true. `payment.blade.php` picks `$firstEnabled` at render time and auto-selects that radio; the `<button id="place-order-btn">` is `@disabled(! $firstEnabled)`. If all three are off, an empty-state card points customers to WhatsApp.

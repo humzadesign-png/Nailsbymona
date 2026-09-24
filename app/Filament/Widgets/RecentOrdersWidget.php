@@ -22,9 +22,10 @@ class RecentOrdersWidget extends BaseWidget
     {
         return $table
             ->query(Order::query()->latest()->limit(10))
+            ->recordUrl(fn (Order $r) => OrderResource::getUrl('view', ['record' => $r]))
             ->columns([
                 Tables\Columns\TextColumn::make('order_number')
-                    ->label('Order')->weight('semibold')->copyable(),
+                    ->label('Order')->weight('semibold'),
 
                 Tables\Columns\TextColumn::make('customer_name')
                     ->label('Customer')
