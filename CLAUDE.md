@@ -2,7 +2,7 @@
 
 > Press-on gel nails e-commerce website + brand strategy for Mona's business, currently run via Instagram DMs. Surprise gift from Humza (in Germany) for his wife (in Mirpur, Azad Kashmir). Mona does not know we're building this.
 >
-> **Status:** Phases 0–4 complete and live at nailsbymona.pk. Phase 5 (Polish & handoff) is next.
+> **Status:** Phases 0–4 complete and live at nailsbymona.pk; Phase 5 polish largely done. Real orders now arrive through both the shop and custom design links. Most recent work: custom (DM) order links, full-payment-up-front checkout, and camera-upload fixes for iPhone Chrome — see the 2026-09-16 → 18 entry in §32.
 >
 > This file is the source of truth for future Claude sessions. If anything here conflicts with memory or training data, trust this file.
 
@@ -90,6 +90,8 @@ These were locked in by Humza. Do not revisit without asking.
 | Product scope (MVP)    | **Press-on gel nails only**                                           | Mona's actual business                              |
 | Visual direction       | **Elegant & minimal** — lavender `#bfa4ce` (from logo), cream page bg, serif headings | Palette derived from actual logo SVG — confirmed 2026-04-28 |
 | Payments (MVP)         | **Manual** — JazzCash, EasyPaisa, Bank Transfer; payment-proof upload; Mona verifies in Filament within 24h. **No COD. No card option at MVP** (deferred to Phase 5 with SafePay). | No gateway signup, no KYC chain, no extra build days; ships fast |
+| Payment timing         | **Full payment up front on every order** — no partial advance, no balance-before-dispatch step *(locked 2026-09-16, Mona's call)* | Sets are made to measure and can't be re-sold; chasing the balance was the biggest operational drag, and many customers don't read email |
+| Custom (DM) orders     | **Private custom order links** — `/custom/{token}` created from Filament; customer sizes + pays through the normal checkout, producing a regular Order flagged `is_custom` *(added 2026-09-16)* | Instagram/WhatsApp design requests were invisible to the system; this counts them in revenue, tracking and saved sizing without a second workflow |
 | Payments (Phase 5)     | **SafePay** — automates Card (Visa/MC/UnionPay) + JazzCash + EasyPaisa via Pakistan-local gateway. Bank Transfer remains as manual fallback. | Pakistan-local, single integration; architectural plan in §26 |
 | Hosting                | **Decide later** — develop locally first                              | Ship MVP before committing                          |
 | Currency               | **PKR**, integer rupees (no decimals)                                 | Avoid float math                                    |
@@ -167,6 +169,7 @@ sqlite3 --version   # usually preinstalled
 | `/about`                    | About / Mona's story | Founder story (a moat competitors can't copy)                                           |
 | **`/blog`**                 | Blog index          | Category filters (Bridal, Tutorials, Trends, Care)                                       |
 | **`/blog/{slug}`**          | Blog post           | Long-form content with FAQ schema, related products                                      |
+| **`/custom/{token}`**       | Custom design link  | Private, unguessable link for a DM-agreed design — shows the quote, then hands off to the normal checkout (`POST /custom/{token}/begin`). `noindex`, `Disallow: /custom/` in robots.txt |
 | `/order/start/{slug?}`      | Order form          | Multi-step: sizing capture → details → payment method                                    |
 | `/order/sizing-capture`     | Live camera capture | Standalone camera screen (deeplinkable, mobile-first)                                    |
 | `/order/confirm/{order}`    | Order confirmation  | Order number, payment instructions, payment-proof upload                                 |
@@ -221,7 +224,7 @@ Admin accounts only.
 - `is_published`, `sort_order`, `created_at`
 
 ### `customers`
-- `id`, `name`, `email`, `phone`, `whatsapp`
+- `id`, `name`, `email`, `phone`, `whatsapp`, `instagram` *(handle, added 2026-09-17 — DM customers often have no phone number)*
 - `default_shipping_address`, `city`, `postal_code`
 - `has_sizing_on_file` (bool)
 - `notes` (Mona's private notes)
@@ -229,6 +232,8 @@ Admin accounts only.
 
 ### `customer_sizing_profiles`
 - `id`, `customer_id`, `notes`, `verified_by_admin_at`
+- Per-nail sizes: `size_r_thumb` … `size_r_pinky`, `size_l_thumb` … `size_l_pinky` (varchar 20 — any notation Mona likes)
+- `source_order_id` — **must be `CHAR(36)`**. It was created with `foreignUlid()` (char 26) while `orders.id` is a 36-char UUID, so *every* "Record nail sizes" save failed with `Data too long for column 'source_order_id'` from May until the fix on 2026-09-18 (migration `2026_09_18_090000_fix_sizing_profile_source_order_id_type`). One profile row per customer (`updateOrCreate` on `customer_id`) — saving again updates it.
 - *(2026-05-07: dropped `photo_path` — replaced by 1:N relation to `customer_sizing_photos` below, since the new sizing UX produces 2 photos at MVP, optionally 4)*
 
 ### `customer_sizing_photos` *(NEW — 2026-05-07)*
@@ -245,12 +250,13 @@ Admin accounts only.
 - `shipping_address`, `city`, `postal_code`, `notes`
 - `subtotal_pkr`, `shipping_pkr`, `total_pkr` (integers)
 - `payment_method` (enum: `jazzcash`, `easypaisa`, `bank_transfer`, `card`) *(`cod` removed 2026-04-30; `card` reserved for Phase 5 SafePay launch — not selectable at MVP)*
-- `payment_status` (enum: `awaiting`, `verifying`, `paid`, `partial_advance`, `refunded`) *(all states reachable as of Phase 5 — `partial_advance` set by the "Confirm: advance only" Filament action)*
+- `payment_status` (enum: `awaiting`, `verifying`, `paid`, `partial_advance`, `refunded`) *(`partial_advance` is legacy-only since 2026-09-16 — new orders are paid in full; the "Confirm: advance only" / "Balance received" actions only appear on orders placed under the old rule, i.e. `Order::isLegacyAdvanceOrder()`)*
 - `advance_paid_pkr` *(populated by Filament confirmation actions: full payment → `total_pkr`; advance only → `advanceAmountPkr()`; balance received → `total_pkr`)*
 - `status` (enum: `new`, `confirmed`, `in_production`, `shipped`, `delivered`, `cancelled`)
 - `tracking_number`, `courier` (enum: `tcs`, `leopards`, `mp`, `blueex`)
-- `requires_advance` (bool — auto-true for orders ≥ PKR 5,000)
-- `is_returning_customer` (bool — set at checkout if the returning-customer lookup matched a profile with saved sizing)
+- `requires_advance` (bool — **always false on new orders** since 2026-09-16; still true on pre-change orders, which keep their quoted advance)
+- `is_returning_customer` (bool — since 2026-09-16 means "has a previous **paid** order", i.e. qualifies for the reorder discount; cancelled/unpaid earlier orders don't count)
+- `is_custom` (bool — order came from a `/custom/{token}` link; shown as `✦ Custom` in the admin list and widgets, with a "Custom designs (from DM links)" filter)
 - `sizing_capture_method` (enum: `live_camera`, `upload`, `from_profile`, `whatsapp_pending`) *(track which UX customers actually use; `whatsapp_pending` when customer skips capture and will send via WhatsApp)*
 - `refit_requested_at`, `refit_shipped_at`, `refit_notes` *(added Phase 5 — free-first-refit tracking, set via Filament admin actions on Delivered orders)*
 - timestamps
@@ -304,6 +310,16 @@ Stored keys:
 
 Helper: `StoreSettings::whatsappForWaMe()` returns the digits-only WhatsApp number (no `+`, no spaces) for `wa.me/{n}` URLs. Save-side normalizes the stored value to canonical `+<digits>`.
 
+### `custom_order_requests` *(NEW — 2026-09-16, custom design links)*
+- `id` (ULID), `token` (40 random chars, unique — the URL secret)
+- `customer_id` (FK, nullable) — matched or created on save by `syncCustomer()` (phone first, then email), so DM customers appear under Customers **before** they order and the checkout reuses the same row instead of creating a duplicate
+- `customer_name` (required), `customer_phone` (nullable), `customer_instagram` (nullable, normalized to a bare handle), `customer_email` (nullable)
+- `design_title`, `design_description`, `reference_images` (JSON array of public-disk paths, max 4)
+- `price_pkr`, `shipping_pkr` (nullable → standard shipping rules), `lead_time_days` (nullable → standard lead time)
+- `status` (enum `pending` | `completed` | `cancelled`), `expires_at` (default +7 days, end of day), `opened_at`, `order_id` (FK, set when the order is placed), `admin_notes`
+- Model helpers: `isUsable()`, `shareMessage()` (one text for WhatsApp/Instagram/SMS), `whatsappUrl()`, `instagramUrl()` (`ig.me/m/<handle>`), `shippingPkr()`, `toBagItem()` (tier `custom`, slug `custom-<id suffix>`)
+- One link places **one** order: the row is locked inside the order transaction and flipped to `completed`
+
 ### `subscribers` *(NEW — blog email capture)*
 - `id`, `email`, `source` (e.g. `blog_index`), `subscribed_at`, `unsubscribed_at`
 - Simple MVP: collects emails with no automation at launch. Mailgun/Resend integration in Phase 5+.
@@ -316,10 +332,18 @@ Helper: `StoreSettings::whatsappForWaMe()` returns the digits-only WhatsApp numb
 2. **Returning-customer lookup** — phone/email check. If `has_sizing_on_file` → skip to step 4.
 3. **Sizing capture** (step 1, first-time customers) — see section 8 for the live-camera UX.
 4. **Details** (step 2) — name, email, phone (WhatsApp), shipping address, city, postal code, notes.
-5. **Payment method** (step 3) — radio: JazzCash · EasyPaisa · Bank Transfer. All manual; account details rendered server-side from `settings`. Orders ≥ PKR 5,000 require 20–30% advance; Bridal Trio requires full advance. **No COD. No Card at MVP** (Phase 5).
+5. **Payment method** (step 3) — radio: JazzCash · EasyPaisa · Bank Transfer (each hideable from admin Settings). All manual; account details rendered server-side from `settings`. **Every order is paid in full before production** (2026-09-16) — no advance, no balance step. **No COD. No Card at MVP** (Phase 5).
 6. **Submit** → `Order` created (status `new`, `payment_status = awaiting`) → confirmation email sent → customer lands on `/order/confirm/{order}`.
-7. **Confirmation** — order number, total, advance breakdown, account details for selected method, payment-proof upload field.
+7. **Confirmation** — order number, total to pay in full, account details for selected method, payment-proof upload field. *(Orders placed before 2026-09-16 still show their quoted advance + balance.)*
 8. **Admin verifies** in Filament — Mona reviews payment proof within 24h, marks `payment_status = paid`, kanban progresses, status emails fire to customer.
+
+### Custom (DM) order flow — `/custom/{token}`
+
+1. **Mona agrees a design in Instagram/WhatsApp DMs**, then Filament → Orders → **Custom order links** → "New custom order link": customer name (only required field), WhatsApp number and/or Instagram handle, design title + description, up to 4 reference photos, quoted price, optional shipping + lead-time overrides, expiry date.
+2. **She sends the link** — "Send on WhatsApp" (prefilled), "Copy message + link" (for Instagram/Facebook/SMS), or "Open Instagram chat" (`ig.me`).
+3. **Customer opens the link** — sees the design, price, shipping and total, plus lead time and expiry. Returning customers with sizing on file get "Use my saved sizing"; everyone else goes to the camera guide.
+4. **Normal checkout from there** — camera sizing → details (name/phone/email prefilled) → payment. `OrderController` prices the bag from the request row, never from the client.
+5. **Result:** a regular Order flagged `is_custom`, attached to the linked customer, counted in the normal dashboard widgets, with the usual emails, tracking page, sizing photos and "Record nail sizes" action.
 
 **Phase 5:** SafePay automates Card + JazzCash + EasyPaisa via gateway (architecture in §26); Bank Transfer remains as manual fallback.
 
@@ -554,7 +578,7 @@ These are deferred until after launch — they're not on the critical path to MV
 UK + UAE shipping. Flat international rate. Advance-only. See section 28.
 
 ### Phase 7.5 — WhatsApp Business API (post Phase 7, when volume justifies)
-Direct Meta Cloud API integration — no third-party provider, free up to 1,000 conversations/month. Removes the customer call button entirely (API accounts are messaging-only). Requires Meta business verification (website is already live so approval path is clear), a dedicated number, and a Laravel webhook + Filament inbox. Deferred until order volume makes the number migration worthwhile. For now: regular WhatsApp Business app + Silence Unknown Callers setting.
+Direct Meta Cloud API integration — no third-party provider. **Pricing note:** the old "free 1,000 conversations/month" tier no longer applies — Meta now charges per template message (order updates are "utility" templates; replies inside a customer's 24h window are free). Check Meta's current Pakistan rates when this phase opens. Removes the customer call button entirely (API accounts are messaging-only). Requires Meta business verification (website is already live so approval path is clear), a dedicated number, and a Laravel webhook + Filament inbox. Deferred until order volume makes the number migration worthwhile — **reconfirmed 2026-09-17**: Mona does not want to send a message per order stage by hand, so automatic WhatsApp updates wait for this phase rather than being faked with manual prompts. Prefer a **new dedicated number** for API traffic so her current chat number keeps working in the WhatsApp Business app. For now: emails are the automatic channel, plus one optional WhatsApp button per order + Silence Unknown Callers setting.
 
 ### Phase 8 — AI chatbot (Year 2, see section 25)
 Only after 3–6 months of Mona's real DM data is collected. Tone-mimicking system prompt + few-shot examples + strict guardrails (always route pricing/sizing to WhatsApp).
@@ -1188,8 +1212,7 @@ Account details for all three methods are stored in `settings` (not hardcoded in
 | Customer pays but forgets to upload proof | Auto-email at 24h with proof-upload link, again at 48h, auto-cancel at 72h |
 | Payment proof unclear / wrong amount | Filament admin marks `payment_status = verifying`; Mona WhatsApps for clarification |
 | Customer never pays after placing order | Auto-cancel at 72h with notification email; can be restored if customer reaches out |
-| Bridal Trio not paid in full before production | Full advance gate at checkout — customer cannot place a Bridal Trio without committing to full advance up-front |
-| Orders ≥ PKR 5,000 advance not received | 20–30% advance gate at checkout; same pattern |
+| Order not paid in full before production | **Since 2026-09-16 every order is paid in full up front** — there is no partial-advance path, so there's no balance to chase after the set is made. Orders placed before that date keep their quoted advance and the admin's "Balance received" action |
 | Mona's verification time creates a bottleneck | Filament Orders kanban surfaces all `payment_status = awaiting` orders sorted by oldest; target SLA: < 24h verification |
 
 ---
@@ -2316,6 +2339,85 @@ Also flagged three small distribution nudges: use the Story link sticker (higher
 
 ---
 
+### 2026-09-16 → 2026-09-18 — Custom order links, camera-upload fixes, full payment up front
+
+A long three-day session driven by Mona's feedback on live usage. Thirteen commits, all deployed to `https://nailsbymona.pk` via `/root/deploy.sh`.
+
+**1. Cancelled orders polluting the awaiting-payment queues** (`fecf825`)
+
+Cancelled orders keep their stale `payment_status` (`awaiting` / `verifying`), and every queue only filtered on payment status — so two cancelled orders sat permanently in the dashboard stat and the "Orders needing attention" widget. New `Order::scopeAwaitingPayment()` (Awaiting|Verifying **and** `status != cancelled`) is now the single definition, used by `OrderStatsWidget`, `OrdersNeedingAttentionWidget` and the Orders table's "Awaiting payment" / "Proof uploaded" filters. `payment_age_label` also returns null on cancelled orders. Prod queue went 3 → 1 immediately.
+
+**2. Custom order links — the DM-order workflow** (`d9b4451`, `b4647ec`, `54bda6f`, `73ecf56`)
+
+The gap: customers who ask for a design on Instagram/WhatsApp that isn't in the shop. Mona quoted them in chat, took payment by hand, and none of it existed in the system. Full design is in §7 "Custom (DM) order flow"; data model in §6 `custom_order_requests`.
+
+Implementation notes worth keeping:
+- **Session-driven, reuses the entire checkout.** `CustomOrderController::begin()` clears the order-form session, seeds `order_form.custom_request_id` + a one-item bag + customer prefill, then redirects into `/order/camera` (or `/order/details` for saved sizing). `OrderController::resolveBag()` returns `[$custom->toBagItem()]` when that session key is set, otherwise the usual `verifyBag()` — so the quoted price comes from the DB, never the client.
+- **No reorder discount on custom orders** (the quote is the agreed price) — `calculateTotals()` takes the request and zeroes the discount.
+- **One link = one order.** The request row is `lockForUpdate()`-ed inside the order transaction and flipped to `completed`; a second submit is bounced back to the link page ("already ordered").
+- **`start()` redirects custom sessions back to the link page** so the "back to sizing" path doesn't dump the customer on the generic step-1 screen; `initFromBag()` / `start($slug)` clear `custom_request_id` so a shop checkout never inherits one.
+- **Phone-optional (2026-09-17).** WhatsApp number became optional and `customer_instagram` was added, because Instagram DMs often have no number. Admin gets "Send on WhatsApp" (prefilled), "Copy message + link" (Alpine `clipboard.writeText` via `Actions\Action::alpineClickHandler()` + `Js::from()`), and "Open Instagram chat" (`ig.me/m/<handle>` — Instagram allows no prefilled text, hence the copy button).
+- **Customer records are created with the link, not at checkout** (`syncCustomer()` on the `saved` model event): matched by phone then email, missing fields filled in, never overwriting existing values. Checkout passes that `customer_id` through the session so there's exactly one customer row. Backfilled the one pending prod link ("Aunty samera") by hand.
+- **Customers admin:** Instagram shown + editable, a "Custom design links" section on the customer page, custom-link count in the table, filters "From a custom design link" and "Quoted but no order yet".
+- **Reverted on Mona's request (`73ecf56`):** the "Record nail sizes" action on links (sizes are recorded on the order once placed, like website orders) and the separate `CustomOrderLinksWidget` dashboard row (dashboard is back to its original three widgets). Custom orders still flow into the normal widgets, marked `✦ Custom`. **Don't reintroduce either without asking.**
+
+**3. Camera sizing upload — "stuck on Submitting…" on iPhone Chrome** (`b4647ec`, `d8b11aa`, `f8a20d3`, `fa002c8`, `a1337f4`)
+
+Four rounds, because each fix revealed the next layer. Final diagnosis is the important part:
+
+| Symptom | Reality |
+|---|---|
+| `fetch(FormData)` POSTs returning `400` with a 0-byte body, nothing in Laravel's log | iPhone Chrome mangles script-made multipart uploads |
+| Button stuck on "Submitting…" | the failure was never surfaced — `alert()` after a failed `res.json()` didn't fire |
+| "Almost done" then a ~66s wait | `xhr.upload.onprogress` reports bytes buffered, not bytes sent |
+| Switching tabs made it finish in 4s | **the page still held the camera**; iOS suspends capture when the tab is hidden |
+
+Measured on prod with a temporary nginx `log_format` (`$request_time` / `$request_length`, since removed): iPhone Chrome 705 KB → **66s** to arrive, PHP 0.3s; iPhone Safari 628 KB → **2.6s**. After releasing the camera on the preview screen: **3s**.
+
+What shipped:
+- **`goTo('preview')` now calls `stopStream()`** — camera released as soon as the last photo is taken; Retake / other-hand restart it (`startStream()` is a no-op when a stream exists). **This was the actual fix. Don't "optimise" the stream back to staying alive during preview.**
+- **Native form POST on iOS third-party browsers** (`/CriOS|FxiOS|EdgiOS/`): a hidden `<form enctype="multipart/form-data">` with files attached via `DataTransfer`, falling back to `photos_base64[]` hidden fields; `native_submit=1` makes `OrderSizingPhotoController` redirect to `/order/details` instead of returning JSON. Safari/Android keep the XHR path with a progress %.
+- **`OrderSizingPhotoController` accepts base64 data URLs** as well as files (`decodeDataUrl()`), and returns JSON 422s with friendly messages (or a redirect + flash for native submits) instead of Laravel's redirect-back.
+- **Captures capped at 1600px / JPEG 0.85**, previews use data URLs, errors render inline (with an "upload from my gallery instead" link) rather than `alert()`, and `localStorage` remembers a device whose multipart uploads broke.
+- **`camera-capture.js` is cache-busted** with `?v={{ filemtime(...) }}` — it lives in `public/js/`, outside Vite, so phones were holding the old file.
+- **`NbmCamera.init()` now runs before the desktop-handoff branch**, so the "On a phone but seeing this screen?" escape hatch actually starts the camera.
+
+**4. Reorder discount reset after a cancellation** (`b4647ec`)
+
+Sizing-on-file made a customer "returning", which granted the 5% discount even when their only previous order was cancelled. Now `Customer::qualifiesForReorderDiscount()` requires an order at `confirmed` or later, re-checked on every checkout step (`OrderController::reorderDiscountApplies()`), and `orders.is_returning_customer` records that same meaning. Customers with a cancelled order still skip the camera — their details page says "Your sizing is on file" instead of promising a discount. Discount % + label now read from settings. One earlier prod order (NBM-2026-0005) kept its incorrectly-granted Rs. 175.
+
+**5. Full payment up front** (`de51fc2`, `b78c0e6`)
+
+Mona's call: the advance-then-balance flow meant finishing a set, then chasing a second payment by email that customers don't read. Every made-to-measure set is unsellable to anyone else, so:
+- `calculateTotals()` sets `requires_advance = false` for all new orders. Checkout, confirmation page, order-placed + reminder emails, `/terms` and the payment FAQ all state full payment before production.
+- **Legacy orders are respected:** `Order::advanceAmountPkr()` returns the total unless `requires_advance` is set, and `Order::isLegacyAdvanceOrder()` gates the advance copy plus the "Confirm: advance only" / "Balance received" actions. Fixed along the way: the confirmation page and reminder email had 30% / 50% **hardcoded** while settings said 25% / 100%.
+- Advance + bridal-deposit fields removed from admin Settings (section renamed "Discounts"); the `StoreSettings` properties stay for legacy math.
+- **WhatsApp status updates:** `Order::whatsappUpdateUrl()` / `whatsappUpdateMessage()` build a status-aware message (awaiting payment, confirmed, in production, shipped + courier tracking link, delivered + refit reminder). Phone normalization handles `0092…`, `+92…`, `03…` and bare `3…` (checkout stores the local 10 digits after a fixed +92 prefix).
+- **Then trimmed back (`b78c0e6`)** on Mona's request — she doesn't want to send a message per stage. The per-action "Send on WhatsApp" notification was removed; emails remain the automatic channel, and the order's WhatsApp button stays as an optional grey action. `/terms` + FAQ say payment is confirmed **by email**.
+- **WhatsApp Business API was discussed and explicitly deferred** (see §11 Phase 7.5). Until it exists, every message is manual — exactly what Mona doesn't want. The setup path (Meta business verification → dedicated number → approved templates → per-message utility pricing) was walked through; the "free 1,000 conversations/month" note in §25 is out of date.
+
+**6. Nail sizes never saved — a 4-month-old bug** (`89aa450`)
+
+Recording sizes always failed with Livewire's "Error while loading page". Cause: `customer_sizing_profiles.source_order_id` was created with `foreignUlid()` (`char(26)`) while `orders.id` is a 36-char UUID → `SQLSTATE[22001] Data too long for column 'source_order_id'` on every save since May. Migration `2026_09_18_090000_fix_sizing_profile_source_order_id_type` drops the FK, widens to `CHAR(36)`, restores the FK (MySQL path; SQLite is permissive). Verified saving on prod, then deleted the empty profile row the check created and reset that customer's `has_sizing_on_file`. **"Prod has 0 sizing profiles" was the tell — if a feature has never produced a row, suspect the schema.**
+
+**Prod state at end of session:** first real custom-link order placed — **NBM-2026-0007**, "french tips and maroon nails", Rs. 5,000, `is_custom`, 2 sizing photos, awaiting payment. Customers: 5.
+
+**Migrations applied this session:**
+```
+2026_09_16_120000_create_custom_order_requests_table        (+ orders.is_custom)
+2026_09_16_150000_add_instagram_to_custom_order_requests    (phone made nullable)
+2026_09_17_100000_link_custom_order_requests_to_customers   (+ customers.instagram)
+2026_09_18_090000_fix_sizing_profile_source_order_id_type
+```
+
+**Debugging techniques that paid off (reuse these):**
+- `/var/log/nginx/access.log` on prod is the fastest way to see what a customer's phone actually did — status codes and timing exposed both upload bugs.
+- A temporary `log_format` with `$request_time` + `$request_length` separates "slow upload" from "slow server" in one test. Remove it afterwards (config backup at `/root/nailsbymona.nginx.bak-*`, deleted when done).
+- Browser-pane testing with a fake camera: `navigator.mediaDevices.getUserMedia = async () => canvas.captureStream(30)`, plus monkey-patching `XMLHttpRequest.prototype.send` / `HTMLFormElement.prototype.submit` to force failures and inspect what would have been posted. Spoof `navigator.userAgent` via `Object.defineProperty` to exercise the iOS-Chrome branch.
+- Local Vite `public/hot` left over from an old `npm run dev` makes every local page load with no CSS. Move it aside for visual checks, then put it back.
+
+---
+
 ## 33. Pointers for Future Claude Sessions
 
 - **Read this file first.** Overrides anything you think you remember.
@@ -2431,6 +2533,20 @@ Also flagged three small distribution nudges: use the Story link sticker (higher
 - **`og:locale=en_GB`, not `en_PK`.** Facebook silently drops unknown locales. `hreflang="en-PK"` carries the Pakistan signal for Google instead.
 - **Schema.org product availability:** `made_to_order` → `https://schema.org/MadeToOrder` (NOT `PreOrder` — that implies a future release date).
 - **Product page FAQs are DB-driven.** `ShopController::show()` passes `$faqs` from the `general` category. Product view loops them with `aria-expanded + aria-controls`. Falls back to a hardcoded 5-question set if the table is empty.
+
+— **2026-09-16 → 18 pointers** (custom links, camera upload, full payment — see §32 entry):
+
+- **Every order is paid in full up front.** Don't reintroduce partial-advance copy or settings. `Order::advanceAmountPkr()` returns the total; only `Order::isLegacyAdvanceOrder()` orders (placed before 2026-09-16 with `requires_advance = true`) show advance/balance copy and the "Confirm: advance only" / "Balance received" actions.
+- **`Order::scopeAwaitingPayment()` is the only correct "awaiting payment" query.** Cancelled orders keep a stale `payment_status`, so any new queue / stat / filter must chain it (or repeat the `status != cancelled` check).
+- **Reorder discount = a previous order at `confirmed` or later**, via `Customer::qualifiesForReorderDiscount()`, re-checked each step by `OrderController::reorderDiscountApplies()`. Sizing-on-file alone is not enough. Custom-link orders never get the discount.
+- **Custom links:** `CustomOrderRequest` + `/custom/{token}`. Checkout is the normal one — `OrderController::resolveBag()` prices custom checkouts from the request row. Creating a link creates/matches a `Customer` (`syncCustomer()`); the checkout reuses that `customer_id`, so never `firstOrCreate` a second customer for these. Links expire (7 days default) and place exactly one order (row locked in the order transaction).
+- **Deliberately NOT on custom links:** nail-size recording (sizes belong on the placed order, like website orders) and a separate dashboard widget. Mona asked for both to be removed on 2026-09-17 — ask before adding them back.
+- **Never let the camera page hold the stream while uploading.** `goTo('preview')` calls `stopStream()`; iPhone Chrome uploads crawl (30–120s for ~700 KB) while a page holds the camera, and finish in ~3s once it's released.
+- **iOS third-party browsers (`CriOS|FxiOS|EdgiOS`) upload sizing photos via a native `<form>` POST**, not XHR — `native_submit=1` makes `OrderSizingPhotoController` redirect instead of returning JSON. The endpoint accepts `photos[]` files *or* `photos_base64[]` data URLs; keep both paths working.
+- **`public/js/camera-capture.js` is outside Vite** — it must stay cache-busted (`?v={{ filemtime(...) }}`) or phones keep serving the old file.
+- **`customer_sizing_profiles.source_order_id` is `CHAR(36)`** because order ids are UUIDs. Don't "tidy" it back to `foreignUlid()`. One profile per customer; `CustomerResource::nailSizesFormData()` / `saveNailSizes()` are the shared helpers the order action uses.
+- **WhatsApp messaging is manual and optional.** `Order::whatsappUpdateUrl()` powers one grey button on the order; there are no per-stage prompts, and customer-facing copy promises email confirmation. The Business API is Phase 7.5 — Mona rejected the manual-per-stage workload, so don't wire automatic WhatsApp before the API exists.
+- **`robots.txt` disallows `/custom/`** alongside `/admin`, `/order/`, `/track`.
 
 — **2026-09-11 pointers** (payment toggles + bridal refresh — see §32 entry):
 
