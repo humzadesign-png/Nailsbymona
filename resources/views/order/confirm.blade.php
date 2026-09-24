@@ -347,6 +347,7 @@ $(function () {
       contentType: false,
     })
     .done(function () {
+      if (window.nbmTrack) nbmTrack('payment_proof_uploaded', { transaction_id: @js($order->order_number) });
       $('#proof-uploading').addClass('hidden');
       $('#proof-success').removeClass('hidden');
       $('#proof-dropzone').addClass('hidden');

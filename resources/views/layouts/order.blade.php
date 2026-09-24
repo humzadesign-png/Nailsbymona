@@ -8,6 +8,9 @@
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   <meta name="csrf-token" content="{{ csrf_token() }}">
   @stack('head')
+
+  {{-- Checkout pages were previously untracked — GA4 + Clarity + funnel events --}}
+  @include('partials.analytics')
 </head>
 <body class="bg-bone font-sans antialiased min-h-screen flex flex-col">
 

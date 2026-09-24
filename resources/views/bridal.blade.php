@@ -77,6 +77,7 @@
         <button
           class="inline-flex items-center gap-2.5 bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full px-9 py-4 transition-colors duration-200 add-to-bag-bridal"
           style="font-size:1rem"
+          data-slug="bridal-trio-classic"
           data-name="Bridal Trio Package"
           data-price="10000">
           Add Trio to bag
@@ -346,6 +347,7 @@
         <button
           class="inline-flex items-center justify-center gap-2 w-full bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full py-4 transition-colors duration-200 add-to-bag-bridal"
           style="font-size:1rem"
+          data-slug="bridal-trio-classic"
           data-name="Bridal Trio Package"
           data-price="10000">
           Order your Bridal Trio
@@ -721,17 +723,15 @@ $(function () {
 
   // ── Add to bag — Bridal Trio ─────────────────────
   $(document).on('click', '.add-to-bag-bridal', function () {
-    const name      = $(this).data('name')  || 'Bridal Trio Package';
-    const price_pkr = parseInt($(this).data('price') || '10000', 10);
-    const items = window.NbmBag.get();
-    const existing = items.find(i => i.name === name);
-    if (existing) {
-      existing.qty++;
-    } else {
-      items.push({ name, price_pkr, qty: 1, image: '' });
-    }
-    window.NbmBag.save(items);
-    window.NbmBag.open();
+    // The slug is required: checkout re-prices the bag by slug and drops any
+    // line without one (the Trio used to be added without it → empty bag).
+    window.NbmBag.add({
+      slug:      $(this).data('slug') || 'bridal-trio-classic',
+      name:      $(this).data('name') || 'Bridal Trio Package',
+      price_pkr: parseInt($(this).data('price') || '10000', 10),
+      tier:      'bridal_trio',
+      image:     '',
+    });
   });
 
   // ── FAQ accordion ────────────────────────────────

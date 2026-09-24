@@ -16,6 +16,7 @@ use App\Models\Customer;
 use App\Models\CustomOrderRequest;
 use App\Models\Order;
 use App\Notifications\NewOrderNotification;
+use App\Support\Analytics;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Settings\StoreSettings;
@@ -97,6 +98,8 @@ class OrderController extends Controller
         session()->forget('order_form.custom_request_id');
         session(['order_form.bag' => $bag]);
 
+        Analytics::queue('begin_checkout', Analytics::bagParams($bag));
+
         return redirect()->route('order.start');
     }
 
@@ -164,6 +167,8 @@ class OrderController extends Controller
         }
 
         // upload / whatsapp_pending / from_profile → skip camera, go to step 2.
+        Analytics::queue('sizing_completed', ['method' => $method]);
+
         return redirect()->route('order.details');
     }
 
@@ -300,6 +305,8 @@ class OrderController extends Controller
                 'notes'   => $validated['notes'] ?? '',
             ],
         ]);
+
+        Analytics::queue('add_shipping_info', Analytics::bagParams(session('order_form.bag', [])));
 
         return redirect()->route('order.payment');
     }
@@ -524,6 +531,8 @@ class OrderController extends Controller
         session()->forget(['order_form.bag', 'order_form.customer', 'order_form.sizing_method',
                            'order_form.is_returning', 'order_form.customer_id',
                            'order_form.custom_request_id']);
+
+        Analytics::queue('purchase', Analytics::purchaseParams($order->load('items')));
 
         return redirect()->route('order.confirm', $order->id);
     }

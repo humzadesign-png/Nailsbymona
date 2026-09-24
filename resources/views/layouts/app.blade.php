@@ -31,23 +31,8 @@
     {{-- Page-specific head content --}}
     @stack('head')
 
-    {{-- Google Analytics 4 --}}
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZC5X3P3PT4"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-ZC5X3P3PT4');
-    </script>
-
-    {{-- Microsoft Clarity --}}
-    <script>
-        (function(c,l,a,r,i,t,y){
-            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-        })(window,document,"clarity","script","wrhay4fga3");
-    </script>
+    {{-- Google Analytics 4 + Microsoft Clarity (+ queued checkout events) --}}
+    @include('partials.analytics')
 </head>
 
 <body class="bg-bone text-graphite antialiased">
@@ -619,6 +604,15 @@ $(function () {
             if (existing) { existing.qty++; } else { items.push({ ...item, qty: 1 }); }
             saveBag(items);
             openBag();
+
+            if (window.nbmTrack) {
+                window.nbmTrack('add_to_cart', {
+                    currency: 'PKR',
+                    value: +item.price_pkr || 0,
+                    items: [{ item_id: item.slug || '', item_name: item.name || '',
+                              item_category: item.tier || '', price: +item.price_pkr || 0, quantity: 1 }],
+                });
+            }
         }
     };
 

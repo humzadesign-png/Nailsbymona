@@ -6,6 +6,7 @@ use App\Enums\PhotoType;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderSizingPhoto;
+use App\Support\Analytics;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -102,6 +103,9 @@ class OrderSizingPhotoController extends Controller
         // Store pending photo paths in session — attached to order on OrderController@store.
         session(['order_form.sizing_photos' => $storedPaths]);
         session(['order_form.sizing_method' => 'live_camera']);
+
+        // Sent by the next page (step 2) — JSON uploads don't render one.
+        Analytics::queue('sizing_completed', ['method' => 'live_camera', 'photos' => count($storedPaths)]);
 
         // Native form submission (iPhone Chrome/Firefox/Edge) → go straight to step 2.
         if ($request->boolean('native_submit')) {

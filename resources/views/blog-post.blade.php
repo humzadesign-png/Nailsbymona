@@ -279,11 +279,7 @@ $(function(){
     const slug = $btn.data('slug');
     const name = $btn.data('name');
     const price_pkr = parseInt($btn.data('price'));
-    const items = window.NbmBag.get();
-    const existing = items.find(i => i.slug === slug);
-    if (existing) { existing.qty++; } else { items.push({ slug, name, price_pkr, qty: 1 }); }
-    window.NbmBag.save(items);
-    window.NbmBag.open();
+    window.NbmBag.add({ slug, name, price_pkr });
   });
 
   // FAQ accordion

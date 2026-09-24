@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Order;
 
+use App\Support\Analytics;
 use App\Enums\CustomOrderStatus;
 use App\Enums\SizingCaptureMethod;
 use App\Http\Controllers\Controller;
@@ -97,12 +98,16 @@ class CustomOrderController extends Controller
             ],
         ]);
 
+        Analytics::queue('begin_checkout', Analytics::bagParams([$request->toBagItem()]) + ['checkout_type' => 'custom_link']);
+
         if ($validated['sizing'] === 'saved' && $savedCustomer) {
             session([
                 'order_form.is_returning'  => true,
                 'order_form.customer_id'   => $savedCustomer->id,
                 'order_form.sizing_method' => SizingCaptureMethod::FromProfile->value,
             ]);
+
+            Analytics::queue('sizing_completed', ['method' => SizingCaptureMethod::FromProfile->value]);
 
             return redirect()->route('order.details');
         }
