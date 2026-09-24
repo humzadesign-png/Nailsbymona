@@ -44,61 +44,45 @@
 
 @section('content')
 
-<!-- HERO -->
-<section class="relative min-h-[clamp(400px,60vh,800px)] md:min-h-[clamp(400px,70vh,800px)] w-full flex items-end overflow-hidden">
-  <!-- Background hand portrait -->
-  <div class="absolute inset-0 z-0" style="background: linear-gradient(135deg, #EAE3D9 0%, #FBF8F2 60%, #E0D9CE 100%)">
-    <picture>
-      <source type="image/webp"
-              srcset="{{ asset('images/hero-about-red-matte-768.webp') }} 768w,
-                      {{ asset('images/hero-about-red-matte-1280.webp') }} 1280w,
-                      {{ asset('images/hero-about-red-matte-1920.webp') }} 1920w"
-              sizes="100vw">
-      <img src="{{ asset('images/hero-about-red-matte-1280.jpg') }}"
-           srcset="{{ asset('images/hero-about-red-matte-768.jpg') }} 768w,
-                   {{ asset('images/hero-about-red-matte-1280.jpg') }} 1280w,
-                   {{ asset('images/hero-about-red-matte-1920.jpg') }} 1920w"
-           sizes="100vw"
-           alt="Matte deep-red almond press-on gel nails on both hands resting against a draped purple silk — Mona's signature work"
-           class="absolute inset-0 w-full h-full object-cover"
-           onerror="this.parentElement.remove()"
-           width="1080" height="1920"
-           loading="eager" fetchpriority="high">
-    </picture>
-    <div class="absolute inset-0 bg-gradient-to-t from-bone via-bone/30 to-transparent"></div>
-    <div class="absolute inset-0 bg-gradient-to-r from-bone/60 via-transparent to-transparent"></div>
-  </div>
+{{-- HERO — shared page-hero component (2026-09-24). Hands and work only,
+     never a face (CLAUDE.md §24). Photo: a finished set on the brand card. --}}
+<x-page-hero
+    image="about-set-card"
+    :widths="[768, 1280]"
+    position="center 38%"
+    badge="Made by hand in Mirpur"
+    alt="A finished set of nude French-tip press-on nails on a Nails by Mona card, held in hand">
 
-  <!-- Hero content -->
-  <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 pb-16 pt-32 w-full">
-    <div class="max-w-xl">
-      <nav class="mb-6" aria-label="Breadcrumb">
-        <ol class="flex items-center gap-2 font-sans text-caption text-graphite">
-          <li><a href="{{ route('home') }}" class="hover:text-ink transition-colors duration-200">Home</a></li>
-          <li aria-hidden="true"><span class="text-stone">›</span></li>
-          <li class="text-ink font-medium">About</li>
-        </ol>
-      </nav>
-      <p class="font-sans text-eyebrow uppercase mb-5 tracking-[0.2em]" style="color:var(--color-lavender-dark)">Our story</p>
-      <h1 class="font-serif text-display-lg text-ink mb-5" style="font-variation-settings:'opsz' 144,'SOFT' 30">
-        Hi, I'm Mona. I make every set myself.
-      </h1>
-      <p class="font-sans text-body-lg text-graphite max-w-md">
-        No factory. No drop-shipping. Just me, my studio, and a lot of care &mdash; in Mirpur, Azad Kashmir.
-      </p>
-      <!-- Signature -->
-      <div class="mt-6 relative inline-block">
-        <span class="mona-signature text-lavender-ink" style="font-size:2.5rem; line-height:1.1; display:block">Mona</span>
-        <div class="h-px w-16 bg-lavender/40 mt-1"></div>
-        <p class="font-sans text-caption text-stone italic mt-1">Hi, I'm Mona &mdash; and these are my hands.</p>
-      </div>
+    <p class="font-sans text-eyebrow text-lavender uppercase mb-4">Our story</p>
+    <h1 class="font-serif text-display-lg lg:text-display-xl text-ink">Hi, I'm Mona. I make every set myself.</h1>
+    <p class="font-sans text-body md:text-body-lg text-graphite mt-4 max-w-md">
+        No factory, no drop-shipping &mdash; one small studio in Mirpur, Azad Kashmir, and a lot of care in every set.
+    </p>
+
+    <ul class="mt-5 flex flex-wrap gap-x-6 gap-y-2.5">
+        <li class="flex items-center gap-2 font-sans text-caption text-graphite">
+            <svg class="w-5 h-5 text-lavender" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M216,56H40a8,8,0,0,0-8,8V192a8,8,0,0,0,8,8H216a8,8,0,0,0,8-8V64A8,8,0,0,0,216,56Z"/><polyline points="32 160 96 104 152 160"/><circle cx="168" cy="100" r="12"/></svg>
+            BA in Fine Arts</li>
+        <li class="flex items-center gap-2 font-sans text-caption text-graphite">
+            <svg class="w-5 h-5 text-lavender" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M128,24S32,96,32,152a96,96,0,0,0,192,0C224,96,128,24,128,24Z"/></svg>
+            Started for wudu</li>
+        <li class="flex items-center gap-2 font-sans text-caption text-graphite">
+            <svg class="w-5 h-5 text-lavender" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="216" y1="40" x2="40" y2="216"/><polyline points="40 152 40 216 104 216"/><polyline points="152 40 216 40 216 104"/></svg>
+            Every set checked by hand</li>
+    </ul>
+
+    <div class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+        <a href="#story" class="inline-flex items-center gap-2.5 font-sans font-medium text-ink rounded-full px-8 py-3.5 md:px-9 md:py-4 border border-ink/20 hover:border-ink/40 transition-colors duration-200">
+            Read my story
+            <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="128" y1="40" x2="128" y2="216"/><polyline points="56 144 128 216 200 144"/></svg>
+        </a>
+        <a href="{{ route('shop') }}" class="hidden sm:inline font-sans text-caption font-medium text-lavender-ink hover:underline underline-offset-4">Browse the collection &rarr;</a>
     </div>
-  </div>
-</section>
+</x-page-hero>
 
 
 <!-- MY STORY -->
-<section class="bg-paper py-16 md:py-24">
+<section id="story" class="bg-paper border-t border-hairline/70 py-16 md:py-24 scroll-mt-20">
   <div class="max-w-7xl mx-auto px-6 lg:px-10">
 
     <p class="font-sans text-eyebrow text-lavender uppercase mb-3">My story</p>

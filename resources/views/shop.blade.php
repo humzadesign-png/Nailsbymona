@@ -57,6 +57,7 @@
       <button class="filter-pill font-sans text-eyebrow uppercase tracking-widest rounded-full px-5 py-2 border border-hairline text-stone hover:border-ink hover:text-ink transition-all duration-200 cursor-pointer" data-filter="signature">Signature</button>
       <button class="filter-pill font-sans text-eyebrow uppercase tracking-widest rounded-full px-5 py-2 border border-hairline text-stone hover:border-ink hover:text-ink transition-all duration-200 cursor-pointer" data-filter="glam">Glam</button>
       <button class="filter-pill font-sans text-eyebrow uppercase tracking-widest rounded-full px-5 py-2 border border-hairline text-stone hover:border-ink hover:text-ink transition-all duration-200 cursor-pointer" data-filter="bridal">Bridal</button>
+      <button class="filter-pill font-sans text-eyebrow uppercase tracking-widest rounded-full px-5 py-2 border border-hairline text-stone hover:border-ink hover:text-ink transition-all duration-200 cursor-pointer" data-filter="under3000">Under Rs.&nbsp;3,000</button>
     </div>
 
     <!-- Sort select -->
@@ -278,6 +279,10 @@ $(function () {
     const $cards = $('.product-card');
     if (filter === 'all') {
       $cards.show();
+    } else if (filter === 'under3000') {
+      $cards.each(function () {
+        $(this)[+$(this).data('price') < 3000 ? 'show' : 'hide']();
+      });
     } else {
       $cards.each(function () {
         const tier = $(this).data('tier');
@@ -289,6 +294,13 @@ $(function () {
     const visible = $cards.filter(':visible').length;
     $('#no-results').toggleClass('hidden', visible > 0);
   });
+
+  // ── Deep link: /shop?filter=glam (home page shortcuts) ──
+  const initial = new URLSearchParams(window.location.search).get('filter');
+  if (initial) {
+    const $pill = $('.filter-pill[data-filter="' + initial.replace(/[^a-z0-9_]/gi, '') + '"]').first();
+    if ($pill.length) $pill.trigger('click');
+  }
 
   // ── Add to bag ───────────────────────────────────
   // Delegated through window.NbmBag.add so dedupe-by-slug, badge update,

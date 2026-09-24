@@ -29,20 +29,21 @@ Route::get('/', function () {
         ->orderBy('sort_order')
         ->get();
 
-    $featuredProducts = Product::where('is_active', true)
-        ->where('is_featured', true)
+    // Home collection grid (redesign 2026-09-24): 8 designs, Mona's
+    // featured ones first, then the shop's own order.
+    $active = Product::where('is_active', true);
+
+    $homeProducts = (clone $active)
+        ->orderByDesc('is_featured')
         ->orderBy('sort_order')
-        ->limit(6)
+        ->orderBy('created_at')
+        ->limit(8)
         ->get();
 
-    if ($featuredProducts->count() < 3) {
-        $featuredProducts = Product::where('is_active', true)
-            ->orderBy('sort_order')
-            ->limit(6)
-            ->get();
-    }
+    $productCount = (clone $active)->count();
+    $minPrice     = (clone $active)->min('price_pkr');
 
-    return view('home', compact('ugcPhotos', 'featuredProducts'));
+    return view('home', compact('ugcPhotos', 'homeProducts', 'productCount', 'minPrice'));
 })->name('home');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');
 Route::get('/shop/{slug}', [ShopController::class, 'show'])->name('product');

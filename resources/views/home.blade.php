@@ -16,12 +16,28 @@
             ],
         ],
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+    // Redesign 2026-09-24 — docs/ux/home-redesign-2026-09.md.
+    // Ad visitors (mostly Instagram, on phones) left in ~6 s without seeing a
+    // design or a price. This page puts both in the first screen.
+    $fromPrice = 'Rs. ' . number_format($minPrice ?? 2000);
+    $heroWidths = [768, 1280, 1920];
+
+    $tierBadge = fn (?string $tier) => match ($tier) {
+        'signature'                   => 'bg-shell/95 backdrop-blur-sm text-graphite',
+        'glam'                        => 'bg-graphite/90 backdrop-blur-sm text-bone',
+        'bridal_single','bridal_trio' => 'bg-gold/95 backdrop-blur-sm text-ink',
+        default                       => 'bg-paper/90 backdrop-blur-sm text-stone',
+    };
+
+    $pill = 'shrink-0 font-sans text-eyebrow uppercase tracking-widest rounded-full px-5 py-2 border transition-all duration-200';
+    $pillOff = 'border-hairline text-stone hover:border-ink hover:text-ink';
 @endphp
 
 @section('seo')
     <x-seo
         title="Nails by Mona — Custom-Fit Press-On Gel Nails, Pakistan"
-        description="Handmade, custom-fit press-on gel nails. Live-camera sizing. Wudu-friendly. Reusable 3–5×. Shipped across Pakistan from Mirpur."
+        description="Handmade, custom-fit press-on gel nails. Sized from two photos of your nails. Wudu-friendly. Reusable 3–5×. Sets from {{ $fromPrice }}, shipped across Pakistan."
         :schema="$homeSchema"
     />
 @endsection
@@ -29,702 +45,384 @@
 @push('head')
     {{-- Start the hero (LCP) download before the CSS/JS is parsed. --}}
     <link rel="preload" as="image" type="image/webp" fetchpriority="high"
-          imagesrcset="{{ asset('images/hero-home-red-matte-768.webp') }} 768w, {{ asset('images/hero-home-red-matte-1280.webp') }} 1280w, {{ asset('images/hero-home-red-matte-1920.webp') }} 1920w, {{ asset('images/hero-home-red-matte-2560.webp') }} 2560w"
-          imagesizes="100vw">
+          imagesrcset="@foreach($heroWidths as $w){{ asset('images/hero-home-red-matte-'.$w.'.webp') }} {{ $w }}w{{ $loop->last ? '' : ', ' }}@endforeach"
+          imagesizes="(min-width: 768px) 50vw, 100vw">
+    <style>
+      #sticky-cta { transform: translateY(110%); transition: transform .3s ease; }
+      #sticky-cta.show { transform: translateY(0); }
+      .faq-item[open] .faq-icon { transform: rotate(45deg); }
+      .faq-item summary::-webkit-details-marker { display: none; }
+      .no-scrollbar { scrollbar-width: none; } .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
 @endpush
 
 @section('content')
 
 {{-- ═══════════════════════════════════════════
-     SECTION 1 — HERO
-     BG: bone (full-bleed image)
+     1 — HERO   · BG: bone
 ═══════════════════════════════════════════ --}}
-<section class="relative min-h-[80vh] md:min-h-[88vh] flex items-center overflow-hidden">
+<x-page-hero
+    image="hero-home-red-matte"
+    :widths="$heroWidths"
+    position="center 40%"
+    badge="Handmade in Mirpur"
+    alt="Matte deep-red almond press-on gel nails — handmade by Nails by Mona in Mirpur">
 
-    {{-- Background image + overlays --}}
-    <div class="absolute inset-0 z-0 img-wrap-dark-fallback">
-        <picture>
-            <source type="image/webp"
-                    srcset="{{ asset('images/hero-home-red-matte-768.webp') }} 768w,
-                            {{ asset('images/hero-home-red-matte-1280.webp') }} 1280w,
-                            {{ asset('images/hero-home-red-matte-1920.webp') }} 1920w,
-                            {{ asset('images/hero-home-red-matte-2560.webp') }} 2560w"
-                    sizes="100vw">
-            <img
-                src="{{ asset('images/hero-home-red-matte-1920.jpg') }}"
-                srcset="{{ asset('images/hero-home-red-matte-768.jpg') }} 768w,
-                        {{ asset('images/hero-home-red-matte-1280.jpg') }} 1280w,
-                        {{ asset('images/hero-home-red-matte-1920.jpg') }} 1920w,
-                        {{ asset('images/hero-home-red-matte-2560.jpg') }} 2560w"
-                sizes="100vw"
-                alt="Matte deep-red almond press-on gel nails on both hands against a draped purple silk backdrop — handmade by Nails by Mona in Mirpur"
-                class="absolute inset-0 w-full h-full object-cover"
-                loading="eager" fetchpriority="high"
-                onerror="this.parentElement.remove()"
-                width="1920" height="1080">
-        </picture>
-        <div class="absolute inset-0 bg-gradient-to-r from-ink/35 via-ink/15 to-transparent"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-ink/15 via-transparent to-transparent"></div>
+    <h1 class="font-serif text-display-lg lg:text-display-xl text-ink">Press-on nails, made to fit your hands.</h1>
+    <p class="font-sans text-body md:text-body-lg text-graphite mt-4 max-w-md">
+        Sized from two photos of your nails. Reusable three to five times. <span class="text-ink font-medium whitespace-nowrap">Sets from {{ $fromPrice }}.</span>
+    </p>
+    <div class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+        <a href="#collection" class="inline-flex items-center gap-2.5 bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full px-8 py-3.5 md:px-9 md:py-4 transition-colors duration-200">
+            Shop the collection
+            <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="40" y1="128" x2="216" y2="128"/><polyline points="144 56 216 128 144 200"/></svg>
+        </a>
+        <a href="{{ route('bridal') }}" class="hidden sm:inline font-sans text-caption font-medium text-graphite hover:text-ink underline-offset-4 hover:underline transition-colors duration-200">Bridal Trio &rarr;</a>
     </div>
-
-    {{-- Frosted editorial card --}}
-    <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 py-24 w-full">
-        <div class="w-full max-w-[560px] bg-paper/82 backdrop-blur-[14px] rounded-2xl border border-white/35 shadow-2xl shadow-ink/15 p-10 md:p-14">
-
-            <div class="flex flex-wrap gap-2 mb-6">
-                <span class="inline-flex items-center rounded-full border border-lavender/40 bg-lavender/10 px-3 py-1 font-sans font-medium text-lavender-ink"
-                      style="font-size:0.72rem;letter-spacing:0.06em">
-                    Handmade in Mirpur
-                </span>
-                <span class="inline-flex items-center rounded-full border border-lavender/40 bg-lavender/10 px-3 py-1 font-sans font-medium text-lavender-ink"
-                      style="font-size:0.72rem;letter-spacing:0.06em">
-                    Made to fit
-                </span>
-            </div>
-
-            <h1 class="font-serif text-display-xl text-ink mb-7 max-w-[14ch]">
-                Custom-fit press-on nails,<br>made for your hands.
-            </h1>
-
-            <p class="font-sans text-body-lg text-graphite mb-10 max-w-[400px]">
-                Handmade gel sets, sized from two close-up photos of your fingers and thumb. Wudu-friendly. Reusable three to five times. Shipped across Pakistan.
-            </p>
-
-            <div class="flex flex-wrap items-center gap-3">
-                <a href="{{ route('shop') }}"
-                   class="inline-flex items-center gap-2.5 bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full px-9 py-4 transition-colors duration-200" style="font-size:1rem">
-                    Browse the collection
-                    <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <line x1="40" y1="128" x2="216" y2="128"/>
-                        <polyline points="144 56 216 128 144 200"/>
-                    </svg>
-                </a>
-                <a href="{{ route('bridal') }}"
-                   class="inline-flex items-center gap-2 border border-ink/70 text-ink hover:bg-ink hover:text-bone font-sans text-caption font-medium tracking-wide rounded-full px-7 py-4 transition-colors duration-200">
-                    Bridal Trio &rarr;
-                </a>
-            </div>
-
-        </div>
-    </div>
-
-</section>
+    <ul class="hidden md:flex gap-8 mt-10">
+        <li class="flex items-center gap-2.5 font-sans text-caption text-stone">
+            <svg class="w-5 h-5 text-lavender" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="216" y1="40" x2="40" y2="216"/><polyline points="40 152 40 216 104 216"/><polyline points="152 40 216 40 216 104"/></svg>
+            Custom-fit</li>
+        <li class="flex items-center gap-2.5 font-sans text-caption text-stone">
+            <svg class="w-5 h-5 text-lavender" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M128,24S32,96,32,152a96,96,0,0,0,192,0C224,96,128,24,128,24Z"/></svg>
+            Wudu-friendly</li>
+        <li class="flex items-center gap-2.5 font-sans text-caption text-stone">
+            <svg class="w-5 h-5 text-lavender" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M48,128a80,80,0,0,1,144-48"/><polyline points="184 32 192 80 144 88"/><path d="M208,128a80,80,0,0,1-144,48"/><polyline points="72 224 64 176 112 168"/></svg>
+            Reusable 3&ndash;5&times;</li>
+    </ul>
+</x-page-hero>
 
 
 {{-- ═══════════════════════════════════════════
-     SECTION 2 — TRUST BAR
-     BG: paper
+     2 — THE COLLECTION   · BG: shell
+     Own background band so it reads as a separate group from the hero,
+     while still starting inside the first phone screen. Card + pills are
+     the /shop ones.
 ═══════════════════════════════════════════ --}}
-<section class="bg-paper border-y border-hairline">
-    <div class="max-w-7xl mx-auto px-6 lg:px-10">
-        <div class="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-hairline/70">
-
-            <div class="flex items-start gap-4 py-9 md:pr-10">
-                <span class="text-lavender shrink-0 mt-0.5" aria-hidden="true">
-                    <svg class="w-6 h-6" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="216" y1="40" x2="40" y2="216"/>
-                        <polyline points="40 152 40 216 104 216"/>
-                        <polyline points="152 40 216 40 216 104"/>
-                    </svg>
-                </span>
-                <div>
-                    <p class="font-sans font-semibold text-ink" style="font-size:0.875rem">Custom-fit sizing</p>
-                    <p class="font-sans text-caption text-stone mt-1">Sized to your exact fingers</p>
-                </div>
-            </div>
-
-            <div class="flex items-start gap-4 py-9 md:px-10">
-                <span class="text-lavender shrink-0 mt-0.5" aria-hidden="true">
-                    <svg class="w-6 h-6" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M128,24S32,96,32,152a96,96,0,0,0,192,0C224,96,128,24,128,24Z"/>
-                    </svg>
-                </span>
-                <div>
-                    <p class="font-sans font-semibold text-ink" style="font-size:0.875rem">Wudu-friendly</p>
-                    <p class="font-sans text-caption text-stone mt-1">Remove &amp; reapply with ease</p>
-                </div>
-            </div>
-
-            <div class="flex items-start gap-4 py-9 md:px-10">
-                <span class="text-lavender shrink-0 mt-0.5" aria-hidden="true">
-                    <svg class="w-6 h-6" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M48,128a80,80,0,0,1,144-48"/>
-                        <polyline points="184 32 192 80 144 88"/>
-                        <path d="M208,128a80,80,0,0,1-144,48"/>
-                        <polyline points="72 224 64 176 112 168"/>
-                    </svg>
-                </span>
-                <div>
-                    <p class="font-sans font-semibold text-ink" style="font-size:0.875rem">Reusable 3&ndash;5&times;</p>
-                    <p class="font-sans text-caption text-stone mt-1">Gentle on natural nails</p>
-                </div>
-            </div>
-
-            <div class="flex items-start gap-4 py-9 md:pl-10">
-                <span class="text-lavender shrink-0 mt-0.5" aria-hidden="true">
-                    <svg class="w-6 h-6" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M220,136v72a8,8,0,0,1-8,8H44a8,8,0,0,1-8-8V136"/>
-                        <path d="M232,80H24a0,0,0,0,0,0,0v48a8,8,0,0,0,8,8H224a8,8,0,0,0,8-8V80A0,0,0,0,0,232,80Z"/>
-                        <line x1="128" y1="136" x2="128" y2="216"/>
-                        <path d="M93.2,80l10.42-50a8,8,0,0,1,7.82-6.36H144.56A8,8,0,0,1,152.38,30l10.42,50"/>
-                    </svg>
-                </span>
-                <div>
-                    <p class="font-sans font-semibold text-ink" style="font-size:0.875rem">Shipped Pakistan-wide</p>
-                    <p class="font-sans text-caption text-stone mt-1">From Mirpur to your door</p>
-                </div>
-            </div>
-
-        </div>
+<section id="collection" class="bg-shell border-t border-hairline/70 pt-10 pb-14 md:pt-20 md:pb-28 scroll-mt-16">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="flex items-center justify-between gap-4 mb-4">
+      <p class="font-sans text-eyebrow text-lavender uppercase">The collection</p>
+      <a href="{{ route('shop') }}" class="shrink-0 font-sans text-caption font-medium text-lavender-ink hover:underline underline-offset-4">View all {{ $productCount }} &rarr;</a>
     </div>
-</section>
+    <h2 class="font-serif text-display text-ink">New &amp; loved designs.</h2>
 
+    {{-- Shortcuts into the filtered shop (/shop?filter=…) --}}
+    <nav class="no-scrollbar -mx-6 px-6 lg:mx-0 lg:px-0 mt-5 flex gap-2 overflow-x-auto" aria-label="Shop by style">
+      <a href="{{ route('shop', ['filter' => 'everyday']) }}"  class="{{ $pill }} {{ $pillOff }}">Everyday</a>
+      <a href="{{ route('shop', ['filter' => 'signature']) }}" class="{{ $pill }} {{ $pillOff }}">Signature</a>
+      <a href="{{ route('shop', ['filter' => 'glam']) }}"      class="{{ $pill }} {{ $pillOff }}">Glam</a>
+      <a href="{{ route('shop', ['filter' => 'bridal']) }}"    class="{{ $pill }} {{ $pillOff }}">Bridal</a>
+      <a href="{{ route('shop', ['filter' => 'under3000']) }}" class="{{ $pill }} {{ $pillOff }}">Under Rs.&nbsp;3,000</a>
+    </nav>
 
-{{-- ═══════════════════════════════════════════
-     SECTION 3 — FIT DIFFERENCE
-     BG: bone
-═══════════════════════════════════════════ --}}
-<section class="py-20 md:py-28 bg-bone overflow-hidden">
-    <div class="max-w-7xl mx-auto px-6 lg:px-10">
-        <div class="grid md:grid-cols-2 gap-14 md:gap-20 items-center">
-
-            {{-- Phone mockup --}}
-            <div class="order-2 md:order-1 flex justify-center md:justify-start">
-                <div class="relative w-[220px] md:w-[256px]">
-                    <div class="absolute inset-0 translate-y-4 bg-lavender/10 blur-3xl rounded-full"></div>
-                    <div class="relative w-full" style="aspect-ratio:9/19">
-                        <div class="absolute inset-0 bg-ink rounded-[36px] border-[7px] border-stone/40 shadow-2xl shadow-ink/40 overflow-hidden">
-                            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[80px] h-[24px] bg-ink rounded-b-2xl z-10"></div>
-                            <div class="absolute inset-0 bg-gradient-to-b from-graphite to-ink flex flex-col items-center justify-center pt-8 pb-8 px-5">
-                                <div class="absolute top-3 left-3 right-3 flex items-center gap-2">
-                                    <p class="font-sans text-bone/70" style="font-size:8px; letter-spacing:0.12em">PHOTO 1 OF 2 &mdash; FINGERS</p>
-                                    <div class="flex-1 h-[3px] rounded-full bg-bone/15 overflow-hidden">
-                                        <div class="h-full bg-lavender" style="width:50%"></div>
-                                    </div>
-                                </div>
-                                {{-- Guide overlay: U-shaped finger outlines + coin, matching sizing-fingers.svg --}}
-                                <div class="w-full flex-1 relative flex items-center justify-center">
-                                    <svg viewBox="0 0 140 156" class="w-full max-w-[120px]" fill="none">
-                                        {{-- Green alignment border --}}
-                                        <rect x="5" y="5" width="130" height="146" rx="5" stroke="#3F6E4A" stroke-width="2" opacity="0.85"/>
-                                        {{-- Coin circle above middle finger --}}
-                                        <circle cx="82" cy="36" r="13" stroke="#BFA4CE" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.85"/>
-                                        <text x="82" y="40" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#BFA4CE" stroke="none" opacity="0.85">&#8360;</text>
-                                        {{-- Pinky — leftmost, shortest (U-shape open at bottom) --}}
-                                        <path d="M29,156 L29,100 Q29,92 37,92 Q46,92 46,100 L46,156" stroke="#BFA4CE" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.8"/>
-                                        {{-- Ring finger --}}
-                                        <path d="M51,156 L51,88 Q51,80 60,80 Q68,80 68,88 L68,156" stroke="#BFA4CE" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.8"/>
-                                        {{-- Middle finger — tallest, coin sits above it --}}
-                                        <path d="M73,156 L73,81 Q73,73 82,73 Q90,73 90,81 L90,156" stroke="#BFA4CE" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.8"/>
-                                        {{-- Index finger --}}
-                                        <path d="M95,156 L95,90 Q95,82 104,82 Q112,82 112,90 L112,156" stroke="#BFA4CE" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.8"/>
-                                        <text x="82" y="57" text-anchor="middle" font-family="sans-serif" font-size="5" fill="#BFA4CE" stroke="none" opacity="0.6" letter-spacing="0.8">COIN ABOVE NAILS</text>
-                                    </svg>
-                                </div>
-                                <div class="absolute top-12 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-success/85 flex items-center gap-1">
-                                    <span class="text-bone" style="font-size:7px">&#10003;</span>
-                                    <span class="font-sans uppercase text-bone" style="font-size:7px; letter-spacing:0.1em">Good lighting</span>
-                                </div>
-                                <p class="font-sans uppercase text-center text-bone/40" style="font-size:8px; letter-spacing:0.18em">Tap when guide is green</p>
-                                <div class="mt-4 w-11 h-11 rounded-full border-[1.5px] border-bone/25 flex items-center justify-center">
-                                    <div class="w-8 h-8 rounded-full bg-bone/15"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 w-2/3 h-3 bg-ink/15 blur-xl rounded-full"></div>
-                </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mt-5">
+      @foreach($homeProducts as $product)
+        @php
+          $tierValue = $product->tier?->value ?? '';
+          $tierLabel = $product->tier?->label() ?? '';
+          $imgSrc    = img_variant($product->cover_image);
+        @endphp
+        {{-- 8 on phones + desktop; 6 on tablets so the 3-column grid has no half row --}}
+        <article class="{{ $loop->index >= 6 ? 'md:max-lg:hidden ' : '' }}flex flex-col bg-paper rounded-2xl overflow-hidden group shadow-card hover:shadow-card-hover transition-shadow duration-300">
+          <a href="{{ route('product', $product->slug) }}">
+            <div class="relative overflow-hidden" style="aspect-ratio:1/1; background:linear-gradient(145deg,#EAE3D9 0%,#DDD3C7 100%)">
+              @if($imgSrc)
+              <img src="{{ $imgSrc }}" alt="{{ $product->name }} — {{ $tierLabel }} tier custom-fit press-on nails"
+                   class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
+                   width="400" height="400" loading="{{ $loop->index < 4 ? 'eager' : 'lazy' }}" decoding="async">
+              @endif
+              @if($tierLabel)
+              <span class="absolute top-3 left-3 font-sans text-eyebrow uppercase tracking-widest px-3 py-1.5 {{ $tierBadge($tierValue) }} rounded-full">{{ $tierLabel }}</span>
+              @endif
             </div>
-
-            {{-- Text column --}}
-            <div class="order-1 md:order-2">
-                <p class="font-sans text-eyebrow text-lavender uppercase mb-4">The fit difference</p>
-                <h2 class="font-serif text-display-lg text-ink mb-5">Finally, nails that<br>actually fit.</h2>
-                <div class="h-0.5 w-10 bg-lavender mb-8"></div>
-                <p class="font-sans text-body-lg text-graphite mb-5">
-                    Most press-ons come in one of twenty-four standard sizes. Yours don&rsquo;t. We size each set from two close-up photos &mdash; your fingers in one, your thumb in the other, with a coin above the nails for scale. Real fingers, real shape, measured to the millimetre.
-                </p>
-                <p class="font-sans text-body text-stone mb-10">
-                    If your first set doesn&rsquo;t sit right, we&rsquo;ll refit it free. No fine print, no asking nicely.
-                </p>
-                <div class="flex flex-wrap items-center gap-4">
-                    <a href="{{ route('size-guide') }}"
-                       class="inline-flex items-center gap-2 border border-ink text-ink hover:bg-ink hover:text-bone font-sans text-caption font-medium tracking-wide rounded-full px-7 py-3 transition-colors duration-200">
-                        How sizing works
-                    </a>
-                    <a href="{{ route('size-guide') }}"
-                       class="font-sans text-caption text-stone hover:text-lavender-ink underline-offset-4 hover:underline transition-colors duration-200">
-                        View guide &rarr;
-                    </a>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</section>
-
-
-{{-- ═══════════════════════════════════════════
-     SECTION 4 — COLLECTION
-     BG: shell
-═══════════════════════════════════════════ --}}
-<section class="py-20 md:py-28 bg-shell">
-    <div class="max-w-7xl mx-auto px-6 lg:px-10">
-
-        <div class="flex items-end justify-between mb-14">
-            <div>
-                <p class="font-sans text-eyebrow text-lavender uppercase mb-4">The Collection</p>
-                <h2 class="font-serif text-display-lg text-ink">New &amp; loved designs.</h2>
-                <div class="h-0.5 w-10 bg-lavender mt-5"></div>
-            </div>
-            <a href="{{ route('shop') }}"
-               class="hidden md:inline-flex items-center gap-1 font-sans text-caption text-stone hover:text-lavender-ink underline-offset-4 hover:underline transition-colors duration-200">
-                View all designs &rarr;
+          </a>
+          <div class="flex flex-col flex-1 px-4 md:px-5 pt-4 pb-4">
+            <a href="{{ route('product', $product->slug) }}">
+              <h3 class="font-serif text-ink mb-1 leading-snug capitalize" style="font-size:1.125rem; font-weight:300">{{ trim($product->name) }}</h3>
             </a>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 md:gap-6">
-
-            @foreach($featuredProducts as $loop_product)
-            @php
-                $tierBadgeClass = match($loop_product->tier) {
-                    \App\Enums\ProductTier::Glam         => 'bg-graphite/95 text-bone',
-                    \App\Enums\ProductTier::BridalSingle,
-                    \App\Enums\ProductTier::BridalTrio   => 'bg-gold/95 text-ink',
-                    default                              => 'bg-shell/95 text-graphite',
-                };
-                $isLast = $loop->last && $loop->count % 2 === 1;
-            @endphp
-            <article class="bg-paper rounded-2xl overflow-hidden group shadow-card hover:shadow-card-hover transition-shadow duration-300{{ $isLast ? ' sm:col-span-2 md:col-span-1' : '' }}">
-                <a href="{{ route('product', $loop_product->slug) }}" class="block">
-                    <div class="relative overflow-hidden" style="aspect-ratio:4/5">
-                        @if($loop_product->cover_image)
-                        <img
-                            src="{{ img_variant($loop_product->cover_image) }}"
-                            alt="{{ $loop_product->name }}"
-                            class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
-                            loading="lazy" width="400" height="500">
-                        @else
-                        <div class="absolute inset-0 bg-shell flex items-center justify-center">
-                            <span class="text-stone text-sm">No image</span>
-                        </div>
-                        @endif
-                        <span class="absolute top-4 left-4 font-sans text-eyebrow uppercase tracking-widest px-3 py-1.5 {{ $tierBadgeClass }} backdrop-blur-sm rounded-full">{{ $loop_product->tier->label() }}</span>
-                        <div class="absolute inset-0 flex items-end justify-center pb-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span class="font-sans text-caption font-medium text-white tracking-wide bg-ink/70 backdrop-blur-sm rounded-full px-5 py-2">View details &rarr;</span>
-                        </div>
-                    </div>
-                </a>
-                <a href="{{ route('product', $loop_product->slug) }}" class="block px-6 py-5">
-                    <h3 class="font-serif text-ink mb-2 leading-snug" style="font-size:1.25rem; font-weight:300">{{ $loop_product->name }}</h3>
-                    <p class="font-sans font-medium text-lavender tabular-nums" style="font-size:1.125rem">Rs.&nbsp;{{ number_format($loop_product->price_pkr) }}</p>
-                </a>
-            </article>
-            @endforeach
-
-        </div>
-
-        <div class="mt-12 text-center">
-            <a href="{{ route('shop') }}"
-               class="inline-flex items-center gap-2 border border-graphite/50 text-graphite hover:border-ink hover:text-ink font-sans text-caption font-medium tracking-wide rounded-full px-8 py-3.5 transition-colors duration-200">
-                View all designs
-                <svg class="w-3.5 h-3.5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <line x1="40" y1="128" x2="216" y2="128"/>
-                    <polyline points="144 56 216 128 144 200"/>
-                </svg>
-            </a>
-        </div>
-
+            <p class="font-sans font-medium text-lavender tabular-nums mb-3 mt-auto" style="font-size:1rem">Rs. {{ number_format($product->price_pkr) }}</p>
+            <button class="add-to-bag w-full bg-lavender hover:bg-lavender-dark text-white font-sans text-caption font-medium tracking-wide rounded-full py-2.5 transition-colors duration-200"
+              data-name="{{ trim($product->name) }}"
+              data-price="{{ $product->price_pkr }}"
+              data-tier="{{ $tierValue }}"
+              data-slug="{{ $product->slug }}"
+              data-image="{{ $imgSrc }}">
+              Add to bag
+            </button>
+          </div>
+        </article>
+      @endforeach
     </div>
+
+    <div class="mt-10 text-center">
+      <a href="{{ route('shop') }}" class="inline-flex items-center justify-center gap-2 w-full sm:w-auto font-sans font-medium text-ink rounded-full px-9 py-3.5 border border-ink/20 hover:border-ink/40 transition-colors duration-200">
+        See all {{ $productCount }} designs
+      </a>
+    </div>
+  </div>
 </section>
 
 
 {{-- ═══════════════════════════════════════════
-     SECTION 5 — BRIDAL TRIO
-     BG: paper
+     3 — WHY THEY FIT   · BG: paper
 ═══════════════════════════════════════════ --}}
-<section class="py-20 md:py-28 bg-paper">
-    <div class="max-w-7xl mx-auto px-6 lg:px-10">
-        <div class="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
-
-            {{-- Text column --}}
-            <div>
-                <p class="font-sans text-eyebrow text-lavender uppercase mb-5">For the wedding</p>
-                <h2 class="font-serif text-display-lg text-ink mb-5 leading-[1.0]">
-                    Three nights.<br>One fitting.<br>Three coordinated looks.
-                </h2>
-                <div class="h-0.5 w-10 bg-lavender mb-8"></div>
-                <p class="font-sans text-body-lg text-graphite mb-3">
-                    The Bridal Trio is built for Mehendi, Baraat, and Valima &mdash; three sets, sized once, packaged in a magnetic keepsake box with a handwritten name card and prep kit.
-                </p>
-                <p class="font-sans text-body text-stone mb-10">
-                    Order four weeks before your mehendi. Just <span class="text-gold-deep font-medium tracking-tight">Rs.&nbsp;10,000</span> for all three nights.
-                </p>
-                <div class="flex flex-wrap items-center gap-4">
-                    <a href="{{ route('bridal') }}"
-                       class="inline-flex items-center gap-2.5 bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full px-9 py-4 transition-colors duration-200" style="font-size:1rem">
-                        Discover the Trio
-                        <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <line x1="40" y1="128" x2="216" y2="128"/>
-                            <polyline points="144 56 216 128 144 200"/>
-                        </svg>
-                    </a>
-                    <a href="{{ route('size-guide') }}"
-                       class="font-sans text-caption text-stone hover:text-lavender-ink underline-offset-4 hover:underline transition-colors duration-200">
-                        Sizing &amp; fit guide &rarr;
-                    </a>
-                </div>
-            </div>
-
-            {{-- Bridal image --}}
-            <div class="rounded-2xl overflow-hidden shadow-2xl shadow-ink/20"
-                 style="aspect-ratio:3/4; background:linear-gradient(150deg,#C4B8D2 0%,#EAE3D9 60%,#FBF8F2 100%)">
-                <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMDjMPFXgmgvFReuLT1rq0rhVxtsqEr42UQqTmYLcjUihKexyK-z6bF4jMc2FT4t0v6r1VP2z6smwQlyKQsqlV9-EqBsIsISm9Kt4_BhQH7N6Uk6MVq0JA0rKFxN9wUuWp0OFyt9258JJBFvDa85Md5U-L74wbcnwWfMOv5CzCQWTM4-Z5UYZbccbpqT-q1pCsmHqpi4tyJMXPGOQmU0hQVN899lKjUthcadruE4Tt_jW8W2ZvBMow3FXqsLnKUH_ej49SsBaJvhs"
-                    alt="Bridal Trio nail sets — three coordinated looks for Mehendi, Baraat, and Valima"
-                    class="w-full h-full object-cover"
-                    loading="lazy" onerror="this.remove()" width="600" height="800">
-            </div>
-
-        </div>
+<section class="bg-paper border-y border-hairline py-14 md:py-28">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="md:text-center mb-10 md:mb-16">
+      <p class="font-sans text-eyebrow text-lavender uppercase mb-4">Why they fit</p>
+      <h2 class="font-serif text-display-lg text-ink">Sized to your nails, not a standard pack.</h2>
+      <div class="h-0.5 w-10 bg-lavender mt-5 md:mx-auto"></div>
     </div>
+
+    <div class="relative">
+      <div class="hidden md:block absolute h-px bg-hairline" style="top:28px; left:16.66%; right:16.66%" aria-hidden="true"></div>
+      <ol class="grid md:grid-cols-3 gap-8 md:gap-10">
+        @foreach([
+            ['01', 'Choose a design', 'From the collection — or send a picture of your dream set and we\'ll make it for you.'],
+            ['02', 'Send 2 sizing photos', 'Fingers, then thumb — each with a coin for scale. Our camera guide walks you through it in about 90 seconds.'],
+            ['03', 'Handmade & delivered', 'Ready in ' . $settings->lead_time_standard_days . '–7 days and tracked to your door. If your first set doesn\'t sit right, we refit it free.'],
+        ] as [$num, $title, $text])
+        <li class="flex md:flex-col md:items-center md:text-center gap-5 md:gap-0">
+          <div class="shrink-0 w-14 h-14 rounded-full bg-paper border border-hairline flex items-center justify-center md:mb-5 relative z-10">
+            <span class="font-serif text-lavender leading-none" style="font-size:1.25rem">{{ $num }}</span>
+          </div>
+          <div>
+            <h3 class="font-sans font-semibold text-ink mb-1.5" style="font-size:0.9375rem">{{ $title }}</h3>
+            <p class="font-sans text-caption text-stone leading-relaxed">{{ $text }}</p>
+          </div>
+        </li>
+        @endforeach
+      </ol>
+    </div>
+
+    <div class="mt-10 md:text-center">
+      <a href="{{ route('size-guide') }}" class="font-sans text-caption font-medium text-lavender-ink hover:underline underline-offset-4">See the size guide &rarr;</a>
+    </div>
+  </div>
 </section>
 
 
 {{-- ═══════════════════════════════════════════
-     SECTION 6 — WORN ACROSS PAKISTAN (UGC)
-     BG: bone
+     4 — WHY PRESS-ONS   · BG: bone
 ═══════════════════════════════════════════ --}}
-<section class="py-20 md:py-28 bg-bone">
-    <div class="max-w-7xl mx-auto px-6 lg:px-10">
-
-        <div class="text-center mb-14">
-            <p class="font-sans text-eyebrow text-lavender uppercase mb-4">Worn across Pakistan</p>
-            <h2 class="font-serif text-display-lg text-ink">Real customers. Real hands.</h2>
-            <div class="h-0.5 w-10 bg-lavender mt-5 mx-auto"></div>
-        </div>
-
-        @if($ugcPhotos->isNotEmpty())
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-            @foreach($ugcPhotos as $photo)
-            @php
-                $src  = img_variant($photo->image_path);
-                $href = $photo->product ? route('product', $photo->product->slug) : route('shop');
-            @endphp
-            <a href="{{ $href }}"
-               class="{{ $loop->first ? 'row-span-1 md:row-span-2 aspect-square md:aspect-auto' : 'aspect-square' }} block overflow-hidden rounded-2xl relative group"
-               style="background:linear-gradient(135deg,#EAE3D9,#FBF8F2)">
-                <img src="{{ $src }}" alt="{{ e($photo->alt) }}"
-                     class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
-                     loading="lazy" onerror="this.parentElement.style.display='none'"
-                     width="400" height="{{ $loop->first ? 800 : 400 }}">
-                <div class="absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div class="absolute bottom-0 left-0 right-0 p-4 translate-y-1 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                    <p class="font-sans text-white text-sm leading-snug line-clamp-2">{{ $photo->alt }}</p>
-                    @if($photo->product)
-                    <span class="mt-1 inline-flex items-center gap-1 font-sans text-white/80 text-xs uppercase tracking-wider">
-                        Shop this set
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </span>
-                    @endif
-                </div>
-            </a>
-            @endforeach
-        </div>
-        @endif
-
+<section class="bg-bone py-14 md:py-28">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="mb-10 md:mb-14">
+      <p class="font-sans text-eyebrow text-lavender uppercase mb-4">Why press-ons</p>
+      <h2 class="font-serif text-display-lg text-ink">The salon look, without the salon.</h2>
+      <div class="h-0.5 w-10 bg-lavender mt-5"></div>
     </div>
+
+    <div class="grid md:grid-cols-3 gap-4 md:gap-6">
+      <div class="bg-paper border border-hairline/70 rounded-2xl p-6 md:p-8">
+        <span class="text-lavender" aria-hidden="true">
+          <svg class="w-6 h-6" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M48,128a80,80,0,0,1,144-48"/><polyline points="184 32 192 80 144 88"/><path d="M208,128a80,80,0,0,1-144,48"/><polyline points="72 224 64 176 112 168"/></svg>
+        </span>
+        <h3 class="font-sans font-semibold text-ink mt-5 mb-1.5" style="font-size:0.9375rem">One set, worn 3&ndash;5 times</h3>
+        <p class="font-sans text-caption text-stone leading-relaxed">From {{ $fromPrice }} a set — compared with Rs. 2,500–5,000 at the salon every three weeks.</p>
+      </div>
+      <div class="bg-paper border border-hairline/70 rounded-2xl p-6 md:p-8">
+        <span class="text-lavender" aria-hidden="true">
+          <svg class="w-6 h-6" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M128,216S24,160,24,94A54,54,0,0,1,128,74h0A54,54,0,0,1,232,94C232,160,128,216,128,216Z"/></svg>
+        </span>
+        <h3 class="font-sans font-semibold text-ink mt-5 mb-1.5" style="font-size:0.9375rem">Kind to your natural nails</h3>
+        <p class="font-sans text-caption text-stone leading-relaxed">No drilling and no acetone soaks. They come off with warm water in minutes.</p>
+      </div>
+      <div class="bg-paper border border-hairline/70 rounded-2xl p-6 md:p-8">
+        <span class="text-lavender" aria-hidden="true">
+          <svg class="w-6 h-6" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M128,24S32,96,32,152a96,96,0,0,0,192,0C224,96,128,24,128,24Z"/></svg>
+        </span>
+        <h3 class="font-sans font-semibold text-ink mt-5 mb-1.5" style="font-size:0.9375rem">Wudu-friendly</h3>
+        <p class="font-sans text-caption text-stone leading-relaxed">Take them off before wudu, put them back after — the reason Nails by Mona began. <a href="{{ route('blog.post', 'muslim-women-press-on-nails-wudu') }}" class="font-medium text-lavender-ink hover:underline underline-offset-4 whitespace-nowrap">Read the story &rarr;</a></p>
+      </div>
+    </div>
+  </div>
 </section>
 
 
 {{-- ═══════════════════════════════════════════
-     SECTION 7 — STUDIO TEASER
-     BG: paper
+     5 — BRIDAL TRIO   · BG: bridal-bg (champagne)
 ═══════════════════════════════════════════ --}}
-<section class="py-20 md:py-28 bg-paper">
-    <div class="max-w-7xl mx-auto px-6 lg:px-10">
-        <div class="grid md:grid-cols-2 gap-12 md:gap-24 items-center">
-
-            {{-- Text column --}}
-            <div>
-                <p class="font-sans text-eyebrow text-lavender uppercase mb-4">From the studio</p>
-                <h2 class="font-serif text-display-lg text-ink mb-5">A small studio.<br>A steady hand.</h2>
-                <div class="h-0.5 w-10 bg-lavender mb-9"></div>
-
-                <div class="relative pl-6 border-l-2 border-lavender/30 space-y-6 mb-10">
-                    <p class="font-serif text-body-lg text-graphite italic leading-loose" style="font-variation-settings:'opsz' 144,'SOFT' 60">
-                        &ldquo;Nails by Mona started as a personal quest&thinsp;&mdash;&thinsp;I wanted beautiful nails I could actually wear as a practicing Muslim. In my studio in Mirpur, I hand-paint every single set.&rdquo;
-                    </p>
-                    <p class="font-serif text-body text-stone italic leading-loose" style="font-variation-settings:'opsz' 144,'SOFT' 60">
-                        &ldquo;Self-care shouldn&rsquo;t be loud or synthetic. It should be a quiet moment of artistry you carry with you.&rdquo;
-                    </p>
-                </div>
-
-                <a href="{{ route('about') }}"
-                   class="inline-flex items-center gap-1 font-sans text-caption text-graphite hover:text-lavender-ink underline-offset-4 hover:underline transition-colors duration-200">
-                    Read the studio story &rarr;
-                </a>
-            </div>
-
-            {{-- Studio image + signature --}}
-            <div class="relative">
-                <div class="overflow-hidden rounded-2xl shadow-card img-wrap-fallback"
-                     style="aspect-ratio:4/5; background:linear-gradient(150deg,#EAE3D9 0%,#F4EFE8 50%,#FBF8F2 100%)">
-                    <img
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRNrh2VamPvaM4JFu7dU4Va-_DRV5XtI77RJyYyrHyZQtLhDs9Jyq55MwfH1kaPESe2unFgGa1f7BMg9gQ_5aFIXFcALZMrhQp5AWq2kz_3UzmBWlSiHU6darUNcjQTP6njSjtMjEUtnDUxqVSE6BWvPKtAgUMOihilWJN5VV6MFyFsh6UkAYlOe-b7I3dsNwqumi09UlwfJCDpBXx-JrHuQntQQ6Xqi1sL5dFejTNG3pugBxgPZ2N5y4hLSBFqBIWTFKy2yT9ofg"
-                        alt="Hands painting press-on nails in the Nails by Mona studio, Mirpur AJK"
-                        class="w-full h-full object-cover"
-                        loading="lazy" onerror="this.remove()" width="480" height="600">
-                </div>
-                {{-- Handwritten signature badge --}}
-                <div class="absolute bottom-5 right-5 bg-bone/95 backdrop-blur-sm border border-hairline rounded-xl px-4 py-3 shadow-card">
-                    <span class="font-serif text-2xl text-ink italic" style="font-variation-settings:'opsz' 144,'SOFT' 100">Mona</span>
-                </div>
-            </div>
-
-        </div>
+<section class="bg-bridal-bg py-14 md:py-28">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10 grid md:grid-cols-2 gap-8 md:gap-14 items-center">
+    <a href="{{ route('bridal') }}" class="group block relative rounded-2xl overflow-hidden aspect-[4/3] md:aspect-[4/5]" style="background:linear-gradient(135deg,#8B7355,#2A1F14)">
+      <picture>
+        <source type="image/webp" srcset="{{ asset('images/bridal-baraat-beaded-480.webp') }} 480w, {{ asset('images/bridal-baraat-beaded-960.webp') }} 960w" sizes="(min-width: 768px) 50vw, 100vw">
+        <img src="{{ asset('images/bridal-baraat-beaded-960.jpg') }}" alt="Sheer nude bridal press-on nails carpeted in gold beadwork — Baraat"
+             class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" style="object-position:center 35%" loading="lazy" decoding="async">
+      </picture>
+      <span class="absolute top-4 left-4 font-sans text-eyebrow uppercase tracking-widest px-3 py-1.5 bg-gold/95 text-ink backdrop-blur-sm rounded-full">Bridal Trio</span>
+    </a>
+    <div>
+      <p class="font-sans text-eyebrow uppercase mb-4 text-gold-deep">For the wedding</p>
+      <h2 class="font-serif text-display-lg text-ink">Mehendi, Baraat &amp; Valima. One fitting.</h2>
+      <div class="h-0.5 w-10 bg-gold mt-5 mb-6"></div>
+      <p class="font-sans text-body text-graphite max-w-md">Three coordinated sets in a keepsake box — sized once, shipped together. Order at least four weeks before your Mehendi.</p>
+      <p class="font-sans text-ink mt-5"><span class="font-serif text-display">Rs. 10,000</span> <span class="font-sans text-caption text-stone">for all three nights</span></p>
+      <a href="{{ route('bridal') }}" class="mt-7 inline-flex items-center gap-2.5 font-sans font-medium text-ink rounded-full px-8 py-3.5 border border-ink/20 hover:border-ink/40 transition-colors duration-200">
+        See the Bridal Trio
+        <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="40" y1="128" x2="216" y2="128"/><polyline points="144 56 216 128 144 200"/></svg>
+      </a>
     </div>
+  </div>
 </section>
 
 
 {{-- ═══════════════════════════════════════════
-     SECTION 8 — HOW IT WORKS
-     BG: shell
+     6 — WORN ACROSS PAKISTAN (real UGC)   · BG: paper
+     ->published() in the route = is_published AND face_visible = false.
 ═══════════════════════════════════════════ --}}
-<section class="py-20 md:py-28 bg-shell">
-    <div class="max-w-7xl mx-auto px-6 lg:px-10">
-
-        <div class="text-center mb-16 md:mb-20">
-            <p class="font-sans text-eyebrow text-lavender uppercase mb-4">How it works</p>
-            <h2 class="font-serif text-display-lg text-ink">From your hand to your hands.</h2>
-            <div class="h-0.5 w-10 bg-lavender mt-5 mx-auto"></div>
-        </div>
-
-        <div class="relative">
-            {{-- Connector line: desktop only, runs between centre of circle 01 → centre of circle 04 --}}
-            <div class="hidden md:block absolute h-px bg-hairline"
-                 style="top:28px; left:calc(12.5%); right:calc(12.5%);" aria-hidden="true"></div>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-8">
-
-                <div class="flex flex-col items-center text-center">
-                    <div class="w-14 h-14 rounded-full bg-paper border border-hairline flex items-center justify-center mb-5 relative z-10">
-                        <span class="font-serif text-lavender leading-none" style="font-size:1.25rem">01</span>
-                    </div>
-                    <h3 class="font-sans font-semibold text-ink mb-2" style="font-size:0.9375rem">Choose a design</h3>
-                    <p class="font-sans text-caption text-stone leading-relaxed">Browse the collection or describe your dream set.</p>
-                </div>
-
-                <div class="flex flex-col items-center text-center">
-                    <div class="w-14 h-14 rounded-full bg-paper border border-hairline flex items-center justify-center mb-5 relative z-10">
-                        <span class="font-serif text-lavender leading-none" style="font-size:1.25rem">02</span>
-                    </div>
-                    <h3 class="font-sans font-semibold text-ink mb-2" style="font-size:0.9375rem">Send 2 sizing photos</h3>
-                    <p class="font-sans text-caption text-stone leading-relaxed">Fingers, then thumb &mdash; each with a coin for scale. About 90 seconds.</p>
-                </div>
-
-                <div class="flex flex-col items-center text-center">
-                    <div class="w-14 h-14 rounded-full bg-paper border border-hairline flex items-center justify-center mb-5 relative z-10">
-                        <span class="font-serif text-lavender leading-none" style="font-size:1.25rem">03</span>
-                    </div>
-                    <h3 class="font-sans font-semibold text-ink mb-2" style="font-size:0.9375rem">We make &amp; ship</h3>
-                    <p class="font-sans text-caption text-stone leading-relaxed">Hand-painted in Mirpur. {{ $settings->lead_time_standard_days }} days to your door.</p>
-                </div>
-
-                <div class="flex flex-col items-center text-center">
-                    <div class="w-14 h-14 rounded-full bg-paper border border-hairline flex items-center justify-center mb-5 relative z-10">
-                        <span class="font-serif text-lavender leading-none" style="font-size:1.25rem">04</span>
-                    </div>
-                    <h3 class="font-sans font-semibold text-ink mb-2" style="font-size:0.9375rem">Wear &amp; reuse</h3>
-                    <p class="font-sans text-caption text-stone leading-relaxed">Apply with brush-on glue. Reuse three to five times.</p>
-                </div>
-
-            </div>
-        </div>
+@if($ugcPhotos->isNotEmpty())
+<section class="bg-paper py-14 md:py-28">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="mb-8 md:mb-12">
+      <p class="font-sans text-eyebrow text-lavender uppercase mb-4">Worn across Pakistan</p>
+      <h2 class="font-serif text-display-lg text-ink">Real customers. Real&nbsp;hands.</h2>
+      <div class="h-0.5 w-10 bg-lavender mt-5"></div>
     </div>
+  </div>
+  <div class="max-w-7xl mx-auto lg:px-10">
+    <div class="no-scrollbar flex md:grid md:grid-cols-4 gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory scroll-px-6 px-6 lg:px-0">
+      @foreach($ugcPhotos->take(4) as $photo)
+      <figure class="snap-start shrink-0 w-[72%] sm:w-[44%] md:w-auto">
+        <a href="{{ $photo->product ? route('product', $photo->product->slug) : route('shop') }}" class="block rounded-2xl overflow-hidden" style="aspect-ratio:4/5; background:linear-gradient(135deg,#EAE3D9,#FBF8F2)">
+          <img src="{{ img_variant($photo->image_path) }}" alt="{{ $photo->alt }}" class="w-full h-full object-cover" loading="lazy" decoding="async">
+        </a>
+        <figcaption class="mt-3 font-sans text-caption text-graphite leading-snug line-clamp-2">{{ $photo->alt }}</figcaption>
+      </figure>
+      @endforeach
+    </div>
+  </div>
+</section>
+@endif
+
+
+{{-- ═══════════════════════════════════════════
+     7 — ORDERING WITH CONFIDENCE   · BG: shell
+     Delivery terms live here (no announcement bar — see the design doc).
+═══════════════════════════════════════════ --}}
+@php
+    $freeAbove = (int) $settings->shipping_free_above;
+    $trust = [
+        ['JazzCash, EasyPaisa or bank', 'Pay the way you already do. Confirmed by email within 24 hours.',
+         '<rect x="24" y="56" width="208" height="144" rx="8"/><line x1="24" y1="96" x2="232" y2="96"/><line x1="160" y1="160" x2="192" y2="160"/>'],
+        ['Tracked delivery, Pakistan-wide', 'Rs. ' . number_format($settings->shipping_flat_pkr) . ' anywhere in Pakistan' . ($freeAbove > 0 ? ' — free on orders over Rs. ' . number_format($freeAbove) : '') . '.',
+         '<path d="M220,136v72a8,8,0,0,1-8,8H44a8,8,0,0,1-8-8V136"/><path d="M232,80H24v48a8,8,0,0,0,8,8H224a8,8,0,0,0,8-8V80Z"/><line x1="128" y1="136" x2="128" y2="216"/><path d="M93.2,80l10.42-50a8,8,0,0,1,7.82-6.36H144.56A8,8,0,0,1,152.38,30l10.42,50"/>'],
+        ['Free first refit', 'If a nail doesn\'t sit right, we remake that size.',
+         '<line x1="216" y1="40" x2="40" y2="216"/><polyline points="40 152 40 216 104 216"/><polyline points="152 40 216 40 216 104"/>'],
+    ];
+@endphp
+<section class="bg-shell border-y border-hairline">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10">
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 md:gap-x-10 divide-y md:divide-y-0 lg:divide-x divide-hairline/70">
+      @foreach($trust as $i => [$title, $text, $icon])
+      <div class="flex items-start gap-4 py-8 md:py-10 lg:py-12 {{ $i === 0 ? 'lg:pr-10' : 'lg:px-10' }}">
+        <span class="text-lavender shrink-0 mt-0.5" aria-hidden="true">
+          <svg class="w-6 h-6" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">{!! $icon !!}</svg>
+        </span>
+        <div>
+          <p class="font-sans font-semibold text-ink" style="font-size:0.875rem">{{ $title }}</p>
+          <p class="font-sans text-caption text-stone mt-1">{{ $text }}</p>
+        </div>
+      </div>
+      @endforeach
+      <div class="flex items-start gap-4 py-8 md:py-10 lg:py-12 lg:pl-10">
+        <span class="text-lavender shrink-0 mt-0.5" aria-hidden="true">
+          <svg class="w-6 h-6" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"><path d="M152.61,165.49a48,48,0,0,1-62.1-62.1A8,8,0,0,1,93.8,99.46l13.6,21.84a8,8,0,0,1-1.21,9.62L98.91,138.6a40,40,0,0,0,18.49,18.49l7.68-7.28a8,8,0,0,1,9.62-1.21L156.54,162.2A8,8,0,0,1,152.61,165.49Z"/><path d="M128,32a96,96,0,0,0-83.32,143.51L32.27,224l49.71-12.49A96,96,0,1,0,128,32Z"/></svg>
+        </span>
+        <div>
+          <p class="font-sans font-semibold text-ink" style="font-size:0.875rem">Questions before you order?</p>
+          <p class="font-sans text-caption text-stone mt-1">Customer care on WhatsApp. <a href="{{ route('contact') }}" class="font-medium text-lavender-ink hover:underline underline-offset-4">Get help &rarr;</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
 
 {{-- ═══════════════════════════════════════════
-     SECTION 9 — PRICING TABLE
-     BG: bone
+     8 — BEFORE YOU ORDER (FAQ)   · BG: bone
+     Answers match the FAQ table (FaqSeeder).
 ═══════════════════════════════════════════ --}}
-<section class="py-20 md:py-28 bg-bone">
-    <div class="max-w-3xl mx-auto px-6 lg:px-10">
-
-        <div class="text-center mb-12">
-            <p class="font-sans text-eyebrow text-lavender uppercase mb-4">Pricing</p>
-            <h2 class="font-serif text-display-lg text-ink">Sets for every occasion.</h2>
-            <div class="h-0.5 w-10 bg-lavender mt-5 mx-auto"></div>
-        </div>
-
-        <div class="bg-paper border border-hairline rounded-2xl overflow-hidden shadow-card">
-            <table class="w-full text-left">
-                <thead>
-                    <tr class="border-b border-hairline">
-                        <th class="px-7 py-4 font-sans text-eyebrow uppercase text-stone tracking-widest">Collection Tier</th>
-                        <th class="px-7 py-4 font-sans text-eyebrow uppercase text-stone tracking-widest text-right">Starting price</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-hairline/70">
-
-                    <tr class="hover:bg-shell/30 transition-colors duration-150">
-                        <td class="px-7 py-5">
-                            <p class="font-serif text-ink leading-tight mb-1" style="font-size:1.125rem; font-weight:300">Everyday Essential</p>
-                            <p class="font-sans text-caption text-stone">Solid colours, matte or gloss finish.</p>
-                        </td>
-                        <td class="px-7 py-5 text-right">
-                            <p class="font-sans font-medium text-lavender tabular-nums" style="font-size:1rem">Rs.&nbsp;1,800</p>
-                        </td>
-                    </tr>
-
-                    <tr class="hover:bg-shell/30 transition-colors duration-150">
-                        <td class="px-7 py-5">
-                            <p class="font-serif text-ink leading-tight mb-1" style="font-size:1.125rem; font-weight:300">Signature Art</p>
-                            <p class="font-sans text-caption text-stone">Ombr&eacute;, gold foil, custom patterns.</p>
-                        </td>
-                        <td class="px-7 py-5 text-right">
-                            <p class="font-sans font-medium text-lavender tabular-nums" style="font-size:1rem">Rs.&nbsp;2,500</p>
-                        </td>
-                    </tr>
-
-                    <tr class="hover:bg-shell/30 transition-colors duration-150">
-                        <td class="px-7 py-5">
-                            <p class="font-serif text-ink leading-tight mb-1" style="font-size:1.125rem; font-weight:300">Glamour Collection</p>
-                            <p class="font-sans text-caption text-stone">3D art, crystals, hand-painted ombr&eacute;.</p>
-                        </td>
-                        <td class="px-7 py-5 text-right">
-                            <p class="font-sans font-medium text-lavender tabular-nums" style="font-size:1rem">Rs.&nbsp;3,800</p>
-                        </td>
-                    </tr>
-
-                    {{-- Bridal Trio — highlighted row --}}
-                    <tr class="bg-lavender-wash">
-                        <td class="px-7 py-5">
-                            <div class="flex items-start gap-3">
-                                <div>
-                                    <div class="flex items-center gap-2.5 mb-1">
-                                        <p class="font-serif text-ink leading-tight" style="font-size:1.125rem; font-weight:300">Bridal Trio Package</p>
-                                        <span class="font-sans font-semibold uppercase tracking-wider text-white bg-lavender rounded-full px-2 py-0.5 shrink-0" style="font-size:9px">Flagship</span>
-                                    </div>
-                                    <p class="font-sans text-caption text-lavender-ink">Mehendi &middot; Baraat &middot; Valima &mdash; three sets, one fitting.</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-7 py-5 text-right">
-                            <p class="font-sans font-semibold text-lavender tabular-nums" style="font-size:1.125rem">Rs.&nbsp;10,000</p>
-                        </td>
-                    </tr>
-
-                </tbody>
-            </table>
-        </div>
-
-        <p class="font-sans text-caption text-stone text-center mt-6">
-            Payments accepted via JazzCash, EasyPaisa, and Bank Transfer.
-        </p>
-
+<section class="bg-bone py-14 md:py-28">
+  <div class="max-w-3xl mx-auto px-6 lg:px-10">
+    <div class="mb-8 md:mb-12 md:text-center">
+      <p class="font-sans text-eyebrow text-lavender uppercase mb-4">Before you order</p>
+      <h2 class="font-serif text-display-lg text-ink">Good questions.</h2>
+      <div class="h-0.5 w-10 bg-lavender mt-5 md:mx-auto"></div>
     </div>
+
+    <div class="border-t border-hairline">
+      @foreach([
+          ['How do you get my size?', 'After you choose a design, our camera guide helps you take two close-up photos — fingers, then thumb — with a coin for scale. It takes about 90 seconds, and every nail is measured from them.'],
+          ['What if they don\'t fit?', 'Your first refit is free. Send us a photo and we\'ll remake the sizes that don\'t sit right.'],
+          ['How long do they last?', 'With good prep, 5–10 days per wear — and each set can be worn three to five times. Care instructions come in the box.'],
+          ['How do I pay?', 'JazzCash, EasyPaisa or bank transfer. Every set is made to measure, so orders are paid in full before we begin — you upload a screenshot and we confirm by email.'],
+      ] as [$q, $a])
+      <details class="faq-item border-b border-hairline">
+        <summary class="flex items-center justify-between gap-6 py-5 cursor-pointer list-none">
+          <span class="font-sans font-medium text-ink" style="font-size:0.9375rem">{{ $q }}</span>
+          <svg class="faq-icon w-4 h-4 shrink-0 text-stone transition-transform duration-200" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" aria-hidden="true"><line x1="40" y1="128" x2="216" y2="128"/><line x1="128" y1="40" x2="128" y2="216"/></svg>
+        </summary>
+        <p class="font-sans text-caption text-stone leading-relaxed pb-5 -mt-1 pr-10">{{ $a }}</p>
+      </details>
+      @endforeach
+    </div>
+
+    <p class="font-sans text-caption text-stone mt-6 md:text-center">More answers on the <a href="{{ route('contact') }}" class="font-medium text-lavender-ink hover:underline underline-offset-4">Help page</a>.</p>
+  </div>
 </section>
 
 
 {{-- ═══════════════════════════════════════════
-     SECTION 10 — JOURNAL TEASER
-     BG: paper
+     STICKY BAR (phones) — appears once the hero scrolls away,
+     hides over the footer.
 ═══════════════════════════════════════════ --}}
-<section class="py-20 md:py-28 bg-paper">
-    <div class="max-w-7xl mx-auto px-6 lg:px-10">
-
-        <div class="flex items-end justify-between mb-14">
-            <div>
-                <p class="font-sans text-eyebrow text-lavender uppercase mb-4">Journal</p>
-                <h2 class="font-serif text-display-lg text-ink">Reading from the studio.</h2>
-                <div class="h-0.5 w-10 bg-lavender mt-5"></div>
-            </div>
-            <a href="{{ route('blog') }}"
-               class="hidden md:inline-flex items-center gap-1 font-sans text-caption text-stone hover:text-lavender-ink underline-offset-4 hover:underline transition-colors duration-200">
-                All posts &rarr;
-            </a>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
-
-            {{-- Post 1 --}}
-            <article class="group rounded-2xl overflow-hidden border border-hairline bg-paper hover:shadow-card transition-shadow duration-300">
-                <a href="{{ route('blog.post', 'how-to-apply-press-on-nails') }}" class="block h-full">
-                    <div class="overflow-hidden img-wrap-fallback" style="aspect-ratio:16/10; background:linear-gradient(135deg,#EAE3D9,#FBF8F2)">
-                        <img
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDk2pETKUps7piL1DaUFDJL6N_sVyMGqWgJDzXAoWK6Q6_Skwg0wvz9CiRTC4SHLeUg44fLyX4ztqqDHhq4K8F0KKr8m-Z7KfaTcUpPzwbRwBP_X8HZ-XNvQFkJNhUc25wvEJKsJ5MXaKGcqd1_WzxevpVhMISVyYQeL3nI6LemGImSyjOYD2Vc75oWCsMM1x-ujvEdqTbDbyw1GAfznmUfIg39ZsaHLH8I4ACvy3To4waBjT_osvk7IfFeVSqLhl_LmOlIiw8uF08"
-                            alt="Seven-step guide to applying press-on nails at home"
-                            class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
-                            loading="lazy" onerror="this.remove()" width="400" height="250">
-                    </div>
-                    <div class="p-6">
-                        <p class="font-sans text-eyebrow uppercase tracking-widest text-stone mb-3">Tutorials</p>
-                        <h3 class="font-serif text-ink mb-4 group-hover:text-lavender-ink transition-colors duration-200 leading-snug" style="font-size:1.125rem; font-weight:300">
-                            How to apply press-on nails &mdash; a foolproof seven-step guide.
-                        </h3>
-                        <span class="inline-flex items-center gap-1 font-sans text-caption text-stone group-hover:text-lavender-ink transition-colors duration-200">
-                            Read &rarr;
-                        </span>
-                    </div>
-                </a>
-            </article>
-
-            {{-- Post 2 --}}
-            <article class="group rounded-2xl overflow-hidden border border-hairline bg-paper hover:shadow-card transition-shadow duration-300">
-                <a href="{{ route('blog.post', 'bridal-nail-trends-pakistan-2026') }}" class="block h-full">
-                    <div class="overflow-hidden img-wrap-fallback" style="aspect-ratio:16/10; background:linear-gradient(135deg,#E8E1D8,#EAE3D9)">
-                        <img
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbcmMEHEVAr5UahZcYPX4Nw52pDfss7W2JzlMoKDepQMFt61gT_mrBPgylD949gN831b_upslG2gRAaODIoGPuwLIlPNbRL_w4SKqn9IZFWdvBTj8014EEzUcY5K5wdhvUw2YG3X8efZX9e6HgJjwqpJVM1zBd-QFSefspHJ9_pqD-MQLuY2apuFCeylOWVhyYFrPAnZE7C3XN632yDiD5h1lhz4TDXfT3UNctpPG3rXcwnrkIq9DbCRcO__1LdouBN_RWma2Yq_Y"
-                            alt="Bridal nail trends in Pakistan for 2026"
-                            class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
-                            loading="lazy" onerror="this.remove()" width="400" height="250">
-                    </div>
-                    <div class="p-6">
-                        <p class="font-sans text-eyebrow uppercase tracking-widest text-stone mb-3">Bridal</p>
-                        <h3 class="font-serif text-ink mb-4 group-hover:text-lavender-ink transition-colors duration-200 leading-snug" style="font-size:1.125rem; font-weight:300">
-                            Bridal nail trends in Pakistan for 2026.
-                        </h3>
-                        <span class="inline-flex items-center gap-1 font-sans text-caption text-stone group-hover:text-lavender-ink transition-colors duration-200">
-                            Read &rarr;
-                        </span>
-                    </div>
-                </a>
-            </article>
-
-            {{-- Post 3 --}}
-            <article class="group rounded-2xl overflow-hidden border border-hairline bg-paper hover:shadow-card transition-shadow duration-300">
-                <a href="{{ route('blog.post', 'muslim-women-press-on-nails-wudu') }}" class="block h-full">
-                    <div class="overflow-hidden img-wrap-fallback" style="aspect-ratio:16/10; background:linear-gradient(135deg,#F4EFE8,#EAE3D9)">
-                        <img
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQVdKsSA6Auceeu4keYdlNXRX9E9G5lIWVC0ahx_8o0h6TR9G5lIWVC0ahx_8o0h6TykTYT-lJykTYT-lJpRrKhsg"
-                            alt="Can Muslim women wear press-on nails? Wudu and nail care explained"
-                            class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
-                            loading="lazy" onerror="this.remove()" width="400" height="250">
-                    </div>
-                    <div class="p-6">
-                        <p class="font-sans text-eyebrow uppercase tracking-widest text-stone mb-3">Care</p>
-                        <h3 class="font-serif text-ink mb-4 group-hover:text-lavender-ink transition-colors duration-200 leading-snug" style="font-size:1.125rem; font-weight:300">
-                            Can Muslim women wear press-on nails? A simple solution.
-                        </h3>
-                        <span class="inline-flex items-center gap-1 font-sans text-caption text-stone group-hover:text-lavender-ink transition-colors duration-200">
-                            Read &rarr;
-                        </span>
-                    </div>
-                </a>
-            </article>
-
-        </div>
-
-        <div class="mt-10 text-center md:hidden">
-            <a href="{{ route('blog') }}"
-               class="font-sans text-caption text-stone hover:text-lavender-ink underline-offset-4 hover:underline">
-                All posts &rarr;
-            </a>
-        </div>
-
-    </div>
-</section>
+<div id="sticky-cta" class="md:hidden fixed inset-x-0 bottom-0 z-40 bg-paper/95 backdrop-blur-md border-t border-hairline px-6 pt-3 flex items-center gap-4" style="padding-bottom:max(0.75rem, env(safe-area-inset-bottom))">
+  <div class="flex-1 min-w-0">
+    <p class="font-sans text-eyebrow text-stone uppercase tracking-widest">Custom-fit sets</p>
+    <p class="font-sans font-medium text-ink mt-1">from {{ $fromPrice }}</p>
+  </div>
+  <a href="{{ route('shop') }}" class="inline-flex items-center gap-2 bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full px-6 py-3 transition-colors duration-200">
+    Shop now
+    <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="40" y1="128" x2="216" y2="128"/><polyline points="144 56 216 128 144 200"/></svg>
+  </a>
+</div>
 
 @endsection
+
+@push('scripts')
+<script>
+$(function () {
+  // Add to bag — same handler shape as /shop; NbmBag.add dedupes by slug,
+  // opens the drawer and fires the add_to_cart analytics event.
+  $(document).on('click', '.add-to-bag', function (e) {
+    e.preventDefault();
+    const $btn = $(this);
+    if (! $btn.data('slug')) return;
+    window.NbmBag.add({
+      slug:      $btn.data('slug'),
+      name:      $btn.data('name'),
+      price_pkr: +$btn.data('price'),
+      tier:      ($btn.data('tier') || '') + '',
+      image:     $btn.data('image') || '',
+    });
+    const text = $btn.text();
+    $btn.text('Added ✓').prop('disabled', true);
+    setTimeout(function () { $btn.text(text).prop('disabled', false); }, 1400);
+  });
+
+  // Sticky bar: visible once the hero is out of view, hidden over the footer.
+  const bar = document.getElementById('sticky-cta');
+  const hero = document.getElementById('hero');
+  const footer = document.querySelector('footer');
+  if (bar && hero && 'IntersectionObserver' in window) {
+    let heroGone = false, atFooter = false;
+    const sync = () => bar.classList.toggle('show', heroGone && ! atFooter);
+    new IntersectionObserver(([e]) => { heroGone = ! e.isIntersecting; sync(); }).observe(hero);
+    if (footer) new IntersectionObserver(([e]) => { atFooter = e.isIntersecting; sync(); }).observe(footer);
+  }
+});
+</script>
+@endpush

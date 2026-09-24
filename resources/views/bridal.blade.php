@@ -29,74 +29,46 @@
 @section('content')
 
 {{-- ═══════════════════════════════════════════════
-     SECTION 1 — HERO
-     BG: bridal-bg (warm champagne)
+     SECTION 1 — HERO   · BG: bridal-bg (champagne)
+     Shared page-hero component (2026-09-24): photo uncovered, and the four things
+     a bride needs first — what it is, the price, the ordering deadline,
+     and the button — all in the first screen.
 ═══════════════════════════════════════════════ --}}
-<section class="relative min-h-[70vh] md:min-h-[80vh] flex items-center overflow-hidden">
+<x-page-hero
+    image="hero-bridal-rose"
+    :widths="[768, 1280, 1920]"
+    position="center 58%"
+    bg="bg-bridal-bg"
+    badge="Mehendi · Baraat · Valima"
+    alt="Hand wearing classic French-tip bridal press-on gel nails, holding a single red rose against a midnight blue backdrop">
 
-  <!-- Background -->
-  <div class="absolute inset-0 z-0" style="background: linear-gradient(150deg, #EAE3D9 0%, #F4EFE8 100%)">
-    <picture>
-      <source type="image/webp"
-              srcset="{{ asset('images/hero-bridal-rose-768.webp') }} 768w,
-                      {{ asset('images/hero-bridal-rose-1280.webp') }} 1280w,
-                      {{ asset('images/hero-bridal-rose-1920.webp') }} 1920w"
-              sizes="100vw">
-      <img
-        src="{{ asset('images/hero-bridal-rose-1280.jpg') }}"
-        srcset="{{ asset('images/hero-bridal-rose-768.jpg') }} 768w,
-                {{ asset('images/hero-bridal-rose-1280.jpg') }} 1280w,
-                {{ asset('images/hero-bridal-rose-1920.jpg') }} 1920w"
-        sizes="100vw"
-        alt="Hand wearing classic French-tip bridal press-on gel nails, holding a single red rose against a midnight blue backdrop"
-        class="absolute inset-0 w-full h-full object-cover"
-        onerror="this.parentElement.remove()"
-        width="1080" height="1920"
-        loading="eager" fetchpriority="high">
-    </picture>
-    <div class="absolute inset-0" style="background: linear-gradient(to right, rgba(234,227,217,0.55) 0%, rgba(234,227,217,0.15) 50%, transparent 100%)"></div>
-  </div>
+    <p class="font-sans text-eyebrow uppercase mb-4 text-gold-deep">The Bridal Trio</p>
+    <h1 class="font-serif text-display-lg lg:text-display-xl text-ink">Your wedding nails, for all three nights.</h1>
+    <p class="font-sans text-body md:text-body-lg text-graphite mt-4 max-w-md">
+        Three coordinated sets for Mehendi, Baraat and Valima &mdash; sized once and shipped together in a keepsake box.
+    </p>
 
-  <!-- Frosted editorial card — centered -->
-  <div class="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-10 py-24 flex justify-center md:justify-start">
-    <div class="w-full max-w-[540px] bg-paper/85 backdrop-blur-[14px] rounded-2xl border border-white/40 shadow-2xl shadow-ink/10 p-10 md:p-14">
+    <p class="font-sans text-ink mt-5"><span class="font-serif text-display">Rs.&nbsp;10,000</span> <span class="font-sans text-caption text-stone">for all three nights</span></p>
 
-      <p class="font-sans text-eyebrow text-lavender uppercase mb-5 tracking-[0.22em]">
-        For the Wedding
-      </p>
-
-      <h1 class="font-serif text-display-xl text-ink mb-7 leading-[0.93] max-w-[16ch]" style="font-variation-settings:'opsz' 144,'SOFT' 30">
-        Your wedding nails, for all three nights.
-      </h1>
-
-      <p class="font-sans text-body-lg text-graphite mb-10 max-w-[400px]">
-        The Bridal Trio &mdash; Mehendi, Baraat, and Valima &mdash; as one coordinated order. One fitting. One shipment. Handmade by Mona.
-      </p>
-
-      <div class="flex flex-wrap items-center gap-3">
+    <div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
         <button
-          class="inline-flex items-center gap-2.5 bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full px-9 py-4 transition-colors duration-200 add-to-bag-bridal"
-          style="font-size:1rem"
+          class="inline-flex items-center gap-2.5 bg-lavender hover:bg-lavender-dark text-white font-sans font-medium tracking-wide rounded-full px-8 py-3.5 md:px-9 md:py-4 transition-colors duration-200 add-to-bag-bridal"
           data-slug="bridal-trio-classic"
           data-name="Bridal Trio Package"
           data-price="10000">
           Add Trio to bag
-          <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M40,72H216a8,8,0,0,1,8,8.83l-12.43,112a8,8,0,0,1-8,7.17H52.4a8,8,0,0,1-8-7.17L32,80.83A8,8,0,0,1,40,72Z"/>
-            <path d="M88,104V72a40,40,0,0,1,80,0v32"/>
-          </svg>
+          <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="40" y1="128" x2="216" y2="128"/><polyline points="144 56 216 128 144 200"/></svg>
         </button>
-        <a
-          href="https://wa.me/{{ $settings->whatsappForWaMe() }}?text=Hello%20Nails%20by%20Mona%2C%20I%27m%20interested%20in%20the%20Bridal%20Trio%20for%20my%20wedding."
-          class="font-sans text-caption text-stone hover:text-lavender-ink underline-offset-4 hover:underline transition-colors duration-200">
-          Get help &rarr;
-        </a>
-      </div>
-
+        <a href="https://wa.me/{{ $settings->whatsappForWaMe() }}?text=Hello%20Nails%20by%20Mona%2C%20I%27m%20interested%20in%20the%20Bridal%20Trio%20for%20my%20wedding."
+           class="hidden sm:inline font-sans text-caption font-medium text-graphite hover:text-ink underline-offset-4 hover:underline transition-colors duration-200">Get help &rarr;</a>
     </div>
-  </div>
 
-</section>
+    {{-- The deadline brides most often miss — visible on phones too --}}
+    <p class="mt-5 flex items-center gap-2.5 font-sans text-caption text-graphite">
+        <svg class="w-5 h-5 shrink-0 text-gold-deep" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="40" y="40" width="176" height="176" rx="8"/><line x1="176" y1="24" x2="176" y2="56"/><line x1="80" y1="24" x2="80" y2="56"/><line x1="40" y1="88" x2="216" y2="88"/></svg>
+        Order at least 4 weeks before your Mehendi.
+    </p>
+</x-page-hero>
 
 
 {{-- ═══════════════════════════════════════════════
