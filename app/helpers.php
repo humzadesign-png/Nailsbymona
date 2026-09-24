@@ -9,7 +9,7 @@ if (! function_exists('format_pkr')) {
 
 if (! function_exists('img_variant')) {
     /**
-     * URL for a public-disk image at grid/card size: the 640px WebP made by
+     * URL for a public-disk image at grid/card size: the 1080px WebP made by
      * App\Support\ImageOptimizer when it exists, otherwise the original.
      */
     function img_variant(?string $path): string

@@ -11,7 +11,7 @@ class OptimizeImages extends Command
 {
     protected $signature = 'images:optimize {--force : Redo images that already have a variant}';
 
-    protected $description = 'Shrink public-disk images to 1600px and create 640px WebP grid variants';
+    protected $description = 'Shrink public-disk images to 2400px and create 1080px WebP grid variants';
 
     private const DIRS = ['products', 'ugc', 'blog', 'custom-designs'];
 

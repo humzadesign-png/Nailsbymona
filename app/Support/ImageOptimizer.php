@@ -14,16 +14,18 @@ use Intervention\Image\ImageManager;
  * while they decoded it.
  *
  * For each image it:
- *   1. scales the original down to MAX_EDGE px on its longest side and
+ *   1. scales the original down to MAX_EDGE (2400) px on its longest side and
  *      re-encodes it (same filename, so nothing in the DB changes; EXIF is
  *      dropped by the re-encode)
- *   2. writes a small WebP next to it — `name-640.webp` — for grids/cards,
+ *   2. writes a small WebP next to it — `name-1080.webp` — for grids/cards,
  *      served through img_variant()
  */
 class ImageOptimizer
 {
-    public const MAX_EDGE = 1600;
-    public const VARIANT_WIDTH = 640;
+    // Generous on purpose: these are the product/brand photos customers
+    // judge the work by. 1600px / q82 looked soft (2026-09-24).
+    public const MAX_EDGE = 2400;
+    public const VARIANT_WIDTH = 1080;
 
     /** Public-disk path of the grid-size variant for $path. */
     public static function variantPath(string $path, int $width = self::VARIANT_WIDTH): string
@@ -70,8 +72,8 @@ class ImageOptimizer
 
             $encoded = match ($ext) {
                 'png'   => $image->toPng(),
-                'webp'  => $image->toWebp(82),
-                default => $image->toJpeg(82),
+                'webp'  => $image->toWebp(90),
+                default => $image->toJpeg(90),
             };
 
             // Only replace the original if we actually made it smaller.
@@ -81,7 +83,7 @@ class ImageOptimizer
 
             $manager->read($full)
                 ->scaleDown(self::VARIANT_WIDTH)
-                ->toWebp(78)
+                ->toWebp(88)
                 ->save($disk->path($variant));
 
             return true;

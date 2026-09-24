@@ -284,7 +284,7 @@ class CustomOrderRequestResource extends Resource
                         ->label('Reference photos (optional)')
                         ->helperText('Up to 4 photos the customer sees on their link. Hands and nails only — no faces.')
                         ->image()
-                        ->imageResizeMode('contain')->imageResizeTargetWidth('1600')->imageResizeTargetHeight('1600')->imageResizeUpscale(false)
+                        ->imageResizeMode('contain')->imageResizeTargetWidth('2400')->imageResizeTargetHeight('2400')->imageResizeUpscale(false)
                         ->multiple()
                         ->reorderable()
                         ->maxFiles(4)

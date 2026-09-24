@@ -87,7 +87,7 @@ class BlogPostResource extends Resource
             FormSection::make('Cover image')->columns(2)->schema([
                 Forms\Components\FileUpload::make('cover_image')
                     ->label('Cover image (hand-only, no faces)')
-                    ->image()->imageResizeMode('contain')->imageResizeTargetWidth('1600')->imageResizeTargetHeight('1600')->imageResizeUpscale(false)->disk('public')->directory('blog'),
+                    ->image()->imageResizeMode('contain')->imageResizeTargetWidth('2400')->imageResizeTargetHeight('2400')->imageResizeUpscale(false)->disk('public')->directory('blog'),
                 Forms\Components\TextInput::make('cover_image_alt')->label('Image alt text'),
             ]),
             FormSection::make('Publishing')->columns(2)->schema([
