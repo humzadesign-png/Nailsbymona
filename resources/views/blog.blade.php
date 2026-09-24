@@ -123,7 +123,7 @@
         <a href="{{ route('blog.post', $post->slug) }}" class="post-card-link group block rounded-2xl overflow-hidden bg-paper border border-hairline/80 hover:shadow-card transition-shadow duration-300 h-full flex flex-col">
           <div class="aspect-[16/9] img-wrap-fallback overflow-hidden relative shrink-0" style="background: linear-gradient(135deg, #EAE3D9 0%, #FBF8F2 60%, #D4C8BE 100%)">
             @if($post->cover_image)
-            <img src="{{ asset('storage/' . $post->cover_image) }}"
+            <img src="{{ img_variant($post->cover_image) }}"
                  alt="{{ $post->cover_image_alt ?? $post->title }}"
                  class="w-full h-full object-cover post-card-img" loading="lazy">
             @endif

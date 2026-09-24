@@ -145,7 +145,7 @@
             $isCover = $img->path === $product->cover_image;
           @endphp
           <button class="thumb-btn shrink-0 w-20 h-20 rounded-xl overflow-hidden img-wrap-fallback {{ $isCover ? 'active' : '' }}" data-src="{{ $src }}">
-            <img src="{{ $src }}" alt="{{ e($img->alt ?: $product->name) }}" class="w-full h-full object-cover" onerror="this.remove()" width="80" height="80" loading="lazy">
+            <img src="{{ img_variant($img->path) }}" alt="{{ e($img->alt ?: $product->name) }}" class="w-full h-full object-cover" onerror="this.remove()" width="80" height="80" loading="lazy">
           </button>
           @endforeach
         </div>
@@ -377,7 +377,7 @@
             'bridal_single','bridal_trio' => 'bg-gold/95 text-ink',
             default                       => 'bg-shell/80 text-graphite',
         };
-        $rpImg = $rp->cover_image ? asset('storage/' . $rp->cover_image) : '';
+        $rpImg = img_variant($rp->cover_image);
       @endphp
       <article class="bg-paper rounded-2xl overflow-hidden border border-hairline/60 hover:shadow-card-hover transition-shadow duration-300 group">
         <a href="{{ route('product', $rp->slug) }}">
@@ -406,7 +406,7 @@
     <h2 class="font-serif text-display text-ink mb-2" style="font-variation-settings:'opsz' 144,'SOFT' 30">Further reading.</h2>
     <div class="h-0.5 w-10 bg-lavender mb-10"></div>
     <div class="grid sm:grid-cols-2 gap-6 max-w-2xl">
-      <a href="{{ route('blog.post', 'can-muslim-women-wear-press-on-nails') }}" class="group flex gap-4 p-5 bg-paper rounded-2xl border border-hairline/60 hover:shadow-card transition-shadow duration-300">
+      <a href="{{ route('blog.post', 'muslim-women-press-on-nails-wudu') }}" class="group flex gap-4 p-5 bg-paper rounded-2xl border border-hairline/60 hover:shadow-card transition-shadow duration-300">
         <div class="w-20 h-20 rounded-xl shrink-0 overflow-hidden bg-shell flex items-center justify-center">
           <svg class="w-8 h-8 text-lavender" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"><path d="M128,24S32,96,32,152a96,96,0,0,0,192,0C224,96,128,24,128,24Z"/></svg>
         </div>

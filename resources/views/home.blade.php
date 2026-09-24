@@ -26,6 +26,13 @@
     />
 @endsection
 
+@push('head')
+    {{-- Start the hero (LCP) download before the CSS/JS is parsed. --}}
+    <link rel="preload" as="image" type="image/webp" fetchpriority="high"
+          imagesrcset="{{ asset('images/hero-home-red-matte-768.webp') }} 768w, {{ asset('images/hero-home-red-matte-1280.webp') }} 1280w, {{ asset('images/hero-home-red-matte-1920.webp') }} 1920w, {{ asset('images/hero-home-red-matte-2560.webp') }} 2560w"
+          imagesizes="100vw">
+@endpush
+
 @section('content')
 
 {{-- ═══════════════════════════════════════════
@@ -293,7 +300,7 @@
                     <div class="relative overflow-hidden" style="aspect-ratio:4/5">
                         @if($loop_product->cover_image)
                         <img
-                            src="{{ asset('storage/' . $loop_product->cover_image) }}"
+                            src="{{ img_variant($loop_product->cover_image) }}"
                             alt="{{ $loop_product->name }}"
                             class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
                             loading="lazy" width="400" height="500">
@@ -401,7 +408,7 @@
         <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             @foreach($ugcPhotos as $photo)
             @php
-                $src  = asset('storage/' . $photo->image_path);
+                $src  = img_variant($photo->image_path);
                 $href = $photo->product ? route('product', $photo->product->slug) : route('shop');
             @endphp
             <a href="{{ $href }}"
@@ -688,7 +695,7 @@
 
             {{-- Post 3 --}}
             <article class="group rounded-2xl overflow-hidden border border-hairline bg-paper hover:shadow-card transition-shadow duration-300">
-                <a href="{{ route('blog.post', 'press-on-nails-wudu-muslim-women') }}" class="block h-full">
+                <a href="{{ route('blog.post', 'muslim-women-press-on-nails-wudu') }}" class="block h-full">
                     <div class="overflow-hidden img-wrap-fallback" style="aspect-ratio:16/10; background:linear-gradient(135deg,#F4EFE8,#EAE3D9)">
                         <img
                             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQVdKsSA6Auceeu4keYdlNXRX9E9G5lIWVC0ahx_8o0h6TR9G5lIWVC0ahx_8o0h6TykTYT-lJykTYT-lJpRrKhsg"

@@ -91,7 +91,7 @@
               'bridal_single','bridal_trio'=> 'bg-gold/95 backdrop-blur-sm text-ink',
               default                      => 'bg-paper/90 backdrop-blur-sm text-stone',
           };
-          $imgSrc = $product->cover_image ? asset('storage/' . $product->cover_image) : '';
+          $imgSrc = img_variant($product->cover_image);
           $imgAlt = e($product->name) . ' — ' . $tierLabel . ' tier custom-fit press-on nails';
       @endphp
       <article class="product-card bg-paper rounded-2xl overflow-hidden group shadow-card hover:shadow-card-hover transition-shadow duration-300"
@@ -101,7 +101,7 @@
             @if($imgSrc)
             <img src="{{ $imgSrc }}" alt="{{ $imgAlt }}"
                  class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
-                 onerror="this.parentElement.classList.add('no-img')" width="400" height="400" loading="lazy">
+                 onerror="this.parentElement.classList.add('no-img')" width="400" height="400" loading="{{ $loop->index < 2 ? 'eager' : 'lazy' }}" decoding="async">
             @else
             {{-- Placeholder shown when no product photo is uploaded yet --}}
             <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 select-none">

@@ -51,6 +51,10 @@ Route::get('/size-guide', fn () => view('size-guide'))->name('size-guide');
 Route::get('/about', fn () => view('about'))->name('about');
 Route::get('/contact', fn () => view('contact'))->name('contact');
 Route::get('/blog', [BlogController::class, 'index'])->name('blog');
+// Old wrong slugs that were linked from home + product pages — keep them
+// alive for anyone (or any crawler) that picked them up.
+Route::permanentRedirect('/blog/press-on-nails-wudu-muslim-women', '/blog/muslim-women-press-on-nails-wudu');
+Route::permanentRedirect('/blog/can-muslim-women-wear-press-on-nails', '/blog/muslim-women-press-on-nails-wudu');
 Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.post');
 Route::post('/subscribe', [BlogController::class, 'subscribe'])->middleware('throttle:5,1')->name('subscribe');
 

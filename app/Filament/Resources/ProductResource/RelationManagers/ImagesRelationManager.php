@@ -25,7 +25,8 @@ class ImagesRelationManager extends RelationManager
                 ->image()
                 ->disk('public')
                 ->directory('products')
-                ->imageResizeMode('cover')
+                // Shrink on the phone before upload (was storing 7 MB camera originals).
+                ->imageResizeMode('contain')->imageResizeTargetWidth('1600')->imageResizeTargetHeight('1600')->imageResizeUpscale(false)
                 ->required()
                 ->columnSpanFull(),
             Forms\Components\TextInput::make('alt')

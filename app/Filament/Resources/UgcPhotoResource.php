@@ -64,7 +64,7 @@ class UgcPhotoResource extends Resource
         return $schema->components([
             Forms\Components\FileUpload::make('image_path')
                 ->label('Photo (hand-only — no faces)')
-                ->image()->disk('public')->directory('ugc')->required()->columnSpanFull(),
+                ->image()->imageResizeMode('contain')->imageResizeTargetWidth('1600')->imageResizeTargetHeight('1600')->imageResizeUpscale(false)->disk('public')->directory('ugc')->required()->columnSpanFull(),
             Forms\Components\TextInput::make('alt')
                 ->label('Alt text / caption')
                 ->helperText('Describe the nails, not the person. E.g. "Dusty rose ombre set on fair hands — Karachi customer."')
