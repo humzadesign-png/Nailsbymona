@@ -46,7 +46,18 @@ Route::get('/', function () {
 })->name('home');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');
 Route::get('/shop/{slug}', [ShopController::class, 'show'])->name('product');
-Route::get('/bridal', fn () => view('bridal'))->name('bridal');
+Route::get('/bridal', function () {
+    // Real bridal designs for the "From Mona's bridal collection" gallery
+    // (was six empty placeholder tiles — Clarity showed brides tapping them).
+    $bridalProducts = \App\Models\Product::where('is_active', true)
+        ->whereIn('tier', ['bridal_single', 'bridal_trio'])
+        ->whereNotNull('cover_image')
+        ->orderBy('sort_order')->orderBy('created_at')
+        ->limit(6)
+        ->get();
+
+    return view('bridal', compact('bridalProducts'));
+})->name('bridal');
 Route::get('/size-guide', fn () => view('size-guide'))->name('size-guide');
 Route::get('/about', fn () => view('about'))->name('about');
 Route::get('/contact', fn () => view('contact'))->name('contact');

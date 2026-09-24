@@ -501,48 +501,24 @@
       <div class="h-0.5 w-10 bg-lavender mt-5 mx-auto"></div>
     </div>
 
+    @if($bridalProducts->isNotEmpty())
     <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-
-      <!-- Tile 1 — tall -->
-      <div class="rounded-2xl overflow-hidden img-wrap-fallback relative row-span-2 md:row-span-2" style="aspect-ratio:2/3; background:linear-gradient(150deg,#C4B8D2 0%,#EAE3D9 100%)">
-        <img src="" alt="Bridal press-on nails with gold floral detailing &mdash; Mehendi night" class="w-full h-full object-cover" onerror="this.remove()" width="400" height="600" loading="lazy">
-        <div class="absolute inset-0 flex items-end p-4 pointer-events-none">
-          <span class="font-sans text-eyebrow uppercase tracking-widest text-stone/40">Mehendi</span>
+      @foreach($bridalProducts as $bp)
+      <a href="{{ route('product', $bp->slug) }}"
+         class="group relative block rounded-2xl overflow-hidden img-wrap-fallback {{ $loop->first ? 'row-span-2' : '' }}"
+         style="aspect-ratio:{{ $loop->first ? '1/2' : '1/1' }}; background:linear-gradient(135deg,#EAE3D9,#FBF8F2)">
+        <img src="{{ img_variant($bp->cover_image) }}"
+             alt="{{ $bp->name }} — bridal press-on nails"
+             class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
+             onerror="this.remove()" width="400" height="{{ $loop->first ? 800 : 400 }}" loading="lazy" decoding="async">
+        <div class="absolute inset-x-0 bottom-0 p-3 md:p-4 bg-gradient-to-t from-ink/70 via-ink/25 to-transparent">
+          <p class="font-serif text-white leading-snug" style="font-size:1rem; font-variation-settings:'opsz' 144,'SOFT' 30">{{ $bp->name }}</p>
+          <p class="font-sans text-white/85 text-xs tabular-nums mt-0.5">{{ $bp->formattedPrice() }} &middot; View &rarr;</p>
         </div>
-      </div>
-
-      <!-- Tile 2 -->
-      <div class="rounded-2xl overflow-hidden img-wrap-fallback relative" style="aspect-ratio:1/1; background:linear-gradient(135deg,#8B2535,#5C1520)">
-        <img src="" alt="Deep red and crystal bridal press-on nails &mdash; Baraat night" class="w-full h-full object-cover" onerror="this.remove()" width="400" height="400" loading="lazy">
-        <div class="absolute inset-0 flex items-end p-4 pointer-events-none">
-          <span class="font-sans text-eyebrow uppercase tracking-widest text-bone/30">Baraat</span>
-        </div>
-      </div>
-
-      <!-- Tile 3 -->
-      <div class="rounded-2xl overflow-hidden img-wrap-fallback relative" style="aspect-ratio:1/1; background:linear-gradient(135deg,#E8D8C8,#F0E8E0)">
-        <img src="" alt="Soft blush and ivory bridal press-on nails &mdash; Valima reception" class="w-full h-full object-cover" onerror="this.remove()" width="400" height="400" loading="lazy">
-        <div class="absolute inset-0 flex items-end p-4 pointer-events-none">
-          <span class="font-sans text-eyebrow uppercase tracking-widest text-stone/40">Valima</span>
-        </div>
-      </div>
-
-      <!-- Tile 4 -->
-      <div class="rounded-2xl overflow-hidden img-wrap-fallback" style="aspect-ratio:1/1; background:linear-gradient(135deg,#EAE3D9,#FBF8F2)">
-        <img src="" alt="Handmade bridal press-on nails with intricate hand-painted details" class="w-full h-full object-cover" onerror="this.remove()" width="400" height="400" loading="lazy">
-      </div>
-
-      <!-- Tile 5 -->
-      <div class="rounded-2xl overflow-hidden img-wrap-fallback" style="aspect-ratio:1/1; background:linear-gradient(135deg,#5C1520,#8B2535,#A84050)">
-        <img src="" alt="3D crystal embellishments on deep red bridal press-on nails" class="w-full h-full object-cover" onerror="this.remove()" width="400" height="400" loading="lazy">
-      </div>
-
-      <!-- Tile 6 -->
-      <div class="rounded-2xl overflow-hidden img-wrap-fallback" style="aspect-ratio:1/1; background:linear-gradient(150deg,#E0C8B0,#F4EFE8)">
-        <img src="" alt="Elegant champagne and pearl bridal press-on nails detail" class="w-full h-full object-cover" onerror="this.remove()" width="400" height="400" loading="lazy">
-      </div>
-
+      </a>
+      @endforeach
     </div>
+    @endif
 
     <p class="font-sans text-caption text-center text-stone mt-6">
       <a href="{{ route('shop') }}" class="hover:text-lavender-ink underline-offset-4 hover:underline transition-colors duration-200">More bridal designs in the shop &rarr;</a>
