@@ -38,7 +38,7 @@ The current page answers them in the order 3 → 4 → 1 → 2, and 1 and 2 only
 4. **Answer the objections in the order they arise**, each in one short block: fit → how it works → price vs salon → trust/payment → FAQ.
 5. **Half the length.** Target ≈ 8 screens (from 18.5). Every section earns its place or goes.
 6. **Always one tap from shopping.** Sticky bottom bar on mobile once the hero is scrolled past.
-7. **Only real proof.** Real photos, real cities from real customers. No invented ratings, counts or testimonials. (6 orders so far — "bestseller" labels would be dishonest; use "Mona's picks" = `is_featured`.)
+7. **Only real proof.** Real photos, real cities from real customers. No invented ratings, counts or testimonials. (6 orders so far — "bestseller" labels would be dishonest. Cards use the shop's tier badges; `is_featured` only decides order.)
 8. **Brand stays atelier.** Same palette, Fraunces + DM Sans, lavender only as an accent. Faster to scan does not mean cheaper.
 
 ## 5. New structure (mobile-first)
@@ -54,7 +54,7 @@ The current page answers them in the order 3 → 4 → 1 → 2, and 1 and 2 only
 | 7 | **Real customers** — swipe row of UGC with city captions | Social proof | UGC grid |
 | 8 | **Trust + payment** — JazzCash · EasyPaisa · Bank, tracked delivery, made in Mirpur, WhatsApp help | Trust without COD | Studio teaser |
 | 9 | **Mini FAQ** (4) | Last objections | — |
-| 10 | Journal links (slim) + footer | SEO internal links | Journal teaser |
+| 10 | Footer (unchanged) | Navigation | Journal teaser — dropped; the wudu post is linked from section 5 and the journal from the footer |
 
 Removed from the home page (still on their own pages): the phone-mockup sizing explainer (→ /size-guide), the studio story (→ /about), the tier pricing table (prices now on every card).
 
