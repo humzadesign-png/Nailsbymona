@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en-PK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home v2 — prototype · Nails by Mona</title>
+  <meta name="robots" content="noindex">
+  <!-- PROTOTYPE of the home-page redesign. Research + rationale:
+       docs/ux/home-redesign-2026-09.md. Real products/photos from the live site. -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..600,30..100&family=DM+Sans:opsz,wght@9..40,300..600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            lavender: '#BFA4CE', 'lavender-dark': '#9B7FB4', 'lavender-wash': '#F2EBF8', 'lavender-ink': '#5B4570',
+            bone: '#F4EFE8', paper: '#FBF8F2', shell: '#EAE3D9', 'bridal-bg': '#EDE2C8', gold: '#B8924A', 'gold-deep': '#8F6F37',
+            'footer-bg': '#2C1F2E', ink: '#1A1410', graphite: '#3D3530', stone: '#7A6E65', ash: '#B5ACA5', hairline: '#E0D9CE',
+          },
+          fontFamily: { serif: ['Fraunces', 'Georgia', 'serif'], sans: ['"DM Sans"', 'system-ui', 'sans-serif'] },
+        },
+      },
+    };
+  </script>
+  <style>
+    .display { font-variation-settings: 'opsz' 144, 'SOFT' 30; }
+    .no-scrollbar { scrollbar-width: none; } .no-scrollbar::-webkit-scrollbar { display: none; }
+    .card-img { aspect-ratio: 4 / 5; }
+    #sticky-cta { transform: translateY(110%); transition: transform .3s ease; }
+    #sticky-cta.show { transform: translateY(0); }
+    #toast { opacity: 0; transform: translate(-50%, 8px); transition: all .25s ease; pointer-events: none; }
+    #toast.show { opacity: 1; transform: translate(-50%, 0); }
+    details summary::-webkit-details-marker { display: none; }
+    details[open] .chev { transform: rotate(180deg); }
+  </style>
+</head>
+<body class="bg-bone text-graphite font-sans antialiased">
+
+<!-- ─────────────────────────────────────────────────────────────
+     0 · ANNOUNCEMENT BAR — answers "what does delivery cost?"
+───────────────────────────────────────────────────────────── -->
+<div class="bg-footer-bg text-bone/90 text-[12px] tracking-wide text-center py-2 px-4">
+  Free delivery over Rs.&nbsp;5,000 &nbsp;·&nbsp; Pakistan-wide
+</div>
+
+<!-- Header (unchanged from live site) -->
+<header class="sticky top-0 z-40 bg-bone/90 backdrop-blur-md border-b border-hairline/60">
+  <div class="max-w-7xl mx-auto px-4 md:px-10 h-16 flex items-center justify-between">
+    <a href="https://nailsbymona.pk/"><img src="https://nailsbymona.pk/logo-text.svg" alt="Nails by Mona" class="h-9 w-auto"></a>
+    <nav class="hidden lg:flex gap-8 text-[15px] text-graphite">
+      <a href="https://nailsbymona.pk/shop" class="hover:text-ink">Shop</a>
+      <a href="https://nailsbymona.pk/bridal" class="hover:text-ink">Bridal</a>
+      <a href="https://nailsbymona.pk/about" class="hover:text-ink">About</a>
+      <a href="https://nailsbymona.pk/blog" class="hover:text-ink">Journal</a>
+      <a href="https://nailsbymona.pk/contact" class="hover:text-ink">Help</a>
+    </nav>
+    <div class="flex items-center gap-4">
+      <button aria-label="Bag" class="relative text-graphite">
+        <svg class="w-6 h-6" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="14" stroke-linejoin="round"><rect x="40" y="80" width="176" height="136" rx="8"/><path d="M88 80a40 40 0 0 1 80 0"/></svg>
+        <span id="bag-count" class="hidden absolute -top-1.5 -right-2 bg-lavender text-white text-[10px] font-semibold rounded-full w-4 h-4 grid place-items-center">0</span>
+      </button>
+      <button aria-label="Menu" class="lg:hidden text-graphite">
+        <svg class="w-6 h-6" viewBox="0 0 256 256" stroke="currentColor" stroke-width="14" stroke-linecap="round"><line x1="40" y1="88" x2="216" y2="88"/><line x1="40" y1="168" x2="216" y2="168"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ─────────────────────────────────────────────────────────────
+     1 · COMPACT HERO — photo is never covered; price in view;
+     on a phone the product grid peeks in below the fold line.
+───────────────────────────────────────────────────────────── -->
+<section id="hero" class="max-w-7xl mx-auto px-4 md:px-10 pt-4 md:pt-10 md:grid md:grid-cols-2 md:gap-12 md:items-center">
+  <div class="relative rounded-3xl overflow-hidden h-[185px] sm:h-[280px] md:h-[520px] md:order-2 bg-shell">
+    <picture>
+      <source type="image/webp" srcset="https://nailsbymona.pk/images/hero-home-red-matte-768.webp 768w, https://nailsbymona.pk/images/hero-home-red-matte-1280.webp 1280w" sizes="(min-width:768px) 50vw, 100vw">
+      <img src="https://nailsbymona.pk/images/hero-home-red-matte-1280.jpg" alt="Matte deep-red almond press-on nails, handmade by Nails by Mona" class="w-full h-full object-cover object-[center_40%]" fetchpriority="high">
+    </picture>
+    <span class="absolute left-3 bottom-3 bg-paper/90 backdrop-blur text-graphite text-[11px] tracking-wide rounded-full px-3 py-1">Handmade in Mirpur</span>
+  </div>
+
+  <div class="pt-4 md:pt-0 md:order-1">
+    <h1 class="font-serif display text-ink font-light leading-[1.02] text-[2.15rem] sm:text-5xl md:text-6xl">
+      Press-on nails, made&nbsp;to fit <em class="italic">your</em>&nbsp;hands.
+    </h1>
+    <p class="mt-3 text-[15px] md:text-lg text-graphite leading-relaxed max-w-md">
+      Sized from two photos of your nails. Reusable 3–5×. <span class="text-ink font-medium">Sets from Rs.&nbsp;2,000.</span>
+    </p>
+    <div class="mt-4 flex items-center gap-3">
+      <a href="#designs" class="inline-flex items-center gap-2 bg-lavender hover:bg-lavender-dark text-white font-medium rounded-full px-6 py-3.5 transition-colors">
+        Shop designs
+        <svg class="w-4 h-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"><path d="M40 128h176M144 56l72 72-72 72"/></svg>
+      </a>
+      <a href="https://nailsbymona.pk/bridal" class="text-[15px] text-graphite underline underline-offset-4 decoration-hairline hover:decoration-graphite">Bridal Trio</a>
+    </div>
+    <!-- desktop-only quick proof row -->
+    <ul class="hidden md:flex gap-6 mt-8 text-[14px] text-stone">
+      <li>✓ Custom-fit</li><li>✓ Wudu-friendly</li><li>✓ Free first refit</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────
+     2 + 3 · CHIPS + PRODUCT GRID — the page's main job.
+     2 columns on phones (Instagram-grid feel), 4 on desktop.
+───────────────────────────────────────────────────────────── -->
+<section id="designs" class="max-w-7xl mx-auto pt-6 md:pt-16 scroll-mt-20">
+  <div class="px-4 md:px-10 flex items-end justify-between mb-3">
+    <h2 class="font-serif display text-ink text-[1.5rem] md:text-4xl font-light">Mona's designs</h2>
+    <a href="https://nailsbymona.pk/shop" class="text-[14px] text-lavender-ink hover:underline underline-offset-4 whitespace-nowrap">All 36 &rarr;</a>
+  </div>
+
+  <div class="no-scrollbar flex gap-2 overflow-x-auto px-4 md:px-10 pb-1" role="tablist" aria-label="Filter designs">
+    <button class="chip is-on" data-filter="all">All</button>
+    <button class="chip" data-filter="everyday">Everyday</button>
+    <button class="chip" data-filter="signature">Signature</button>
+    <button class="chip" data-filter="glam">Glam</button>
+    <button class="chip" data-filter="bridal">Bridal</button>
+    <button class="chip" data-filter="under3000">Under Rs.&nbsp;3,000</button>
+  </div>
+  <style>
+    .chip { flex-shrink:0; font-size:13px; padding:.5rem .95rem; border-radius:9999px; border:1px solid #E0D9CE; background:#FBF8F2; color:#3D3530; transition:all .2s; }
+    .chip.is-on { background:#1A1410; color:#F4EFE8; border-color:#1A1410; }
+  </style>
+
+  <div id="grid" class="grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-6 md:gap-x-6 md:gap-y-10 px-4 md:px-10 mt-4"></div>
+
+  <div class="px-4 md:px-10 mt-7 text-center">
+    <a href="https://nailsbymona.pk/shop" class="inline-flex items-center justify-center w-full md:w-auto border border-ink text-ink font-medium rounded-full px-8 py-3.5 hover:bg-ink hover:text-bone transition-colors">
+      See all 36 designs
+    </a>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────
+     4 · FIT IN 3 STEPS — the #1 objection ("won't fit me")
+───────────────────────────────────────────────────────────── -->
+<section class="mt-14 md:mt-24 bg-paper border-y border-hairline">
+  <div class="max-w-7xl mx-auto px-4 md:px-10 py-12 md:py-20">
+    <p class="text-lavender-ink uppercase tracking-[0.18em] text-[11px]">Why they fit</p>
+    <h2 class="font-serif display text-ink text-[1.75rem] md:text-5xl font-light mt-2 max-w-xl">Sized to your nails, not a standard pack.</h2>
+
+    <ol class="mt-8 grid md:grid-cols-3 gap-4 md:gap-6">
+      <li class="flex md:block gap-4 bg-bone rounded-2xl p-5 md:p-7">
+        <span class="shrink-0 w-9 h-9 rounded-full bg-lavender-wash text-lavender-ink font-serif grid place-items-center">1</span>
+        <div class="md:mt-5"><h3 class="text-ink font-medium">Pick a design</h3><p class="text-[14px] text-stone mt-1 leading-relaxed">Everyday, glam or bridal — or send a picture and we'll make it for you.</p></div>
+      </li>
+      <li class="flex md:block gap-4 bg-bone rounded-2xl p-5 md:p-7">
+        <span class="shrink-0 w-9 h-9 rounded-full bg-lavender-wash text-lavender-ink font-serif grid place-items-center">2</span>
+        <div class="md:mt-5"><h3 class="text-ink font-medium">Take 2 photos with a coin</h3><p class="text-[14px] text-stone mt-1 leading-relaxed">Our camera guide walks you through it — fingers, then thumb. About 90 seconds.</p></div>
+      </li>
+      <li class="flex md:block gap-4 bg-bone rounded-2xl p-5 md:p-7">
+        <span class="shrink-0 w-9 h-9 rounded-full bg-lavender-wash text-lavender-ink font-serif grid place-items-center">3</span>
+        <div class="md:mt-5"><h3 class="text-ink font-medium">Handmade &amp; delivered</h3><p class="text-[14px] text-stone mt-1 leading-relaxed">Ready in 5–7 days, tracked to your door. <span class="text-graphite">If the first set doesn't sit right, we refit it free.</span></p></div>
+      </li>
+    </ol>
+    <a href="https://nailsbymona.pk/size-guide" class="inline-block mt-6 text-[14px] text-lavender-ink underline underline-offset-4">See how sizing works &rarr;</a>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────
+     5 · WHY PRESS-ONS — for people who've only done salon acrylics
+───────────────────────────────────────────────────────────── -->
+<section class="max-w-7xl mx-auto px-4 md:px-10 py-12 md:py-20">
+  <h2 class="font-serif display text-ink text-[1.75rem] md:text-5xl font-light max-w-xl">Salon look, without the salon.</h2>
+  <div class="mt-7 grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
+    <div class="rounded-2xl border border-hairline p-5 md:p-7">
+      <p class="text-[12px] uppercase tracking-[0.14em] text-stone">Cost</p>
+      <p class="mt-2 text-ink"><span class="font-serif display text-3xl font-light">Rs. 2,000+</span> <span class="text-stone text-[14px]">once, worn 3–5 times</span></p>
+      <p class="text-[14px] text-stone mt-2">vs. Rs. 2,500–5,000 at the salon every three weeks.</p>
+    </div>
+    <div class="rounded-2xl border border-hairline p-5 md:p-7">
+      <p class="text-[12px] uppercase tracking-[0.14em] text-stone">Your nails</p>
+      <p class="mt-2 text-ink font-medium">No drilling, no acetone soaks.</p>
+      <p class="text-[14px] text-stone mt-2">They come off with warm water in minutes — your natural nails stay healthy.</p>
+    </div>
+    <div class="rounded-2xl border border-hairline p-5 md:p-7 bg-lavender-wash/60">
+      <p class="text-[12px] uppercase tracking-[0.14em] text-lavender-ink">Wudu-friendly</p>
+      <p class="mt-2 text-ink font-medium">Take them off for wudu, put them back after.</p>
+      <p class="text-[14px] text-stone mt-2">The reason Mona started — <a href="https://nailsbymona.pk/blog/muslim-women-press-on-nails-wudu" class="underline underline-offset-4">read her story</a>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────
+     6 · BRIDAL TRIO — flagship, compact
+───────────────────────────────────────────────────────────── -->
+<section class="max-w-7xl mx-auto px-4 md:px-10">
+  <a href="https://nailsbymona.pk/bridal" class="group grid md:grid-cols-2 rounded-3xl overflow-hidden bg-bridal-bg">
+    <div class="relative h-[220px] md:h-auto md:min-h-[380px] overflow-hidden">
+      <img src="https://nailsbymona.pk/images/bridal-baraat-beaded-960.webp" alt="Gold-beaded bridal press-on nails for the Baraat" class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" loading="lazy">
+    </div>
+    <div class="p-6 md:p-12 flex flex-col justify-center">
+      <p class="text-gold-deep uppercase tracking-[0.18em] text-[11px]">Bridal Trio</p>
+      <h2 class="font-serif display text-ink text-[1.75rem] md:text-5xl font-light mt-2">Mehendi, Baraat &amp; Valima — one fitting.</h2>
+      <p class="text-graphite mt-3 text-[15px]">Three coordinated sets in a keepsake box. <span class="font-medium text-ink">Rs.&nbsp;10,000</span> for all three nights. Order 4 weeks before your Mehendi.</p>
+      <span class="mt-5 inline-flex items-center gap-2 text-ink font-medium">See the Bridal Trio <span class="group-hover:translate-x-1 transition-transform">&rarr;</span></span>
+    </div>
+  </a>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────
+     7 · REAL CUSTOMERS — real photos, real cities (no invented reviews)
+───────────────────────────────────────────────────────────── -->
+<section class="py-12 md:py-20">
+  <div class="max-w-7xl mx-auto px-4 md:px-10">
+    <p class="text-lavender-ink uppercase tracking-[0.18em] text-[11px]">Worn across Pakistan</p>
+    <h2 class="font-serif display text-ink text-[1.75rem] md:text-5xl font-light mt-2">On our customers' hands.</h2>
+  </div>
+  <div id="ugc" class="no-scrollbar flex md:grid md:grid-cols-4 gap-3 md:gap-6 overflow-x-auto snap-x snap-mandatory scroll-px-4 px-4 md:px-10 mt-6 max-w-7xl md:mx-auto"></div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────
+     8 · TRUST + PAYMENT — no COD, so be explicit about how it works
+───────────────────────────────────────────────────────────── -->
+<section class="bg-paper border-y border-hairline">
+  <div class="max-w-7xl mx-auto px-4 md:px-10 py-12 md:py-16 grid md:grid-cols-4 gap-6">
+    <div>
+      <h3 class="text-ink font-medium">Pay the way you already do</h3>
+      <div class="flex flex-wrap gap-2 mt-3">
+        <span class="text-[13px] border border-hairline rounded-full px-3 py-1 bg-bone">JazzCash</span>
+        <span class="text-[13px] border border-hairline rounded-full px-3 py-1 bg-bone">EasyPaisa</span>
+        <span class="text-[13px] border border-hairline rounded-full px-3 py-1 bg-bone">Bank transfer</span>
+      </div>
+      <p class="text-[13px] text-stone mt-2">Confirmed by email within 24 hours.</p>
+    </div>
+    <div><h3 class="text-ink font-medium">Tracked delivery</h3><p class="text-[14px] text-stone mt-1">TCS &amp; Leopards, nationwide. Follow your order online from studio to door.</p></div>
+    <div><h3 class="text-ink font-medium">Made in Mirpur, by hand</h3><p class="text-[14px] text-stone mt-1">A small studio led by Mona — BA Fine Arts, years of bridal mehndi and nail work.</p></div>
+    <div>
+      <h3 class="text-ink font-medium">Questions first?</h3>
+      <p class="text-[14px] text-stone mt-1">Our customer care replies on WhatsApp.</p>
+      <a href="https://wa.me/?text=Hello%20Nails%20by%20Mona%2C%20I%20have%20a%20question." class="inline-flex items-center gap-2 mt-3 text-[14px] text-ink border border-ink rounded-full px-4 py-2 hover:bg-ink hover:text-bone transition-colors">Chat on WhatsApp</a>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────
+     9 · MINI FAQ — last objections, answers match the live FAQ table
+───────────────────────────────────────────────────────────── -->
+<section class="max-w-3xl mx-auto px-4 md:px-10 py-12 md:py-20">
+  <h2 class="font-serif display text-ink text-[1.75rem] md:text-4xl font-light">Before you order</h2>
+  <div class="mt-6 divide-y divide-hairline border-y border-hairline">
+    <details class="py-4 group"><summary class="flex justify-between items-center cursor-pointer text-ink font-medium">How do you get my size?<span class="chev transition-transform text-stone">⌄</span></summary><p class="text-[15px] text-stone mt-2 leading-relaxed">After you choose a design, our camera guide helps you take two close-up photos — your fingers, then your thumb — with a coin for scale. It takes about 90 seconds. Mona measures every nail from them.</p></details>
+    <details class="py-4"><summary class="flex justify-between items-center cursor-pointer text-ink font-medium">What if they don't fit?<span class="chev transition-transform text-stone">⌄</span></summary><p class="text-[15px] text-stone mt-2 leading-relaxed">Your first refit is free. Send us a photo and we'll remake the sizes that don't sit right.</p></details>
+    <details class="py-4"><summary class="flex justify-between items-center cursor-pointer text-ink font-medium">How long do they last?<span class="chev transition-transform text-stone">⌄</span></summary><p class="text-[15px] text-stone mt-2 leading-relaxed">With good prep, 5–10 days per wear — and each set can be worn 3–5 times. Care instructions come in the box.</p></details>
+    <details class="py-4"><summary class="flex justify-between items-center cursor-pointer text-ink font-medium">How do I pay?<span class="chev transition-transform text-stone">⌄</span></summary><p class="text-[15px] text-stone mt-2 leading-relaxed">JazzCash, EasyPaisa or bank transfer. Every set is made to measure, so orders are paid in full before we start — you upload a screenshot and we confirm by email.</p></details>
+  </div>
+  <p class="mt-5 text-[14px] text-stone">More answers in <a href="https://nailsbymona.pk/contact" class="underline underline-offset-4">Help</a> · or read <a href="https://nailsbymona.pk/blog/how-to-apply-press-on-nails" class="underline underline-offset-4">how to apply press-ons</a>.</p>
+</section>
+
+</main>
+
+<!-- Footer (condensed stand-in for the live footer) -->
+<footer class="bg-footer-bg text-bone/70 text-[14px]">
+  <div class="max-w-7xl mx-auto px-4 md:px-10 py-12 pb-28 md:pb-12">
+    <img src="https://nailsbymona.pk/logo-white.svg" alt="Nails by Mona" class="h-9 w-auto opacity-90">
+    <p class="mt-3">Handmade in Mirpur. Shipped across Pakistan.</p>
+    <p class="mt-6 text-bone/40 text-[12px]">Live footer stays as-is — shown here condensed.</p>
+  </div>
+</footer>
+
+<!-- ─────────────────────────────────────────────────────────────
+     STICKY BOTTOM BAR (phones) — appears once the hero scrolls away
+───────────────────────────────────────────────────────────── -->
+<div id="sticky-cta" class="md:hidden fixed inset-x-0 bottom-0 z-40 bg-paper/95 backdrop-blur border-t border-hairline px-4 py-3 flex items-center gap-3" style="padding-bottom:max(.75rem, env(safe-area-inset-bottom))">
+  <div class="flex-1 leading-tight">
+    <p class="text-[13px] text-stone">Custom-fit sets</p>
+    <p class="text-ink font-medium">from Rs.&nbsp;2,000</p>
+  </div>
+  <a href="https://nailsbymona.pk/shop" class="bg-lavender text-white font-medium rounded-full px-6 py-3">Shop designs</a>
+</div>
+
+<div id="toast" class="fixed left-1/2 bottom-24 z-50 bg-ink text-bone text-[14px] rounded-full px-5 py-2.5 shadow-lg">Added to bag</div>
+
+<script>
+// Real catalogue data (live site, 2026-09-24). In the Blade build this comes
+// from Product::where('is_active', true) with is_featured first.
+const IMG = id => `https://nailsbymona.pk/storage/products/${id}-1080.webp`;
+const TIER = { everyday: 'Everyday', signature: 'Signature', glam: 'Glam', bridal_single: 'Bridal', bridal_trio: 'Bridal Trio' };
+const products = [
+  { slug: 'nude-ombre',             name: 'Nude Ombre',             tier: 'signature',     price: 3500, img: '01KT4700J99NH14KDMH7ZR0KTF', pick: true },
+  { slug: 'midnight-glitter-cloud', name: 'Midnight Glitter Cloud', tier: 'bridal_single', price: 3500, img: '01KRNERWC9JS0J158W8ESPY23E', pick: true },
+  { slug: 'barely-there-nude',      name: 'Barely There Nude',      tier: 'everyday',      price: 3500, img: '01KRPNEP4PZ7SPMRNXY51KYVP6', pick: true },
+  { slug: 'caramel-cat-eye',        name: 'Caramel Cat Eye',        tier: 'bridal_single', price: 3500, img: '01KT44EMY1KARJYENQJEDZC58S', pick: true },
+  { slug: 'pink-petal',             name: 'Pink Petal',             tier: 'glam',          price: 4500, img: '01M27S8G20NJMSC4FPP3QMKPV5' },
+  { slug: 'red-velvet',             name: 'Red Velvet',             tier: 'everyday',      price: 2000, img: '01M20KSW5AHH9W8E73DYTSK7KQ' },
+  { slug: 'polka-blush',            name: 'Polka Blush',            tier: 'everyday',      price: 3200, img: '01M28XH8GEJCM7JVDTVHE55VST' },
+  { slug: 'classic-french-tips',    name: 'Classic French Tips',    tier: 'bridal_single', price: 2500, img: '01KRPMFWNPTQ8YMSRG6S2HNW66' },
+  { slug: 'french-chrome-details',  name: 'French + Chrome',        tier: 'signature',     price: 3500, img: '01KRNERW7ZA8CMB6RQE4KB7ZJE' },
+  { slug: 'leopard-pearl-french',   name: 'Leopard Pearl French',   tier: 'glam',          price: 4000, img: '01KRNERXDJY7C3NF1NNWQA8PTP' },
+  { slug: 'cherry-red',             name: 'Cherry Red',             tier: 'everyday',      price: 2000, img: '01KRNERX7NMSWBG0HAQKYZ4EWR' },
+  { slug: 'baraat-royal',           name: 'Baraat Royal',           tier: 'bridal_single', price: 4000, img: '01KRNERWKB9DDB1CJ14QSPKR0R' },
+];
+const ugc = [
+  { img: 'ugc/01KT8T2C4ERD8XXK0DXR6R2FKM', text: 'Micro French tips on a soft pink base', city: 'Mirpur' },
+  { img: 'ugc/01KT9B6QG1C97ST5REC31P9WJR', text: 'Caramel cat eye with shimmer',          city: 'Mirpur' },
+  { img: 'ugc/01KT9BA1D49TR75YBK982JE6WB', text: 'Glossy mirror chrome',                  city: 'Jatla' },
+  { img: 'ugc/01M20M12WYBPC7C7EAQNWC9ZMA', text: 'Soft ombre set',                        city: 'Mirpur' },
+];
+
+const rs = n => 'Rs. ' + n.toLocaleString('en-PK');
+const matches = (p, f) => f === 'all' || (f === 'under3000' ? p.price < 3000 : f === 'bridal' ? p.tier.startsWith('bridal') : p.tier === f);
+
+function renderGrid(filter) {
+  const list = products.filter(p => matches(p, filter)).slice(0, 8);
+  document.getElementById('grid').innerHTML = list.map((p, i) => `
+    <article class="group">
+      <a href="https://nailsbymona.pk/shop/${p.slug}" class="block">
+        <div class="card-img relative rounded-2xl overflow-hidden bg-shell">
+          <img src="${IMG(p.img)}" alt="${p.name} press-on nails" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" ${i < 4 ? '' : 'loading="lazy"'} decoding="async">
+          ${p.pick ? '<span class="absolute top-2 left-2 bg-paper/90 text-graphite text-[10px] uppercase tracking-[0.12em] rounded-full px-2 py-0.5">Mona’s pick</span>' : ''}
+        </div>
+      </a>
+      <div class="mt-2.5 flex items-start justify-between gap-2">
+        <a href="https://nailsbymona.pk/shop/${p.slug}" class="min-w-0">
+          <h3 class="font-serif display text-ink text-[1.02rem] md:text-lg leading-snug truncate">${p.name}</h3>
+          <p class="text-[12px] text-stone">${TIER[p.tier]}</p>
+          <p class="text-lavender-ink font-medium text-[15px] mt-0.5">${rs(p.price)}</p>
+        </a>
+        <button class="quick-add shrink-0 w-9 h-9 rounded-full border border-hairline bg-paper text-ink grid place-items-center hover:bg-ink hover:text-bone transition-colors" aria-label="Add ${p.name} to bag" data-slug="${p.slug}">
+          <svg class="w-4 h-4" viewBox="0 0 256 256" stroke="currentColor" stroke-width="22" stroke-linecap="round"><path d="M128 48v160M48 128h160"/></svg>
+        </button>
+      </div>
+    </article>`).join('') || '<p class="col-span-full text-stone">No designs in this filter yet.</p>';
+}
+
+document.getElementById('ugc').innerHTML = ugc.map(u => `
+  <figure class="snap-start shrink-0 w-[70%] sm:w-[45%] md:w-auto">
+    <div class="rounded-2xl overflow-hidden bg-shell aspect-[4/5]"><img src="https://nailsbymona.pk/storage/${u.img}-1080.webp" alt="${u.text}" class="w-full h-full object-cover" loading="lazy"></div>
+    <figcaption class="mt-2 text-[14px] text-graphite">${u.text} <span class="text-stone">· ${u.city}</span></figcaption>
+  </figure>`).join('');
+
+document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+  document.querySelectorAll('.chip').forEach(x => x.classList.toggle('is-on', x === c));
+  renderGrid(c.dataset.filter);
+}));
+
+let bag = 0;
+document.getElementById('grid').addEventListener('click', e => {
+  const b = e.target.closest('.quick-add'); if (!b) return;
+  // In the real build: window.NbmBag.add({...}) — opens the bag drawer + fires add_to_cart.
+  bag++; const bc = document.getElementById('bag-count'); bc.textContent = bag; bc.classList.remove('hidden');
+  const t = document.getElementById('toast'); t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1400);
+});
+
+// Sticky bar: show once the hero is out of view, hide over the footer.
+const bar = document.getElementById('sticky-cta');
+let heroGone = false, atFooter = false;
+const sync = () => bar.classList.toggle('show', heroGone && !atFooter);
+new IntersectionObserver(([e]) => { heroGone = !e.isIntersecting; sync(); }).observe(document.getElementById('hero'));
+new IntersectionObserver(([e]) => { atFooter = e.isIntersecting; sync(); }).observe(document.querySelector('footer'));
+
+renderGrid('all');
+</script>
+</body>
+</html>
