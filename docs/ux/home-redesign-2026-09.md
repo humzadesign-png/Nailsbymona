@@ -45,7 +45,6 @@ The current page answers them in the order 3 → 4 → 1 → 2, and 1 and 2 only
 
 | # | Section | Job | Replaces |
 |---|---|---|---|
-| 0 | Slim announcement bar — delivery + free-shipping threshold | Removes the "delivery cost?" question | — |
 | 1 | **Compact hero** — photo *not* covered, headline, "from Rs. 2,000", Shop CTA; product grid peeks below | Message match + price in first screen | Hero (80vh + frosted card) |
 | 2 | **Category chips** (All · Everyday · Glam · Bridal · Under Rs. 3,000) | Instagram-style browsing | Trust bar |
 | 3 | **Product grid**, 2-col, 8 designs with price + quick add | The page's main job | Collection (1 per screen) |
@@ -59,11 +58,22 @@ The current page answers them in the order 3 → 4 → 1 → 2, and 1 and 2 only
 
 Removed from the home page (still on their own pages): the phone-mockup sizing explainer (→ /size-guide), the studio story (→ /about), the tier pricing table (prices now on every card).
 
+## 5b. Refinement pass (2026-09-24, after review)
+
+**Announcement bar — removed.** A dark full-width "Free delivery over Rs. 5,000" strip reads as a discount-store promotion, not an atelier. It is also the wrong fact to lead with: delivery is Rs. 350 flat and single sets cost Rs. 2,000–4,500, so almost no one qualifies — the first thing a visitor would read is a cost. Delivery terms now sit, stated plainly, in the trust row ("Rs. 350 anywhere in Pakistan — free on orders over Rs. 5,000").
+
+**Consistency with the live site.** Everything reusable is copied from the live markup rather than approximated: header and footer, the /shop product card (tier badges, serif name, lavender price, full-width "Add to bag"), the /shop filter pills, the "How it works" numbered circles, the eyebrow → H2 → accent-rule heading pattern, the trust-bar layout, the primary button with its arrow, and the Phosphor-style 256-viewBox icons (stroke 12, lavender). New icons (card, heart) are drawn in the same style. "Mona's pick" badges were dropped in favour of the shop's tier badges.
+
+**Aesthetic fixes found in the pass.** Collection heading no longer wraps (link moved to the eyebrow row); long product names wrap instead of truncating, with price + button pinned so rows align; hero secondary link hidden on phones where it wrapped; bridal photo 4:3 on phones (was a full screen); widow on "Real hands."; tablet gets 3 product columns (6 designs), a 2×2 trust row and a smaller H1; section rhythm alternates bone → paper → shell → champagne → bone → paper → bone.
+
+Result on a 390×700 phone: 10.2 screens (live page 18.5), filter pills visible in the first screen, first product photo right at the fold, no horizontal overflow at 360 px.
+
 ## 6. What changes outside the page (for the build)
 
 - `/shop?tier=everyday` etc. so chips can deep-link (shop filter is client-side only today).
 - Ads should point at the matching product page, not `/` (Meta Ads Manager — Humza).
 - UTM tags on ad links to attribute orders per ad.
+- **WhatsApp number in Settings is still the placeholder `+923000000000`** — every WhatsApp link on the live site points there. Enter the real customer-care number in Admin → Settings.
 
 ## 7. How we'll know it worked (2 weeks after launch, vs. the numbers above)
 
