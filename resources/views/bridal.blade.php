@@ -479,7 +479,7 @@
       <a href="{{ route('product', $bp->slug) }}"
          class="group relative block rounded-2xl overflow-hidden img-wrap-fallback {{ $loop->first ? 'row-span-2' : '' }}"
          style="aspect-ratio:{{ $loop->first ? '1/2' : '1/1' }}; background:linear-gradient(135deg,#EAE3D9,#FBF8F2)">
-        <img src="{{ img_variant($bp->cover_image) }}"
+        <img src="{{ img_variant($bp->cover_image) }}" srcset="{{ img_srcset($bp->cover_image) }}" sizes="(min-width: 768px) 33vw, 50vw"
              alt="{{ $bp->name }} — bridal press-on nails"
              class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
              onerror="this.remove()" width="400" height="{{ $loop->first ? 800 : 400 }}" loading="lazy" decoding="async">

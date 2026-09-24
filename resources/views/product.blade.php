@@ -145,7 +145,7 @@
             $isCover = $img->path === $product->cover_image;
           @endphp
           <button class="thumb-btn shrink-0 w-20 h-20 rounded-xl overflow-hidden img-wrap-fallback {{ $isCover ? 'active' : '' }}" data-src="{{ $src }}">
-            <img src="{{ img_variant($img->path) }}" alt="{{ e($img->alt ?: $product->name) }}" class="w-full h-full object-cover" onerror="this.remove()" width="80" height="80" loading="lazy">
+            <img src="{{ img_variant($img->path, 600) }}" alt="{{ e($img->alt ?: $product->name) }}" class="w-full h-full object-cover" onerror="this.remove()" width="80" height="80" loading="lazy">
           </button>
           @endforeach
         </div>
@@ -378,12 +378,13 @@
             default                       => 'bg-shell/80 text-graphite',
         };
         $rpImg = img_variant($rp->cover_image);
+        $rpSet = img_srcset($rp->cover_image);
       @endphp
       <article class="bg-paper rounded-2xl overflow-hidden border border-hairline/60 hover:shadow-card-hover transition-shadow duration-300 group">
         <a href="{{ route('product', $rp->slug) }}">
           <div class="img-wrap-fallback aspect-square overflow-hidden">
             @if($rpImg)
-            <img src="{{ $rpImg }}" alt="{{ e($rp->name) }} {{ $rpTierLabel }} press-on nails" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" onerror="this.remove()" width="400" height="400" loading="lazy">
+            <img src="{{ $rpImg }}" srcset="{{ $rpSet }}" sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" alt="{{ e($rp->name) }} {{ $rpTierLabel }} press-on nails" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700" onerror="this.remove()" width="400" height="400" loading="lazy">
             @endif
           </div>
           <div class="p-5">

@@ -184,7 +184,7 @@ $blogPostSchema = json_encode([
       <div class="bg-paper rounded-2xl border border-hairline/80 overflow-hidden related-card">
         <a href="{{ route('product', $product->slug) }}" class="block aspect-square img-wrap-fallback overflow-hidden relative" style="background: linear-gradient(135deg, #EAE3D9 0%, #FBF8F2 60%, #D9D2C6 100%)">
           @if($product->cover_image)
-          <img src="{{ img_variant($product->cover_image) }}"
+          <img src="{{ img_variant($product->cover_image) }}" srcset="{{ img_srcset($product->cover_image) }}" sizes="(min-width: 640px) 33vw, 100vw"
                alt="{{ $product->name }}"
                class="w-full h-full object-cover related-card-img" loading="lazy">
           @endif
@@ -244,7 +244,7 @@ $blogPostSchema = json_encode([
       <a href="{{ route('blog.post', $related->slug) }}" class="group block rounded-2xl overflow-hidden border border-hairline/80 hover:shadow-card transition-shadow duration-300">
         <div class="aspect-[16/9] img-wrap-fallback overflow-hidden" style="background: linear-gradient(135deg, #EAE3D9 0%, #FBF8F2 60%, #D9D2C6 100%)">
           @if($related->cover_image)
-          <img src="{{ img_variant($related->cover_image) }}"
+          <img src="{{ img_variant($related->cover_image) }}" srcset="{{ img_srcset($related->cover_image) }}" sizes="(min-width: 640px) 33vw, 100vw"
                alt="{{ $related->cover_image_alt ?? $related->title }}"
                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" loading="lazy">
           @endif

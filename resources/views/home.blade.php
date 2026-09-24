@@ -122,13 +122,14 @@
           $tierValue = $product->tier?->value ?? '';
           $tierLabel = $product->tier?->label() ?? '';
           $imgSrc    = img_variant($product->cover_image);
+          $imgSet    = img_srcset($product->cover_image);
         @endphp
         {{-- 8 on phones + desktop; 6 on tablets so the 3-column grid has no half row --}}
         <article class="{{ $loop->index >= 6 ? 'md:max-lg:hidden ' : '' }}flex flex-col bg-paper rounded-2xl overflow-hidden group shadow-card hover:shadow-card-hover transition-shadow duration-300">
           <a href="{{ route('product', $product->slug) }}">
             <div class="relative overflow-hidden" style="aspect-ratio:1/1; background:linear-gradient(145deg,#EAE3D9 0%,#DDD3C7 100%)">
               @if($imgSrc)
-              <img src="{{ $imgSrc }}" alt="{{ $product->name }} — {{ $tierLabel }} tier custom-fit press-on nails"
+              <img src="{{ $imgSrc }}" srcset="{{ $imgSet }}" sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw" alt="{{ $product->name }} — {{ $tierLabel }} tier custom-fit press-on nails"
                    class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
                    width="400" height="400" loading="{{ $loop->index < 4 ? 'eager' : 'lazy' }}" decoding="async">
               @endif
@@ -147,7 +148,7 @@
               data-price="{{ $product->price_pkr }}"
               data-tier="{{ $tierValue }}"
               data-slug="{{ $product->slug }}"
-              data-image="{{ $imgSrc }}">
+              data-image="{{ img_variant($product->cover_image, 600) }}">
               Add to bag
             </button>
           </div>
@@ -287,7 +288,7 @@
       @foreach($ugcPhotos->take(4) as $photo)
       <figure class="snap-start shrink-0 w-[72%] sm:w-[44%] md:w-auto">
         <a href="{{ $photo->product ? route('product', $photo->product->slug) : route('shop') }}" class="block rounded-2xl overflow-hidden" style="aspect-ratio:4/5; background:linear-gradient(135deg,#EAE3D9,#FBF8F2)">
-          <img src="{{ img_variant($photo->image_path) }}" alt="{{ $photo->alt }}" class="w-full h-full object-cover" loading="lazy" decoding="async">
+          <img src="{{ img_variant($photo->image_path) }}" srcset="{{ img_srcset($photo->image_path) }}" sizes="(min-width: 768px) 25vw, 72vw" alt="{{ $photo->alt }}" class="w-full h-full object-cover" loading="lazy" decoding="async">
         </a>
         <figcaption class="mt-3 font-sans text-caption text-graphite leading-snug line-clamp-2">{{ $photo->alt }}</figcaption>
       </figure>

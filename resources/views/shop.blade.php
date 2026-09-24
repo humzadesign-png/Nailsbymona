@@ -93,6 +93,8 @@
               default                      => 'bg-paper/90 backdrop-blur-sm text-stone',
           };
           $imgSrc = img_variant($product->cover_image);
+          $imgSet = img_srcset($product->cover_image);
+          $imgSmall = img_variant($product->cover_image, 600);
           $imgAlt = e($product->name) . ' — ' . $tierLabel . ' tier custom-fit press-on nails';
       @endphp
       <article class="product-card bg-paper rounded-2xl overflow-hidden group shadow-card hover:shadow-card-hover transition-shadow duration-300"
@@ -100,7 +102,7 @@
         <a href="{{ route('product', $product->slug) }}">
           <div class="relative overflow-hidden" style="aspect-ratio:1/1; background:linear-gradient(145deg,#EAE3D9 0%,#DDD3C7 100%)">
             @if($imgSrc)
-            <img src="{{ $imgSrc }}" alt="{{ $imgAlt }}"
+            <img src="{{ $imgSrc }}" srcset="{{ $imgSet }}" sizes="(min-width: 768px) 33vw, 50vw" alt="{{ $imgAlt }}"
                  class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
                  onerror="this.parentElement.classList.add('no-img')" width="400" height="400" loading="{{ $loop->index < 2 ? 'eager' : 'lazy' }}" decoding="async">
             @else
@@ -127,7 +129,7 @@
             data-price="{{ $product->price_pkr }}"
             data-tier="{{ $tierValue }}"
             data-slug="{{ $product->slug }}"
-            data-image="{{ $imgSrc }}">
+            data-image="{{ $imgSmall }}">
             Add to bag
           </button>
         </div>

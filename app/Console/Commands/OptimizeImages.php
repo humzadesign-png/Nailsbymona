@@ -11,7 +11,7 @@ class OptimizeImages extends Command
 {
     protected $signature = 'images:optimize {--force : Redo images that already have a variant}';
 
-    protected $description = 'Shrink public-disk images to 2400px and create 1080px WebP grid variants';
+    protected $description = 'Shrink public-disk images to 2400px and create 600px + 1080px WebP grid variants';
 
     private const DIRS = ['products', 'ugc', 'blog', 'custom-designs'];
 
@@ -24,8 +24,8 @@ class OptimizeImages extends Command
 
         foreach (self::DIRS as $dir) {
             foreach ($disk->allFiles($dir) as $path) {
-                // Skip the variants themselves.
-                if (Str::endsWith($path, '-' . ImageOptimizer::VARIANT_WIDTH . '.webp')) {
+                // Skip the variants themselves (name-600.webp, name-1080.webp).
+                if (preg_match('/-(' . implode('|', array_keys(ImageOptimizer::VARIANTS)) . ')\.webp$/', $path)) {
                     continue;
                 }
 
